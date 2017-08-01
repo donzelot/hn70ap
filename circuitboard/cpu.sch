@@ -1,12 +1,5 @@
 EESchema Schematic File Version 2
-LIBS:ap-rescue
-LIBS:f4grx_conn
-LIBS:f4grx_cpu
-LIBS:f4grx_interface
-LIBS:f4grx_passive
-LIBS:f4grx_memory
-LIBS:f4grx_rf
-LIBS:f4grx_pow
+LIBS:apdep
 LIBS:ap-cache
 EELAYER 25 0
 EELAYER END
@@ -374,7 +367,7 @@ TDO
 Text Label 7800 1500 0    45   ~ 0
 TRST
 Text Notes 9100 3650 0    60   ~ 0
-TODO\nUART to debug\nSPI to Radio
+TODO\nSPI to Radio
 $Comp
 L I2C_EEPROM U302
 U 1 1 591F2269
@@ -599,8 +592,6 @@ F 3 "" H 2300 1300 60  0000 C CNN
 $EndComp
 Text HLabel 7100 4350 2    45   Input ~ 0
 MAC_LINK
-Text Notes 9500 3800 0    45   ~ 0
-TODO: GPIO for ETH link status
 Text HLabel 2250 2150 2    45   Input ~ 0
 RADIO_CS
 $Comp

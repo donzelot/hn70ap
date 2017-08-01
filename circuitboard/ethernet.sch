@@ -1,12 +1,5 @@
 EESchema Schematic File Version 2
-LIBS:ap-rescue
-LIBS:f4grx_conn
-LIBS:f4grx_cpu
-LIBS:f4grx_interface
-LIBS:f4grx_passive
-LIBS:f4grx_memory
-LIBS:f4grx_rf
-LIBS:f4grx_pow
+LIBS:apdep
 LIBS:ap-cache
 EELAYER 25 0
 EELAYER END

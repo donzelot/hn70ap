@@ -1,4 +1,4 @@
-update=25/07/2017 16:32:03
+update=mar. 01 août 2017 19:22:33 CEST
 version=1
 last_client=kicad
 [pcbnew]
@@ -25,18 +25,6 @@ version=1
 NetIExt=net
 [general]
 version=1
-[eeschema]
-version=1
-LibDir=../../../f4libs
-[eeschema/libraries]
-LibName1=ap-rescue
-LibName2=f4grx_conn
-LibName3=f4grx_cpu
-LibName4=f4grx_interface
-LibName5=f4grx_passive
-LibName6=f4grx_memory
-LibName7=f4grx_rf
-LibName8=f4grx_pow
 [schematic_editor]
 version=1
 PageLayoutDescrFile=
@@ -47,3 +35,8 @@ NetFmtName=
 SpiceForceRefPrefix=0
 SpiceUseNetNumbers=0
 LabSize=45
+[eeschema]
+version=1
+LibDir=.
+[eeschema/libraries]
+LibName1=apdep
