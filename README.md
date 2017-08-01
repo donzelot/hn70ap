@@ -31,12 +31,13 @@ $ mkdir nuttx
 $ cd nuttx
 $ git clone https://bitbucket.org/nuttx/nuttx
 $ git clone https://bitbucket.org/nuttx/apps
+$ cd nuttx
 ```
 Then you can clone the board config (This is NOT a submodule!)
 ```
-$ cd nuttx/configs
+$ cd configs
 $ git clone https://github.com/f4grx/hn70ap
-$ cd ../..
+$ cd ..
 ```
 Then build the binary image for this board:
 ```
