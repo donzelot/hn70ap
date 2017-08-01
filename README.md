@@ -3,8 +3,6 @@ Development board for modern packet radio on UHF
 
 This repository contains sources for a Kicad PCB and a NuttX board support package for the board.
 
-NuttX is a BSD licensed RTOS. This project is licensed as GPL to force code release from commercial users. For the moment it cannot be integrated into the upstream NuttX repository. The contributors to this project may change their mind later and allow relicencing to BSD for integration in the NuttX upstream repository.
-
 The schematic and board design is released under the CERN OHL license.
 
 Prerequisites
