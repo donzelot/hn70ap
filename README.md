@@ -16,7 +16,7 @@ Prerequisites
  
 Mandatory: Install toolchain
 ============================
-Open a bash shell console, then type commands (adapt them if you know what you are doing):
+Open a bash shell console, then type commands ONE BY ONE (adapt them if you know what you are doing):
 ```
 $ cd $HOME
 $ mkdir toolchains
