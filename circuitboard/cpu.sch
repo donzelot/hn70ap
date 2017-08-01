@@ -355,7 +355,7 @@ MAC_REFCLK
 Text HLabel 3600 3850 0    45   Input ~ 0
 MAC_MDC
 Text Notes 5400 4250 0    45   ~ 0
-STM32 EXTI\n 0 -\n 1 -\n 2 -\n 3 -\n 4 -\n 5 -\n 6 -\n 7 -\n 8 -\n 9 -\n10 -\n11 -\n12 - MAC_IRQ\n13 -\n14 -\n15 -\n\nTODO:\nRADIO_IRQ
+STM32 EXTI\n 0 - PC:PGOOD\n 1 -\n 2 -\n 3 -\n 4 -\n 5 -\n 6 -\n 7 -\n 8 -\n 9 -\n10 -\n11 -\n12 - PE:MAC_IRQ\n13 -\n14 -\n15 -\n\nTODO:\nRADIO_IRQ\nRFM_IRQ
 Text Label 7800 2650 0    45   ~ 0
 TMS
 Text Label 7800 1800 0    45   ~ 0
