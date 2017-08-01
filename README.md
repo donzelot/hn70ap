@@ -28,6 +28,15 @@ $ export PATH=$PATH:$HOME/toolchains/gcc-arm-none-eabi-5_4-2016q3/bin
 ```
 The last line makes the ARM compiler available in your shell environment. You can make that automatic, search the web. Otherwise you have to execute this last line in each new shell window.
 
+You can test that the toolchain is functional by typing this command and expecting this answer:
+```
+$ arm-none-eabi-gcc
+arm-none-eabi-gcc: fatal error: no input files
+compilation terminated.
+```
+
+If the command is not found, then the toolchain is not correctly installed and the following will NOT work.
+
 Optional: kconfig-frontends
 ===========================
 Skip for now. TODO, ./configure && make && make install
