@@ -16,6 +16,15 @@ Prerequisites
  
 Mandatory: Install toolchain
 ============================
+The arm-none-eabi toolchain provided by your distro probably does not work OK. You may be lucky but this is not widespread enough. So we're installing a really working toolchain.
+
+The hardest way: compile a toolchain
+------------------------------------
+Hey this is a beginner guide. you dont need my guide if you are doing that. Help yourself!
+
+The hard way: download and install
+----------------------------------
+
 Open a bash shell console, then type commands ONE BY ONE (adapt them if you know what you are doing):
 ```
 $ cd $HOME
@@ -27,6 +36,19 @@ $ cd $HOME
 $ export PATH=$PATH:$HOME/toolchains/gcc-arm-none-eabi-5_4-2016q3/bin
 ```
 The last line makes the ARM compiler available in your shell environment. You can make that automatic, search the web. Otherwise you have to execute this last line in each new shell window.
+
+The easy way for ubuntu based distros
+-------------------------------------
+
+There is a ppa
+```
+sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa
+sudo apt-get update
+sudo apt-get install gcc-arm-embedded
+```
+
+Toolchain test
+--------------
 
 You can test that the toolchain is functional by typing this command and expecting this answer:
 ```
