@@ -31,17 +31,29 @@ $ mkdir nuttx
 $ cd nuttx
 $ git clone https://bitbucket.org/nuttx/nuttx
 $ git clone https://bitbucket.org/nuttx/apps
+```
+Then you can clone the board config (This is NOT a submodule!)
+```
 $ cd nuttx/configs
 $ git clone https://github.com/f4grx/hn70ap
 $ cd ../..
+```
+Then build the binary image for this board:
+```
 $ tools/configure.sh hn70ap/nsh
 $ make
 ```
-This should end up with an ELF binary 'nuttx'
+This should end up with an ELF binary 'nuttx', and binary images nuttx.bin and nuttx.hex
 
-You then have to flash this binary on your board
+You then have to flash this binary on your board, probably with OpenOCD.
 
 This will give you a basic shell, type help to show basic commands. This can be used to validate the behaviour of the board's CPU.
+
+Flashing without JTAG
+=====================
+
+This will be possible later, when the bootloader is made ready. The hardware is ready to support that.
+A python tool will build an update image from the nuttx elf output, and you will be able to send that image via ethernet.
 
 Advanced build
 ==============
