@@ -1,4 +1,6 @@
-#Circuit board for hn70ap
+Circuit board for hn70ap
+========================
+
 This folder contains the KiCAD board used by the hn70ap project.
 
 It is released under the CERN OHL.
