@@ -24,7 +24,7 @@ $ cd toolchains
 $ wget -O toolchain.tar.bz2 https://launchpad.net/gcc-arm-embedded/5.0/5-2016-q3-update/+download/gcc-arm-none-eabi-5_4-2016q3-20160926-linux.tar.bz2
 $ tar jxvf toolchain.tar.bz2
 $ cd $HOME
-$ export PATH=$PATH:$HOME/toolchains/gcc-arm-none-eabi-5_4-2016q3-20160926-linux/bin
+$ export PATH=$PATH:$HOME/toolchains/gcc-arm-none-eabi-5_4-2016q3/bin
 ```
 The last line makes the ARM compiler available in your shell environment. You can make that automatic, search the web. Otherwise you have to execute this last line in each new shell window.
 
