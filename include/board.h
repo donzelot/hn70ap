@@ -56,7 +56,7 @@
  ************************************************************************************/
 
 /* Clocking *************************************************************************/
-/* The STM32F4 Discovery board features a single 8MHz crystal.  Space is provided
+/* The STM32F4 Discovery board features a single 20MHz crystal.  Space is provided
  * for a 32kHz RTC backup crystal, but it is not stuffed.
  *
  * This is the canonical configuration:
@@ -66,27 +66,27 @@
  *   AHB Prescaler                 : 1            (STM32_RCC_CFGR_HPRE)
  *   APB1 Prescaler                : 4            (STM32_RCC_CFGR_PPRE1)
  *   APB2 Prescaler                : 2            (STM32_RCC_CFGR_PPRE2)
- *   HSE Frequency(Hz)             : 8000000      (STM32_BOARD_XTAL)
- *   PLLM                          : 8            (STM32_PLLCFG_PLLM)
- *   PLLN                          : 336          (STM32_PLLCFG_PLLN)
+ *   HSE Frequency(Hz)             : 20000000     (STM32_BOARD_XTAL)
+ *   PLLM                          : 20           (STM32_PLLCFG_PLLM)
+ *   PLLN                          : 360          (STM32_PLLCFG_PLLN)
  *   PLLP                          : 2            (STM32_PLLCFG_PLLP)
- *   PLLQ                          : 7            (STM32_PLLCFG_PLLQ)
+ *   PLLQ                          : TODO         (STM32_PLLCFG_PLLQ)
  *   Main regulator output voltage : Scale1 mode  Needed for high speed SYSCLK
  *   Flash Latency(WS)             : 5
  *   Prefetch Buffer               : OFF
  *   Instruction cache             : ON
  *   Data cache                    : ON
- *   Require 48MHz for USB OTG FS, : Enabled
+ *   Require 48MHz for USB OTG FS, : Disabled
  *   SDIO and RNG clock
  */
 
 /* HSI - 16 MHz RC factory-trimmed
  * LSI - 32 KHz RC
- * HSE - On-board crystal frequency is 8MHz
+ * HSE - On-board crystal frequency is 20MHz
  * LSE - 32.768 kHz
  */
 
-#define STM32_BOARD_XTAL        8000000ul
+#define STM32_BOARD_XTAL        20000000ul
 
 #define STM32_HSI_FREQUENCY     16000000ul
 #define STM32_LSI_FREQUENCY     32000
@@ -97,29 +97,26 @@
  *
  * PLL source is HSE
  * PLL_VCO = (STM32_HSE_FREQUENCY / PLLM) * PLLN
- *         = (8,000,000 / 8) * 336
- *         = 336,000,000
+ *         = (20,000,000 / 20) * 360
+ *         = 360,000,000
  * SYSCLK  = PLL_VCO / PLLP
- *         = 336,000,000 / 2 = 168,000,000
- * USB OTG FS, SDIO and RNG Clock
- *         =  PLL_VCO / PLLQ
- *         = 48,000,000
+ *         = 360,000,000 / 2 = 180,000,000
  */
 
-#define STM32_PLLCFG_PLLM       RCC_PLLCFG_PLLM(8)
-#define STM32_PLLCFG_PLLN       RCC_PLLCFG_PLLN(336)
+#define STM32_PLLCFG_PLLM       RCC_PLLCFG_PLLM(20)
+#define STM32_PLLCFG_PLLN       RCC_PLLCFG_PLLN(360)
 #define STM32_PLLCFG_PLLP       RCC_PLLCFG_PLLP_2
 #define STM32_PLLCFG_PLLQ       RCC_PLLCFG_PLLQ(7)
 
-#define STM32_SYSCLK_FREQUENCY  168000000ul
+#define STM32_SYSCLK_FREQUENCY  180000000ul
 
-/* AHB clock (HCLK) is SYSCLK (168MHz) */
+/* AHB clock (HCLK) is SYSCLK (180MHz) */
 
 #define STM32_RCC_CFGR_HPRE     RCC_CFGR_HPRE_SYSCLK  /* HCLK  = SYSCLK / 1 */
 #define STM32_HCLK_FREQUENCY    STM32_SYSCLK_FREQUENCY
 #define STM32_BOARD_HCLK        STM32_HCLK_FREQUENCY  /* same as above, to satisfy compiler */
 
-/* APB1 clock (PCLK1) is HCLK/4 (42MHz) */
+/* APB1 clock (PCLK1) is HCLK/4 (45MHz) */
 
 #define STM32_RCC_CFGR_PPRE1    RCC_CFGR_PPRE1_HCLKd4     /* PCLK1 = HCLK / 4 */
 #define STM32_PCLK1_FREQUENCY   (STM32_HCLK_FREQUENCY/4)
@@ -136,7 +133,7 @@
 #define STM32_APB1_TIM13_CLKIN  (2*STM32_PCLK1_FREQUENCY)
 #define STM32_APB1_TIM14_CLKIN  (2*STM32_PCLK1_FREQUENCY)
 
-/* APB2 clock (PCLK2) is HCLK/2 (84MHz) */
+/* APB2 clock (PCLK2) is HCLK/2 (90MHz) */
 
 #define STM32_RCC_CFGR_PPRE2    RCC_CFGR_PPRE2_HCLKd2     /* PCLK2 = HCLK / 2 */
 #define STM32_PCLK2_FREQUENCY   (STM32_HCLK_FREQUENCY/2)
@@ -174,8 +171,8 @@
 #define BOARD_LED2        1
 #define BOARD_NLEDS       2
 
-#define BOARD_LED_GREEN   BOARD_LED1
-#define BOARD_LED_ORANGE  BOARD_LED2
+#define BOARD_LED_LINK    BOARD_LED1
+#define BOARD_LED_BOOT    BOARD_LED2
 
 /* LED bits for use with board_userled_all() */
 
@@ -200,7 +197,7 @@
 
 #define BUTTON_USER        0
 
-#define NUM_BUTTONS        1
+#define NUM_BUTTONS        0
 
 #define BUTTON_USER_BIT    (1 << BUTTON_USER)
 
