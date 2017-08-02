@@ -83,16 +83,16 @@ The main radio transceiver is a si4463 with separate TX and RX signals along wit
 MOSI4  PE6/5
 MISO4  PE5/4
 SCLK4  PE2/1
-CS     Pxx TODO
-IRQ    Pxx TODO
+CS     PE4/3
+IRQ    PC13/7
 ```
 
 Secondary radio transceiver
 ---------------------------
 The secondary radio transceiver is an off-the-shelf RFM26W from HopeRF. It is also based on the Silabs si4463. The matching is on-board and there are several frequency bands available. The device shares the same SPI4 bus as the main transceiver
 ```
-CS    Pxx TODO
-IRQ   Pxx TODO
+CS    PA3/26
+IRQ   PA6/31
 ```
 Power supply
 ------------
