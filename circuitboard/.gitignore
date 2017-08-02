@@ -2,5 +2,7 @@
 *.bck
 *.kicad_pcb-bak
 ap.net
+ap.xml
+ap-cache.lib
 *.pdf
 
