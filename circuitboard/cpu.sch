@@ -366,8 +366,6 @@ Text Label 7800 1600 0    45   ~ 0
 TDO
 Text Label 7800 1500 0    45   ~ 0
 TRST
-Text Notes 9100 3650 0    60   ~ 0
-TODO\nSPI to Radio
 $Comp
 L I2C_EEPROM U302
 U 1 1 591F2269
@@ -523,7 +521,7 @@ Text HLabel 3350 2350 0    45   Input ~ 0
 RADIO_SCLK
 Text HLabel 3350 2950 0    45   Input ~ 0
 RADIO_IRQ
-Text HLabel 2250 2750 2    45   Input ~ 0
+Text HLabel 3350 2450 0    45   Input ~ 0
 RADIO_SDN
 Text Label 10300 1900 0    45   ~ 0
 SCL
@@ -942,4 +940,6 @@ Wire Wire Line
 	3350 2950 3750 2950
 Wire Wire Line
 	3350 2550 3750 2550
+Wire Wire Line
+	3350 2450 3750 2450
 $EndSCHEMATC
