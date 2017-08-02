@@ -369,7 +369,7 @@ RADIO_MISO
 Text HLabel 1750 5350 0    45   Input ~ 0
 RADIO_SCLK
 Text HLabel 1750 5550 0    45   Input ~ 0
-RADIO_IRQ
+RADIO_IRQ2
 Text Label 3600 5350 0    45   ~ 0
 VRFM
 $Comp

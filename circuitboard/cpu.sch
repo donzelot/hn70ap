@@ -513,7 +513,7 @@ Text Label 7100 4450 0    45   ~ 0
 FLASH_MOSI
 Text Label 6250 5550 3    45   ~ 0
 FLASH_SCLK
-Text HLabel 2250 2250 2    45   Input ~ 0
+Text HLabel 4150 5800 3    45   Input ~ 0
 RADIO_CS2
 Text HLabel 3350 2650 0    45   Input ~ 0
 RADIO_MISO
@@ -521,7 +521,7 @@ Text HLabel 3350 2750 0    45   Input ~ 0
 RADIO_MOSI
 Text HLabel 3350 2350 0    45   Input ~ 0
 RADIO_SCLK
-Text HLabel 2250 2650 2    45   Input ~ 0
+Text HLabel 3350 2950 0    45   Input ~ 0
 RADIO_IRQ
 Text HLabel 2250 2750 2    45   Input ~ 0
 RADIO_SDN
@@ -592,7 +592,7 @@ F 3 "" H 2300 1300 60  0000 C CNN
 $EndComp
 Text HLabel 7100 4350 2    45   Input ~ 0
 MAC_LINK
-Text HLabel 2250 2150 2    45   Input ~ 0
+Text HLabel 3350 2550 0    45   Input ~ 0
 RADIO_CS
 $Comp
 L GND #PWR059
@@ -683,6 +683,61 @@ Text Notes 4650 1900 1    45   ~ 0
 SCL1
 Text Notes 4550 1900 1    45   ~ 0
 SDA1
+Text Label 7100 3150 0    45   ~ 0
+SCL
+Text Label 7100 3250 0    45   ~ 0
+SDA
+Text Notes 5850 1900 1    45   ~ 0
+RX5
+Text Notes 5550 1900 1    45   ~ 0
+TX2
+$Comp
+L GND #PWR061
+U 1 1 597FEEF2
+P 8650 1150
+F 0 "#PWR061" H 8650 1150 30  0001 C CNN
+F 1 "GND" H 8650 1080 30  0001 C CNN
+F 2 "" H 8650 1150 60  0000 C CNN
+F 3 "" H 8650 1150 60  0000 C CNN
+	1    8650 1150
+	0    1    1    0   
+$EndComp
+$Comp
+L VDD #PWR062
+U 1 1 597FF06C
+P 8700 1050
+F 0 "#PWR062" H 8700 1150 30  0001 C CNN
+F 1 "VDD" V 8717 1158 30  0000 L CNN
+F 2 "" H 8700 1050 60  0000 C CNN
+F 3 "" H 8700 1050 60  0000 C CNN
+	1    8700 1050
+	0    -1   -1   0   
+$EndComp
+Text Label 9200 1450 0    45   ~ 0
+NRST
+$Comp
+L CONN_2x5 P301
+U 1 1 597FF4D9
+P 8950 1250
+F 0 "P301" H 8950 1687 60  0000 C CNN
+F 1 "CONN_2x5" H 8950 1581 60  0000 C CNN
+F 2 "apdep:pin_array_2x05" H 9150 1000 60  0001 C CNN
+F 3 "" H 9150 1000 60  0000 C CNN
+	1    8950 1250
+	1    0    0    -1  
+$EndComp
+Text Label 9200 1050 0    45   ~ 0
+TMS
+Text Label 9200 1150 0    45   ~ 0
+TCK
+Text Label 9200 1250 0    45   ~ 0
+TDO
+Text Label 9200 1350 0    45   ~ 0
+TDI
+Text Label 8600 1350 2    45   ~ 0
+TRST
+Text HLabel 4650 5800 3    45   Input ~ 0
+RADIO_IRQ2
 Wire Wire Line
 	6950 2550 7200 2550
 Wire Wire Line
@@ -837,57 +892,12 @@ Wire Wire Line
 	7100 3250 6950 3250
 Wire Wire Line
 	7100 3050 6950 3050
-Text Label 7100 3150 0    45   ~ 0
-SCL
 Wire Wire Line
 	7100 3150 6950 3150
-Text Label 7100 3250 0    45   ~ 0
-SDA
 Wire Wire Line
 	7100 4350 6950 4350
-Text Notes 5850 1900 1    45   ~ 0
-RX5
-Text Notes 5550 1900 1    45   ~ 0
-TX2
-$Comp
-L GND #PWR061
-U 1 1 597FEEF2
-P 8650 1150
-F 0 "#PWR061" H 8650 1150 30  0001 C CNN
-F 1 "GND" H 8650 1080 30  0001 C CNN
-F 2 "" H 8650 1150 60  0000 C CNN
-F 3 "" H 8650 1150 60  0000 C CNN
-	1    8650 1150
-	0    1    1    0   
-$EndComp
-$Comp
-L VDD #PWR062
-U 1 1 597FF06C
-P 8700 1050
-F 0 "#PWR062" H 8700 1150 30  0001 C CNN
-F 1 "VDD" V 8717 1158 30  0000 L CNN
-F 2 "" H 8700 1050 60  0000 C CNN
-F 3 "" H 8700 1050 60  0000 C CNN
-	1    8700 1050
-	0    -1   -1   0   
-$EndComp
-Text Label 9200 1450 0    45   ~ 0
-NRST
-$Comp
-L CONN_2x5 P301
-U 1 1 597FF4D9
-P 8950 1250
-F 0 "P301" H 8950 1687 60  0000 C CNN
-F 1 "CONN_2x5" H 8950 1581 60  0000 C CNN
-F 2 "apdep:pin_array_2x05" H 9150 1000 60  0001 C CNN
-F 3 "" H 9150 1000 60  0000 C CNN
-	1    8950 1250
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	8700 1050 8800 1050
-Text Label 9200 1050 0    45   ~ 0
-TMS
 Wire Wire Line
 	6450 1700 7800 1700
 Wire Wire Line
@@ -902,12 +912,6 @@ Wire Wire Line
 	9200 1350 9100 1350
 Wire Wire Line
 	9200 1450 9100 1450
-Text Label 9200 1150 0    45   ~ 0
-TCK
-Text Label 9200 1250 0    45   ~ 0
-TDO
-Text Label 9200 1350 0    45   ~ 0
-TDI
 Wire Wire Line
 	8650 1150 8800 1150
 Wire Wire Line
@@ -918,8 +922,6 @@ Connection ~ 8700 1150
 Wire Wire Line
 	8700 1450 8800 1450
 Connection ~ 8700 1250
-Text Label 8600 1350 2    45   ~ 0
-TRST
 Wire Wire Line
 	8600 1350 8800 1350
 Wire Wire Line
@@ -930,4 +932,14 @@ Wire Wire Line
 	6250 1950 6250 1200
 Wire Wire Line
 	3600 3750 3750 3750
+Wire Wire Line
+	4650 5150 4650 5800
+Wire Wire Line
+	4150 5800 4150 5150
+Wire Wire Line
+	3350 3150 3750 3150
+Wire Wire Line
+	3350 2950 3750 2950
+Wire Wire Line
+	3350 2550 3750 2550
 $EndSCHEMATC
