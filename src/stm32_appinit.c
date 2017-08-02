@@ -114,10 +114,6 @@ int board_app_initialize(uintptr_t arg)
 
 #if defined(CONFIG_MTD) && defined(CONFIG_MTD_SST25XX)
   int ret;
-#elif defined(HAVE_USBHOST) || defined(HAVE_USBMONITOR)
-  int ret;
-#elif defined(CONFIG_SENSORS_L3GD20)
-  int ret;
 #endif
 
   /* Configure SPI-based devices */

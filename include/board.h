@@ -210,8 +210,8 @@
  * (See the README.txt file for other options)
  */
 
-#define GPIO_USART1_RX GPIO_USART1_RX_1
-#define GPIO_USART1_TX GPIO_USART1_TX_1
+#define GPIO_UART4_RX GPIO_UART4_RX_1
+#define GPIO_UART4_TX GPIO_UART4_TX_1
 
 /* I2C - There is a STMPE811 TouchPanel on I2C3 using these pins: */
 
@@ -220,9 +220,9 @@
 
 /* SPI - There is a MEMS device on SPI5 using these pins: */
 
-#define GPIO_SPI5_MISO GPIO_SPI5_MISO_1
-#define GPIO_SPI5_MOSI GPIO_SPI5_MOSI_1
-#define GPIO_SPI5_SCK  GPIO_SPI5_SCK_1
+#define GPIO_SPI2_MISO GPIO_SPI2_MISO_1
+#define GPIO_SPI2_MOSI GPIO_SPI2_MOSI_1
+#define GPIO_SPI2_SCK  GPIO_SPI2_SCK_1
 
 /* SPI - External SPI flash may be connected on SPI4: */
 
@@ -230,6 +230,10 @@
 #define GPIO_SPI4_MOSI GPIO_SPI4_MOSI_1
 #define GPIO_SPI4_SCK  GPIO_SPI4_SCK_1
 
+/* Ethernet - Not all pins can be configured, some of them are dedicated. */
+#define GPIO_ETH_RMII_TXD0  GPIO_ETH_RMII_TXD0_1
+#define GPIO_ETH_RMII_TXD1  GPIO_ETH_RMII_TXD1_1
+#define GPIO_ETH_RMII_TX_EN GPIO_ETH_RMII_TX_EN_1
 
 /************************************************************************************
  * Public Data
