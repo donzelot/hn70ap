@@ -116,11 +116,11 @@ LEDs
 Some LEDs will be added. They are connected to the supply voltage so outputs can be configured as open drain. Signification of signals may change in the future.
 
 ```
-LED1  Pxx TODO (Red - Status 1)
+LED1  PB9/96 (Red - Status 1)
 LED2  Pxx TODO (Green - Status 2)
-LED3  Pxx TODO (Green - Clients connected)
-LED4  Pxx TODO (Orange - Transmit)
-LED5  Pxx TODO (Green - Receive)
+LED3  PB8/95 (Blue - Clients connected)
+LED4  PB7/93 (Orange - Transmit)
+LED5  PB6/92 (Green - Receive)
 ```
 
 eof
