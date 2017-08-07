@@ -203,37 +203,30 @@
 
 /* Alternate function pin selections ************************************************/
 
-/* UART2:
- *
- * The STM32F4 Discovery has no on-board serial devices, but the console is
- * brought out to PA2 (TX) and PA3 (RX) for connection to an external serial device.
- * (See the README.txt file for other options)
- */
-
-#define GPIO_UART4_RX GPIO_UART4_RX_1
-#define GPIO_UART4_TX GPIO_UART4_TX_1
+#define GPIO_UART4_RX GPIO_UART4_RX_2 /* PC10 */
+#define GPIO_UART4_TX GPIO_UART4_TX_2 /* PC11 */
 
 /* I2C - There is a STMPE811 TouchPanel on I2C3 using these pins: */
 
-#define GPIO_I2C3_SCL GPIO_I2C3_SCL_1
-#define GPIO_I2C3_SDA GPIO_I2C3_SDA_1
+#define GPIO_I2C3_SCL GPIO_I2C3_SCL_1 /* PA8 */
+#define GPIO_I2C3_SDA GPIO_I2C3_SDA_1 /* PC9 */
 
 /* SPI - There is a MEMS device on SPI5 using these pins: */
 
-#define GPIO_SPI2_MISO GPIO_SPI2_MISO_1
-#define GPIO_SPI2_MOSI GPIO_SPI2_MOSI_1
-#define GPIO_SPI2_SCK  GPIO_SPI2_SCK_1
+#define GPIO_SPI2_MISO GPIO_SPI2_MISO_1 /* PB14 */
+#define GPIO_SPI2_MOSI GPIO_SPI2_MOSI_1 /* PB15 */
+#define GPIO_SPI2_SCK  GPIO_SPI2_SCK_1 /*  PB10 */
 
 /* SPI - External SPI flash may be connected on SPI4: */
 
-#define GPIO_SPI4_MISO GPIO_SPI4_MISO_1
-#define GPIO_SPI4_MOSI GPIO_SPI4_MOSI_1
-#define GPIO_SPI4_SCK  GPIO_SPI4_SCK_1
+#define GPIO_SPI4_MISO GPIO_SPI4_MISO_1 /* PE5 */
+#define GPIO_SPI4_MOSI GPIO_SPI4_MOSI_1 /* PE6 */
+#define GPIO_SPI4_SCK  GPIO_SPI4_SCK_1  /* PE2 */
 
 /* Ethernet - Not all pins can be configured, some of them are dedicated. */
-#define GPIO_ETH_RMII_TXD0  GPIO_ETH_RMII_TXD0_1
-#define GPIO_ETH_RMII_TXD1  GPIO_ETH_RMII_TXD1_1
-#define GPIO_ETH_RMII_TX_EN GPIO_ETH_RMII_TX_EN_1
+#define GPIO_ETH_RMII_TXD0  GPIO_ETH_RMII_TXD0_1 /* PB12 */
+#define GPIO_ETH_RMII_TXD1  GPIO_ETH_RMII_TXD1_1 /* PB13 */
+#define GPIO_ETH_RMII_TX_EN GPIO_ETH_RMII_TX_EN_1 /* PB11 */
 
 /************************************************************************************
  * Public Data
