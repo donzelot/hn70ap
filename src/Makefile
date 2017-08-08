@@ -1,8 +1,10 @@
 ############################################################################
-# configs/stm32f429i-disco/src/Makefile
+# configs/hn70ap/src/Makefile
 #
 #   Copyright (C) 2011-2013 Gregory Nutt. All rights reserved.
 #   Author: Gregory Nutt <gnutt@nuttx.org>
+#   Copyright (C) 2017 Sebastien F4GRX. All rights reserved.
+#   Author: Sebastien F4GRX <f4grx@f4grx.net>
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,7 +38,7 @@
 -include $(TOPDIR)/Make.defs
 
 ASRCS =
-CSRCS = stm32_boot.c stm32_spi.c
+CSRCS = bootloader.c stm32_boot.c stm32_spi.c
 
 ifeq ($(CONFIG_ARCH_LEDS),y)
 CSRCS += stm32_autoleds.c
@@ -55,5 +57,11 @@ endif
 ifeq ($(CONFIG_ARCH_FPU),y)
 CSRCS += stm32_ostest.c
 endif
+
+stm32_boot.c: grxversion.h
+
+.PHONY: stm32_boot.c grxversion.h
+grxversion.h:
+	$(shell echo "#define GRXVERSION \"$(shell git describe --always --dirty)\"" > $@)
 
 include $(TOPDIR)/configs/Board.mk
