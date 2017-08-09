@@ -1,4 +1,4 @@
-update=mar. 01 août 2017 19:22:33 CEST
+update=mer. 09 août 2017 08:11:52 CEST
 version=1
 last_client=kicad
 [pcbnew]
@@ -40,3 +40,5 @@ version=1
 LibDir=.
 [eeschema/libraries]
 LibName1=apdep
+LibName2=oc-squalyl/projects/f4libs/f4grx_conn
+LibName3=oc-squalyl/projects/f4libs/f4grx_passive
