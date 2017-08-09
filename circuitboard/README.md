@@ -123,4 +123,11 @@ LED4  PB7/93 (Orange - Transmit)
 LED5  PB6/92 (Green - Receive)
 ```
 
+Current TODOLIST
+================
+* Finish rerouting to include PSU and main radio under the shields
+* Set one led as bipolar bicolor
+* Add one CPU load LED with test point and one heartbeat LED (SMD, not visible from outside)
+* Add holes for a mezzanine board and try to route one I2C and one UART, with 5V and GND. Future additional functions!
+
 eof
