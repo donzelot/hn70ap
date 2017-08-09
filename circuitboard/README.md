@@ -19,10 +19,11 @@ Clocks
 ======
  * Ethernet PHY has a 25 MHx XTAL that gets doubled to generate the RMII reference clock
  * SI4463 has a 30 MHz XTAL for its own use
- * CPU has no xtal yet, could use a 20 MHz xtal to reach its max clock speed of 180 MHz with correct accuracy (TODO)
- * CPU 32 kHz clock will be connected to a watch xtal (TODO)
+ * CPU HSE is connected to a 20 MHz xtal to reach its max clock speed of 180 MHz with correct accuracy
+ * CPU 32 kHz clock is connected to a watch xtal
 
-Another design that I know has the 25 MHz xtal on the cpu, then feeds a 25 MHz MCO line to the PHY, which doubles it and feeds it back to the RMII clock input. Weird delay loop calculations, long RF lines, not good. 20 MHz provides easier delay calculations.
+Another design that I know has the 25 MHz xtal on the cpu, then feeds a 25 MHz MCO line to the PHY, which doubles it and feeds it back to the RMII clock input.
+Weird delay loop calculations, long RF lines, not good.
 
 CPU peripheral connections
 ==========================
@@ -113,19 +114,25 @@ PGOOD  PC0/15
 
 LEDs
 ----
-Some LEDs will be added. They are connected to the supply voltage so outputs can be configured as open drain. Signification of signals may change in the future.
+Some LEDs will be added. They are connected to the supply voltage so driving outputs can be configured as open drain. Signification of signals may change in the future.
 
 ```
-LED1  PB9/96 (Red - Status 1)
-LED2  Pxx TODO (Green - Status 2)
-LED3  PB8/95 (Blue - Clients connected)
-LED4  PB7/93 (Orange - Transmit)
-LED5  PB6/92 (Green - Receive)
+LED1  (D301, Panel)    PB9/96 + PE0/97 (Bicolor Green/Red - Status)
+LED2  (D302, Panel)    PB8/95 (Blue - Clients connected)
+LED3  (D303, Panel)    PB7/93 (Orange - Transmit)
+LED4  (D304, Panel)    PB6/92 (Green - Receive)
+LED5  (D305, Internal) PD15/62 (Green - Heartbeat)
+LED6  (D306, Internal) PD11/58 (Green - CPU Activity)
+LED7  (D401, Internal)         (Red - FTDI TX)
+LED8  (D402, Internal)         (Green - FTDI RX)
+LED9  (J201, Ethernet)         (Ethernet activity)
+LED10 (J201, Ethernet) PD8/55  (Ethernet link status)
 ```
 
 Current TODOLIST
 ================
-* Finish rerouting to include PSU and main radio under the shields
-* Add holes for a mezzanine board and try to route one I2C and one UART, with 5V and GND. Future additional functions!
+* Finish rerouting to include main radio under the shield S501
+* Envision a PWROK LED on the back side
+* Finish FTDI led routing
 
 eof
