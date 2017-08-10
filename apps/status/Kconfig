@@ -1,0 +1,30 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+config HN70AP_STATUS
+	bool "\"Hello, World!\" example for hn70ap"
+	default n
+	---help---
+		Enable the \"Hello, World!\" example for hn70ap
+
+if HN70AP_STATUS
+
+config HN70AP_STATUS_PROGNAME
+	string "Program name"
+	default "status"
+	depends on BUILD_KERNEL
+	---help---
+		This is the name of the program that will be use when the NSH ELF
+		program is installed.
+
+config HN70AP_STATUS_PRIORITY
+	int "Hello hn70ap task priority"
+	default 100
+
+config HN70AP_STATUS_STACKSIZE
+	int "Hello hn70ap stack size"
+	default 2048
+
+endif
