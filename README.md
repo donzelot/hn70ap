@@ -86,10 +86,10 @@ $ cd ..
 ```
 Then build the binary image for this board:
 ```
-$ tools/configure.sh hn70ap/nsh
+$ tools/configure.sh hn70ap/build/nsh
 $ make
 ```
-This should end up with an ELF binary 'nuttx', and binary images nuttx.bin and nuttx.hex
+This should end up with an ELF binary 'nuttx', and binary images nuttx.bin
 
 You then have to flash this binary on your board, probably with OpenOCD.
 
