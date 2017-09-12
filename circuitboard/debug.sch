@@ -1,8 +1,5 @@
 EESchema Schematic File Version 2
 LIBS:apdep
-LIBS:f4grx_conn
-LIBS:f4grx_passive
-LIBS:ap-cache
 EELAYER 25 0
 EELAYER END
 $Descr A4 11693 8268
