@@ -1,5 +1,6 @@
 EESchema Schematic File Version 2
 LIBS:apdep
+LIBS:ap-cache
 EELAYER 25 0
 EELAYER END
 $Descr A4 11693 8268
@@ -688,17 +689,7 @@ Wire Wire Line
 Wire Wire Line
 	2250 1300 2250 1750
 Wire Wire Line
-	700  1300 1100 1300
-Wire Wire Line
-	1100 1300 1400 1300
-Wire Wire Line
-	1400 1300 1700 1300
-Wire Wire Line
-	1700 1300 2250 1300
-Wire Wire Line
-	2250 1300 2450 1300
-Wire Wire Line
-	2450 1300 3000 1300
+	700  1300 3000 1300
 Wire Wire Line
 	2450 1300 2450 1750
 Connection ~ 2450 1300
@@ -716,9 +707,7 @@ Wire Wire Line
 Wire Wire Line
 	3000 2250 2850 2250
 Wire Wire Line
-	3000 1900 3000 2000
-Wire Wire Line
-	3000 2000 3000 2250
+	3000 1900 3000 2250
 Wire Wire Line
 	3150 2000 3000 2000
 Connection ~ 3000 2000
@@ -727,27 +716,19 @@ Wire Wire Line
 Wire Wire Line
 	3850 2100 3850 2000
 Wire Wire Line
-	3750 2000 3850 2000
-Wire Wire Line
-	3850 2000 3950 2000
+	3750 2000 3950 2000
 Connection ~ 3850 2000
 Wire Wire Line
 	4350 2100 4350 2000
 Wire Wire Line
-	4250 2000 4350 2000
-Wire Wire Line
-	4350 2000 4450 2000
+	4250 2000 4450 2000
 Connection ~ 4350 2000
 Wire Wire Line
 	2850 2350 3650 2350
 Wire Wire Line
 	2850 2450 3250 2450
 Wire Wire Line
-	3250 2450 3250 2900
-Wire Wire Line
-	3250 2900 3250 3250
-Wire Wire Line
-	3250 3250 3250 3350
+	3250 2450 3250 3350
 Wire Wire Line
 	3300 2900 3250 2900
 Connection ~ 3250 2900
@@ -756,26 +737,14 @@ Wire Wire Line
 Wire Wire Line
 	2950 2950 2950 2550
 Wire Wire Line
-	3600 2900 3650 2900
-Wire Wire Line
-	3650 2900 3750 2900
+	3600 2900 3750 2900
 Connection ~ 3650 2900
 Wire Wire Line
-	4650 2000 4800 2000
+	4650 2000 5300 2000
 Wire Wire Line
-	4800 2000 5300 2000
+	2050 1200 3350 1200
 Wire Wire Line
-	2050 1200 2400 1200
-Wire Wire Line
-	2400 1200 2900 1200
-Wire Wire Line
-	2900 1200 3350 1200
-Wire Wire Line
-	2450 4000 2550 4000
-Wire Wire Line
-	2550 4000 2800 4000
-Wire Wire Line
-	2800 4000 2900 4000
+	2450 4000 2900 4000
 Wire Wire Line
 	2150 2950 2150 3550
 Wire Wire Line
@@ -802,13 +771,9 @@ Wire Wire Line
 Wire Wire Line
 	8600 4150 8400 4150
 Wire Wire Line
-	8400 4050 8950 4050
+	8400 4050 9200 4050
 Wire Wire Line
-	8950 4050 9200 4050
-Wire Wire Line
-	8400 4450 9850 4450
-Wire Wire Line
-	9850 4450 9950 4450
+	8400 4450 9950 4450
 Wire Wire Line
 	8950 4100 8950 4050
 Connection ~ 8950 4050
@@ -853,9 +818,7 @@ Wire Wire Line
 	4050 3250 4050 2900
 Connection ~ 4050 2900
 Wire Wire Line
-	4850 6100 5150 6100
-Wire Wire Line
-	5150 6100 5250 6100
+	4850 6100 5250 6100
 Wire Wire Line
 	5850 6100 6100 6100
 Wire Wire Line
@@ -865,15 +828,11 @@ Wire Wire Line
 Wire Wire Line
 	7350 4150 7450 4150
 Wire Wire Line
-	4450 6100 4550 6100
-Wire Wire Line
-	4550 6100 4650 6100
+	4450 6100 4650 6100
 Wire Wire Line
 	5250 6200 5150 6200
 Wire Wire Line
-	5150 6100 5150 6200
-Wire Wire Line
-	5150 6200 5150 6300
+	5150 6100 5150 6300
 Connection ~ 5150 6100
 Connection ~ 5150 6200
 $Comp
@@ -956,9 +915,7 @@ F 3 "" H 5150 7300 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	4850 7000 5150 7000
-Wire Wire Line
-	5150 7000 5250 7000
+	4850 7000 5250 7000
 Wire Wire Line
 	5850 7000 6100 7000
 Wire Wire Line
@@ -970,9 +927,7 @@ Wire Wire Line
 Wire Wire Line
 	5250 7100 5150 7100
 Wire Wire Line
-	5150 7000 5150 7100
-Wire Wire Line
-	5150 7100 5150 7200
+	5150 7000 5150 7200
 Connection ~ 5150 7000
 Connection ~ 5150 7100
 $Comp
@@ -1088,9 +1043,7 @@ Wire Wire Line
 Wire Wire Line
 	9750 4650 9750 5550
 Wire Wire Line
-	10150 4600 10150 4650
-Wire Wire Line
-	10150 4650 10150 4700
+	10150 4600 10150 4700
 Wire Wire Line
 	10150 4650 9750 4650
 Connection ~ 10150 4650
@@ -1167,13 +1120,9 @@ F 3 "" H 4550 2900 60  0000 C CNN
 	0    1    1    0   
 $EndComp
 Wire Wire Line
-	3950 2900 4050 2900
+	3950 2900 4450 2900
 Wire Wire Line
-	4050 2900 4450 2900
-Wire Wire Line
-	4650 2900 4800 2900
-Wire Wire Line
-	4800 2900 5300 2900
+	4650 2900 5300 2900
 Text Notes 5100 1750 0    45   ~ 0
 BIAS INJ\n3u3 @ 435 MHz = 9kohms
 Text Notes 4450 2650 0    45   ~ 0
