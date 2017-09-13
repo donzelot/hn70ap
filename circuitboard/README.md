@@ -1,11 +1,11 @@
 Circuit board for hn70ap
 ========================
 
-This folder contains the KiCAD board used by the hn70ap project.
+This folder contains the schematic of the KiCAD board used by the hn70ap project.
 
 It is released under the CERN OHL.
 
-The project is completely standalone, it does not depend on ANY external schematic or PCB library.
+The project is completely standalone, it does not depend on ANY external schematic library.
 
 To open it you need kicad version 4.0.7.
 
@@ -128,19 +128,5 @@ LED8  (D402, Internal) ---     (Green - FTDI RX)
 LED9  (J201, Ethernet) ---     (Ethernet activity)
 LED10 (J201, Ethernet) PD8/55  (Ethernet link status)
 ```
-
-Building
-========
-
-Anything but the QFNs is straightforward to solder and anyone should be able to do it (if you cant, ask a friend). Smallest chips are 0603.
-
-The QFN can be soldered just like QFPs. Their exposed pads can be soldered from the back of the board by filling the big vias underneath these chips with flux and solder. Capillarity will do the rest.
-
-Current TODOLIST
-================
-
-* Finish rerouting to include main radio under the shield S501
-* Envision a PWROK LED on the back side
-* Finish FTDI led routing
 
 eof
