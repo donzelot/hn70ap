@@ -1514,4 +1514,12 @@ Text Label 7550 3650 0    45   ~ 0
 LED5
 Text Label 7550 4050 0    45   ~ 0
 LED6
+Text Label 2700 3450 0    45   ~ 0
+XI
+Text Label 2700 3550 0    45   ~ 0
+XO
+Text Label 2700 3050 0    45   ~ 0
+X32I
+Text Label 2700 3150 0    45   ~ 0
+X32O
 $EndSCHEMATC
