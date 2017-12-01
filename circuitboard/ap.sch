@@ -1,5 +1,6 @@
 EESchema Schematic File Version 2
 LIBS:apdep
+LIBS:f4grx_conn
 LIBS:ap-cache
 EELAYER 25 0
 EELAYER END
