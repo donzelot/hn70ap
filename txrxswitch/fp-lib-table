@@ -1,0 +1,3 @@
+(fp_lib_table
+  (lib (name txrxdep)(type KiCad)(uri "$(KIPRJMOD)/txrxdep.pretty")(options "")(descr ""))
+)

@@ -1,0 +1,24 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP DIODE
+D Diode simple
+K DEV DIODE
+$ENDCMP
+#
+$CMP KSZ8081RN
+D Ethernet 10BASE-T 100BASE-T PHY
+$ENDCMP
+#
+$CMP LTC3646_MSE
+D 40V, 1A Synchronous Step-Down Converter
+$ENDCMP
+#
+$CMP STM32F437V
+D STM32F437/439 ARM Cortex M4 Microcontroller, 100 pin TQFP
+$ENDCMP
+#
+$CMP WE_74990111217
+D Ethernet Magjack tab on top
+$ENDCMP
+#
+#End Doc Library
