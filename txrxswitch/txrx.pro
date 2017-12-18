@@ -1,4 +1,4 @@
-update=ven. 22 sept. 2017 18:49:55 CEST
+update=lun. 18 déc. 2017 21:20:24 CET
 version=1
 last_client=kicad
 [pcbnew]
@@ -31,3 +31,13 @@ LibDir=
 [eeschema/libraries]
 LibName1=txrxdep
 LibName2=/home/grx/oc-squalyl/projects/f4libs/f4grx_rf
+[schematic_editor]
+version=1
+PageLayoutDescrFile=
+PlotDirectoryName=.
+SubpartIdSeparator=0
+SubpartFirstId=65
+NetFmtName=
+SpiceForceRefPrefix=0
+SpiceUseNetNumbers=0
+LabSize=60
