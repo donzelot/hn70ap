@@ -14,16 +14,17 @@ Power supply
  * Input via Anderson PowerPole for standard 13.8V ham
  * LTC3646 Creates a 5V 1A rail
  * Each component (radios, CPU, ethernet) has a ferrite bead then big storage capacitor followed bu 3V3 LDO. Radios can reach 100mA each, Ethernet is max 40 mA, CPU is much lower.
+ * When using the RF4463 1W module instead of the RFM26, we need a clean 5V regulated with a LDO, so the LTC is configured for 5.5V instead.
  
 Clocks
 ======
- * Ethernet PHY has a 25 MHx XTAL that gets doubled to generate the RMII reference clock
- * SI4463 has a 30 MHz XTAL for its own use
+ * Ethernet PHY has a 25 MHx XTAL that gets doubled in the PHY to generate the RMII reference clock
+ * SI4463 has a 30 MHz XTAL for its own use, but a footprint is available for a 5x3.2mm TCXO via an UFL, which can also be used to feed an external reference.
  * CPU HSE is connected to a 20 MHz xtal to reach its max clock speed of 180 MHz with correct accuracy
- * CPU 32 kHz clock is connected to a watch xtal
+ * CPU 32 kHz clock is connected to a cylindrical watch xtal
 
 Another design that I know has the 25 MHz xtal on the cpu, then feeds a 25 MHz MCO line to the PHY, which doubles it and feeds it back to the RMII clock input.
-Weird delay loop calculations, long RF lines, not good.
+Weird CPU delay loop calculations, long RF lines, not good.
 
 CPU peripheral connections
 ==========================
@@ -55,7 +56,7 @@ MAC_RST  PB0/35
 
 Debug UART
 ----------
-This uart is used to display the NuttX console. It is connected to UART4 (not an USART). It runs at 230400 bauds, 8N1.
+This uart is used to display the NuttX console. It is connected to UART4 (not an USART). It runs at 230400 bauds, 8N1. The FTDI chip is powered via USB only, so UART LEDs are not powered when USB is not connected.
 
 ```
 TXD4  PC10/78
@@ -75,7 +76,7 @@ CS     PA9/68
 
 I2C EEPROM
 ----------
-This memory stores the Ethernet MAC address and generic non volatile parameters that must survive reset. The device is connected to I2C3.
+This memory stores the Ethernet MAC address and generic non volatile parameters that must survive reset. The device is connected to I2C3. The I2C bus is also available on a pin header, can be used to add some daugterboards (eg, 7-segment displays, or anything you like)
 
 ```
 SDA3  PC9/66
@@ -84,7 +85,7 @@ SCL3  PA8/67
 
 Main radio transceiver
 ----------------------
-The main radio transceiver is a si4463 with separate TX and RX signals along with a PTT. It can be connected to external RF hardware (LNA/PA/Switch). It is RF matched for the 430-440 MHz frequency band. The device is connected to SPI4.
+The main radio transceiver is a si4463 with separate TX and RX signals along with a PTT. It can be connected to external RF hardware (LNA/PA/Switch). Using BOM components, it is RF matched for the 430-440 MHz frequency band, but you can tweak components for any frequency of your choice. The device is connected to SPI4.
 
 ```
 MOSI4  PE6/5
@@ -92,12 +93,12 @@ MISO4  PE5/4
 SCLK4  PE2/1
 CS     PE4/3
 IRQ    PC13/7
-SDN    /2 Used to reset the chips in a clean way
+SDN    PE3/2 Used to reset the chips in a clean way
 ```
 
 Auxiliary radio transceiver
 ---------------------------
-The auxiliary radio transceiver is either an off-the-shelf RFM26W from HopeRF (20 dBm) or a RF4463F30 (high power, 30 dBm). These are also based on the Silabs si4463. The matching is on-board and there are several frequency bands available. The device shares the same SPI4 bus as the main transceiver. SDN line is shared with the main transceiver.
+The auxiliary radio transceiver is either an off-the-shelf RFM26W from HopeRF (20 dBm) or a RF4463F30 (high power, 30 dBm). These are also based on the Silabs si4463. The matching is on-board and there are several frequency bands available. The device shares the same SPI4 bus as the main transceiver. SDN line is shared with the main transceiver, IRQs are separate.
 
 ```
 CS    PA3/26
