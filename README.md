@@ -1,9 +1,9 @@
 # hn70ap
 Development board for modern packet radio on UHF
 
-This repository contains sources for a Kicad PCB and a NuttX board support package for the board.
+This repository contains sources for a few kicad projects and a NuttX board support package for the board.
 
-The schematic and board design is released under the CERN OHL license.
+The main schematic and additional schematics and board designs are released under the CERN OHL license.
 
 Prerequisites
 =============
@@ -16,7 +16,7 @@ Prerequisites
  
 Mandatory: Install toolchain
 ============================
-The arm-none-eabi toolchain provided by your distro probably does not work OK. You may be lucky but this is not widespread enough. So we're installing a really working toolchain.
+The arm-none-eabi toolchain provided by your distro probably does not work OK (from experience). You may be lucky but this is not widespread enough. So we're installing a really working toolchain.
 
 The hardest way: compile a toolchain
 ------------------------------------
@@ -61,7 +61,7 @@ If the command is not found, then the toolchain is not correctly installed and t
 
 Optional: kconfig-frontends
 ===========================
-Skip for now. TODO, ./configure && make && make install
+Skip for now. TODO, https://bitbucket.org/nuttx/tools, ./configure && make && make install
 
 openocd
 =======
@@ -78,7 +78,7 @@ $ git clone https://bitbucket.org/nuttx/nuttx
 $ git clone https://bitbucket.org/nuttx/apps
 $ cd nuttx
 ```
-Then you can clone the board config (This is NOT a submodule!)
+Then you can clone the board config in the proper directory (This is NOT a submodule!)
 ```
 $ cd configs
 $ git clone https://github.com/f4grx/hn70ap
@@ -99,7 +99,7 @@ Flashing without JTAG
 =====================
 
 This will be possible later, when the bootloader is made ready. The hardware is ready to support that.
-A python tool will build an update image from the nuttx elf output, and you will be able to send that image via ethernet.
+A python tool will build an update image from the nuttx elf output, and you will be able to send that image via ethernet or serial.
 
 Advanced build
 ==============
