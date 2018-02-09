@@ -102,10 +102,7 @@ static int flash_initialize(void)
 
   syslog(LOG_INFO, "Successfully initialized SPI port 2\n");
 
-  /* Now bind the SPI interface to the SST25F064 SPI FLASH driver.  This
-   * is a FLASH device that has been added external to the board (i.e.
-   * the board does not ship from STM with any on-board FLASH.
-   */
+  /* Now bind the SPI interface to the SST25F064 SPI FLASH driver. */
 
   syslog(LOG_INFO, "Bind SPI to the SPI flash driver\n");
 
