@@ -38,7 +38,7 @@
 -include $(TOPDIR)/Make.defs
 
 ASRCS =
-CSRCS = bootloader.c stm32_boot.c stm32_spi.c stm32_leds.c
+CSRCS = bootloader.c hn70ap_boot.c hn70ap_spi.c hn70ap_leds.c
 
 ifeq ($(CONFIG_NSH_LIBRARY),y)
 CSRCS += stm32_appinit.c
