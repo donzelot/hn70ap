@@ -1,4 +1,4 @@
-/************************************************************************************
+/*******************************************************************************
  * configs/hn70ap/src/stm32_boot.c
  *
  *   Copyright (C) 2011-2012, 2015-2016 Gregory Nutt. All rights reserved.
@@ -31,11 +31,11 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- ************************************************************************************/
+ ******************************************************************************/
 
-/************************************************************************************
+/*******************************************************************************
  * Included Files
- ************************************************************************************/
+ ******************************************************************************/
 
 #include <nuttx/config.h>
 
@@ -48,49 +48,55 @@
 #include "hn70ap.h"
 #include "stm32_ccm.h"
 
-/************************************************************************************
+/*******************************************************************************
  * Pre-processor Definitions
- ************************************************************************************/
+ ******************************************************************************/
 
-/* Configuration ********************************************************************/
+/* Configuration **************************************************************/
 
-/************************************************************************************
+/*******************************************************************************
  * Public Functions
- ************************************************************************************/
+ ******************************************************************************/
 
-/************************************************************************************
+/*******************************************************************************
  * Name: stm32_boardinitialize
  *
  * Description:
- *   All STM32 architectures must provide the following entry point.  This entry point
- *   is called early in the initialization -- after all memory has been configured
- *   and mapped but before any devices have been initialized.
+ *   All STM32 architectures must provide the following entry point.  This entry
+ *   point is called early in the initialization -- after all memory has been
+ *   configured and mapped but before any devices have been initialized.
  *
- ************************************************************************************/
+ ******************************************************************************/
 
 void stm32_boardinitialize(void)
 {
-#if defined(CONFIG_STM32_SPI1) || defined(CONFIG_STM32_SPI2) || \
-    defined(CONFIG_STM32_SPI3) || defined(CONFIG_STM32_SPI4) || \
-    defined(CONFIG_STM32_SPI5)
-  /* Configure SPI chip selects if 1) SPI is not disabled, and 2) the weak function
-   * stm32_spidev_initialize() has been brought into the link.
-   */
-
-  stm32_spidev_initialize();
+#ifdef CONFIG_HN70AP_HWDEBUG_BLINK
+  int state = 0;
 #endif
 
-#ifdef CONFIG_ARCH_LEDS
-  /* Configure on-board LEDs if LED support has been selected. */
-
-  board_autoled_initialize();
-#endif
+  /* Configure hardware */
+  hn70ap_spi_initialize();
+  hn70ap_leds_initialize();
 
 #ifdef HAVE_CCM_HEAP
   /* Initialize CCM allocator */
 
   ccm_initialize();
 #endif
+
+#ifdef CONFIG_HN70AP_HWDEBUG_BLINK
+  /* Configuration is just a hardware debug helper for blinking the leds.
+     We wont go farther than this loop. */
+
+  while(1)
+    {
+      stm32_gpiowrite(GPIO_LED_HEARTBEAT, state);
+      state = !state;
+      stm32_gpiowrite(GPIO_LED_CPUACT, state);
+      up_mdelay(1000);
+    }
+#endif
+
 }
 
 /****************************************************************************

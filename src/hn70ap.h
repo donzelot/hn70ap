@@ -1,4 +1,4 @@
-/****************************************************************************************************
+/*******************************************************************************
  * configs/hn70ap/src/hn70ap.h
  *
  *   Copyright (C) 2011-2012 Gregory Nutt. All rights reserved.
@@ -32,184 +32,76 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- ****************************************************************************************************/
+ ******************************************************************************/
 
 #ifndef __CONFIGS_HN70AP_SRC_HN70AP_H
 #define __CONFIGS_HN70AP_SRC_HN70AP_H
 
-/****************************************************************************************************
+/*******************************************************************************
  * Included Files
- ****************************************************************************************************/
+ ******************************************************************************/
 
 #include <nuttx/config.h>
 #include <nuttx/compiler.h>
 #include <stdint.h>
 
-#ifdef CONFIG_STM32F429I_DISCO_ILI9341
-#include <nuttx/lcd/ili9341.h>
-#endif
-
-/****************************************************************************************************
+/*******************************************************************************
  * Pre-processor Definitions
- ****************************************************************************************************/
-/* Configuration ************************************************************************************/
-/* How many SPI modules does this chip support? */
-
-#if STM32_NSPI < 1
-#  undef CONFIG_STM32_SPI1
-#  undef CONFIG_STM32_SPI2
-#  undef CONFIG_STM32_SPI3
-#elif STM32_NSPI < 2
-#  undef CONFIG_STM32_SPI2
-#  undef CONFIG_STM32_SPI3
-#elif STM32_NSPI < 3
-#  undef CONFIG_STM32_SPI3
-#endif
-
-/* STMPE811 on I2C3 */
+ ******************************************************************************/
+/* Configuration **************************************************************/
 
 //#define GPIO_I2C3_SCL GPIO_I2C3_SCL_1
 //#define GPIO_I2C3_SDA GPIO_I2C3_SDA_1
 
-#define STMPE811_ADDR1    0x41
-#define STMPE811_ADDR2    0x44
+/* hn70ap GPIOs **************************************************/
 
-#define GPIO_IO_EXPANDER (GPIO_INPUT|GPIO_FLOAT|GPIO_EXTI|GPIO_PORTA|GPIO_PIN15)
-
-/* STM32F429 Discovery GPIOs **************************************************************************/
 /* LEDs */
 
-#define GPIO_LED1       (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|\
-                         GPIO_OUTPUT_CLEAR|GPIO_PORTG|GPIO_PIN13)
-#define GPIO_LED2       (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|\
-                         GPIO_OUTPUT_CLEAR|GPIO_PORTG|GPIO_PIN14)
-
-/* BUTTONS -- NOTE that all have EXTI interrupts configured */
-
-#define MIN_IRQBUTTON   BUTTON_USER
-#define MAX_IRQBUTTON   BUTTON_USER
-#define NUM_IRQBUTTONS  1
-
-#define GPIO_BTN_USER   (GPIO_INPUT|GPIO_FLOAT|GPIO_EXTI|GPIO_PORTA|GPIO_PIN0)
-
-/* PWM
- *
- * The STM32F429 Discovery has no real on-board PWM devices, but the board can be
- * configured to output a pulse train using TIM4 CH2 on PD13.
- */
-
-#define STM32F429I_DISCO_PWMTIMER   4
-#define STM32F429I_DISCO_PWMCHANNEL 2
+#define GPIO_LED_1A         (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|GPIO_OUTPUT_SET|GPIO_PORTB|GPIO_PIN9)
+#define GPIO_LED_1B         (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|GPIO_OUTPUT_SET|GPIO_PORTE|GPIO_PIN0)
+#define GPIO_LED_2          (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|GPIO_OUTPUT_SET|GPIO_PORTB|GPIO_PIN8)
+#define GPIO_LED_3          (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|GPIO_OUTPUT_SET|GPIO_PORTB|GPIO_PIN7)
+#define GPIO_LED_4          (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|GPIO_OUTPUT_SET|GPIO_PORTB|GPIO_PIN6)
+#define GPIO_LED_HEARTBEAT  (GPIO_OUTPUT|GPIO_OPENDRAIN|GPIO_SPEED_50MHz|GPIO_OUTPUT_SET|GPIO_PORTD|GPIO_PIN15)
+#define GPIO_LED_CPUACT     (GPIO_OUTPUT|GPIO_OPENDRAIN|GPIO_SPEED_50MHz|GPIO_OUTPUT_SET|GPIO_PORTD|GPIO_PIN11)
+#define GPIO_LED_MACLINK    (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|GPIO_OUTPUT_SET|GPIO_PORTD|GPIO_PIN8)
 
 /* SPI chip selects */
 
-#define GPIO_CS_MEMS    (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|\
-                         GPIO_OUTPUT_SET|GPIO_PORTC|GPIO_PIN1)
-#define GPIO_CS_LCD     (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|\
-                         GPIO_OUTPUT_SET|GPIO_PORTC|GPIO_PIN2)
-#define GPIO_LCD_DC     (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|\
-                         GPIO_OUTPUT_SET|GPIO_PORTD|GPIO_PIN13)
-#define GPIO_LCD_ENABLE (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|\
-                         GPIO_OUTPUT_CLEAR|GPIO_PORTF|GPIO_PIN10)
-#define GPIO_CS_SST25   (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|\
-                         GPIO_OUTPUT_SET|GPIO_PORTE|GPIO_PIN4)
+#define GPIO_CS_SST26      (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|GPIO_OUTPUT_SET|GPIO_PORTA|GPIO_PIN9)
+#define GPIO_CS_RADIOMAIN  (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|GPIO_OUTPUT_SET|GPIO_PORTE|GPIO_PIN4)
+#define GPIO_CS_RADIOAUX   (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|GPIO_OUTPUT_SET|GPIO_PORTA|GPIO_PIN3)
 
-/* L3GD20 MEMS */
+/* Other outputs */
 
-#define GPIO_L3GD20_DREADY (GPIO_INPUT|GPIO_FLOAT|GPIO_EXTI|GPIO_PORTA|GPIO_PIN2)
-#define L3GD20_IRQ      (2 + STM32_IRQ_EXTI0)
+#define GPIO_RADIO_SDN     (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|GPIO_PORTE|GPIO_PIN3)
 
-/* USB OTG HS
- *
- * PA9  OTG_HS_VBUS VBUS sensing (also connected to the green LED)
- * PC0  OTG_HS_PowerSwitchOn
- * PD5  OTG_HS_Overcurrent
- */
+/* IRQs */
 
-#define GPIO_OTGHS_VBUS (GPIO_INPUT|GPIO_FLOAT|GPIO_SPEED_100MHz|GPIO_OPENDRAIN|GPIO_PORTB|GPIO_PIN13)
-#define GPIO_OTGHS_PWRON (GPIO_OUTPUT|GPIO_OUTPUT_SET|GPIO_FLOAT|GPIO_SPEED_100MHz|GPIO_PUSHPULL|GPIO_PORTC|GPIO_PIN4)
+#define GPIO_IRQ_RADIOMAIN (GPIO_INPUT|GPIO_FLOAT|GPIO_EXTI|GPIO_PORTC|GPIO_PIN13)
+#define GPIO_IRQ_RADIOAUX  (GPIO_INPUT|GPIO_FLOAT|GPIO_EXTI|GPIO_PORTA|GPIO_PIN6)
 
-#ifdef CONFIG_USBHOST
-#  define GPIO_OTGHS_OVER  (GPIO_INPUT|GPIO_EXTI|GPIO_FLOAT|GPIO_SPEED_100MHz|GPIO_PUSHPULL|GPIO_PORTD|GPIO_PIN5)
+/* Other inputs */
 
-#else
-#  define GPIO_OTGHS_OVER  (GPIO_INPUT|GPIO_FLOAT|GPIO_SPEED_100MHz|GPIO_PUSHPULL|GPIO_PORTC|GPIO_PIN5)
-#endif
+#define GPIO_PGOOD         (GPIO_INPUT|GPIO_FLOAT|GPIO_EXTI|GPIO_PORTC|GPIO_PIN0)
+#define GPIO_BTN_SOFTRST   (GPIO_INPUT|GPIO_FLOAT|GPIO_EXTI|GPIO_PORTX|GPIO_PINX)
 
-/****************************************************************************************************
+/*******************************************************************************
  * Public Types
- ****************************************************************************************************/
+ ******************************************************************************/
 
-/****************************************************************************************************
+/*******************************************************************************
  * Public data
- ****************************************************************************************************/
+ ******************************************************************************/
 
 #ifndef __ASSEMBLY__
 
-/****************************************************************************************************
+/*******************************************************************************
  * Public Functions
- ****************************************************************************************************/
+ ******************************************************************************/
 
-/****************************************************************************************************
- * Name: stm32_spidev_initialize
- *
- * Description:
- *   Called to configure SPI chip select GPIO pins for the stm32f429i-disco board.
- *
- ****************************************************************************************************/
-
-void stm32_spidev_initialize(void);
-
-/****************************************************************************************************
- * Name: stm32_ledpminitialize
- *
- * Description:
- *   Enable logic to use the LEDs on the STM32F429Discovery to support power management testing
- *
- ****************************************************************************************************/
-
-#ifdef CONFIG_PM
-void stm32_ledpminitialize(void);
-#endif
-
-/****************************************************************************************************
- * Name: stm32_pmbuttons
- *
- * Description:
- *   Configure the user button of the STM32F429I-DISCO board as EXTI,
- *   so it is able to wakeup the MCU from the PM_STANDBY mode
- *
- ****************************************************************************************************/
-
-#if defined(CONFIG_PM) && defined(CONFIG_ARCH_IDLE_CUSTOM) && defined(CONFIG_PM_BUTTONS)
-void stm32_pmbuttons(void);
-#endif
-
-/****************************************************************************
- * Name: stm32_spi5initialize
- *
- * Description:
- *   Initialize the selected SPI port.
- *   As long as the method stm32_spibus_initialize() recognized the
- *   initialized state of the spi device by the spi enable flag of the cr1
- *   register, it isn't safe to disable the spi device outside of the nuttx
- *   spi interface structure. But this has to be done as long as the nuttx
- *   spi interface doesn't support bidirectional data transfer for multiple
- *   devices share one spi bus. This wrapper does nothing else than store the
- *   initialized state of the spi device after the first initializing and
- *   should be used by each driver who shares the spi5 bus.
- *
- * Input Parameter:
- *   None
- *
- * Returned Value:
- *   Valid SPI device structure reference on succcess; a NULL on failure
- *
- ****************************************************************************/
-
-#ifdef CONFIG_STM32_SPI5
-FAR struct spi_dev_s *stm32_spi5initialize(void);
-#endif
+void hn70ap_leds_initialize(void);
+void hn70ap_spi_initialize(void);
 
 #endif /* __ASSEMBLY__ */
 #endif /* __CONFIGS_HN70AP_SRC_HN70AP_H */

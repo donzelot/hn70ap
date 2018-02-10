@@ -3,5 +3,18 @@
 # see the file kconfig-language.txt in the NuttX tools repository.
 #
 
-if ARCH_BOARD_HN70AP
+if ARCH_BOARD_CUSTOM
+
+choice
+	prompt "Hardware Debug Function"
+	default HN70AP_HWDEBUG_NONE
+
+	config HN70AP_HWDEBUG_NONE
+		bool "None (normal startup)"
+
+	config HN70AP_HWDEBUG_BLINK
+		bool "Blink leds"
+
+endchoice
+
 endif # ARCH_BOARD_HN70AP

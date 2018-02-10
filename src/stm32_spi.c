@@ -1,4 +1,4 @@
-/************************************************************************************
+/*******************************************************************************
  * configs/hn70ap/src/stm32_spi.c
  *
  *   Copyright (C) 2011-2012 Gregory Nutt. All rights reserved.
@@ -32,11 +32,11 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- ************************************************************************************/
+ ******************************************************************************/
 
-/************************************************************************************
+/*******************************************************************************
  * Included Files
- ************************************************************************************/
+ ******************************************************************************/
 
 #include <nuttx/config.h>
 
@@ -53,33 +53,26 @@
 #include "stm32.h"
 #include "hn70ap.h"
 
-#if defined(CONFIG_STM32_SPI1) || defined(CONFIG_STM32_SPI2) || defined(CONFIG_STM32_SPI3) ||\
-    defined(CONFIG_STM32_SPI4) || defined(CONFIG_STM32_SPI5)
-
-/************************************************************************************
+/*******************************************************************************
  * Private Data
- ************************************************************************************/
+ ******************************************************************************/
 
-#ifdef CONFIG_STM32_SPI4
-FAR struct spi_dev_s *g_spidev4 = NULL;
-#endif
-
-/************************************************************************************
+/*******************************************************************************
  * Public Functions
- ************************************************************************************/
+ ******************************************************************************/
 
-/************************************************************************************
+/*******************************************************************************
  * Name: stm32_spidev_initialize
  *
  * Description:
- *   Called to configure SPI chip select GPIO pins for the stm32f429i-disco board.
+ *   Called to configure SPI chip select GPIO pins for the hn70ap board.
  *
- ************************************************************************************/
+ ******************************************************************************/
 
-void stm32_spidev_initialize(void)
+void hn70ap_spi_initialize(void)
 {
-#if defined(CONFIG_STM32_SPI4) && defined(CONFIG_MTD_SST25XX)
-  (void)stm32_configgpio(GPIO_CS_SST25);   /* SST25 FLASH chip select */
+#if defined(CONFIG_STM32_SPI4) && defined(CONFIG_MTD_SST26XX)
+  (void)stm32_configgpio(GPIO_CS_SST26);   /* SST26 FLASH chip select */
 #endif
 }
 
@@ -87,22 +80,22 @@ void stm32_spidev_initialize(void)
  * Name:  stm32_spi1/2/3/4/5select and stm32_spi1/2/3/4/5status
  *
  * Description:
- *   The external functions, stm32_spi1/2/3select and stm32_spi1/2/3status must be
- *   provided by board-specific logic.  They are implementations of the select
- *   and status methods of the SPI interface defined by struct spi_ops_s (see
- *   include/nuttx/spi/spi.h). All other methods (including stm32_spibus_initialize())
- *   are provided by common STM32 logic.  To use this common SPI logic on your
- *   board:
+ *   The external functions, stm32_spi1/2/3select and stm32_spi1/2/3status must
+ *   be provided by board-specific logic.  They are implementations of the
+ *   select and status methods of the SPI interface defined by struct spi_ops_s
+ *   (see include/nuttx/spi/spi.h). All other methods (including
+ *   stm32_spibus_initialize()) are provided by common STM32 logic.
+ *   To use this common SPI logic on your board:
  *
  *   1. Provide logic in stm32_boardinitialize() to configure SPI chip select
  *      pins.
- *   2. Provide stm32_spi1/2/3select() and stm32_spi1/2/3status() functions in your
- *      board-specific logic.  These functions will perform chip selection and
- *      status operations using GPIOs in the way your board is configured.
+ *   2. Provide stm32_spi1/2/3select() and stm32_spi1/2/3status() functions in
+ *      your board-specific logic.  These functions will perform chip selection
+ *      and status operations using GPIOs in the way your board is configured.
  *   3. Add a calls to stm32_spibus_initialize() in your low level application
  *      initialization logic
- *   4. The handle returned by stm32_spibus_initialize() may then be used to bind the
- *      SPI driver to higher level logic (e.g., calling
+ *   4. The handle returned by stm32_spibus_initialize() may then be used to
+ *      bind the SPI driver to higher level logic (e.g., calling
  *      mmcsd_spislotinitialize(), for example, will bind the SPI driver to
  *      the SPI MMC/SD driver).
  *
@@ -123,10 +116,10 @@ uint8_t stm32_spi2status(FAR struct spi_dev_s *dev, uint32_t devid)
 #ifdef CONFIG_STM32_SPI4
 void stm32_spi4select(FAR struct spi_dev_s *dev, uint32_t devid, bool selected)
 {
-#if defined(CONFIG_MTD_SST25XX)
+#if defined(CONFIG_MTD_SST26XX)
   if (devid == SPIDEV_FLASH(0))
     {
-      stm32_gpiowrite(GPIO_CS_SST25, !selected);
+      stm32_gpiowrite(GPIO_CS_SST26, !selected);
     }
 #endif
 }
@@ -179,37 +172,4 @@ int stm32_spi4cmddata(FAR struct spi_dev_s *dev, uint32_t devid, bool cmd)
 
 #endif /* CONFIG_SPI_CMDDATA */
 
-/****************************************************************************
- * Name: stm32_spi5initialize
- *
- * Description:
- *   Initialize the selected SPI port.
- *   As long as the method stm32_spibus_initialize recognized the initialized state of
- *   the spi device by the spi enable flag of the cr1 register, it isn't safe to
- *   disable the spi device outside of the nuttx spi interface structure. But
- *   this has to be done as long as the nuttx spi interface doesn't support
- *   bidirectional data transfer for multiple devices share one spi bus. This
- *   wrapper does nothing else than store the initialized state of the spi
- *   device after the first initializing and should be used by each driver who
- *   shares the spi5 bus.
- *
- * Input Parameter:
- *
- * Returned Value:
- *   Valid SPI device structure reference on success; a NULL on failure
- *
- ****************************************************************************/
 
-#ifdef CONFIG_STM32_SPI4
-FAR struct spi_dev_s *stm32_spi4initialize(void)
-{
-  if (!g_spidev4)
-    {
-      g_spidev4 = stm32_spibus_initialize(4);
-    }
-
-  return g_spidev4;
-}
-
-#endif
-#endif /* CONFIG_STM32_SPI1 || ... CONFIG_STM32_SPI5 */

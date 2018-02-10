@@ -1,4 +1,4 @@
-/************************************************************************************
+/*******************************************************************************
  * configs/stm32f429i-disco/include/board.h
  * include/arch/board/board.h
  *
@@ -32,14 +32,14 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  *
- ************************************************************************************/
+ ******************************************************************************/
 
 #ifndef __CONFIG_STM32F429I_DISCO_INCLUDE_BOARD_H
 #define __CONFIG_STM32F429I_DISCO_INCLUDE_BOARD_H
 
-/************************************************************************************
+/*******************************************************************************
  * Included Files
- ************************************************************************************/
+ ******************************************************************************/
 
 #include <nuttx/config.h>
 
@@ -51,17 +51,17 @@
 #include "stm32_sdio.h"
 #include "stm32.h"
 
-/************************************************************************************
+/*******************************************************************************
  * Pre-processor Definitions
- ************************************************************************************/
+ ******************************************************************************/
 
-/* Clocking *************************************************************************/
-/* The STM32F4 Discovery board features a single 20MHz crystal.  Space is provided
- * for a 32kHz RTC backup crystal, but it is not stuffed.
+/* Clocking *******************************************************************/
+/* The hn70ap board features a 20MHz crystal for HSI, and a 32kHz RTC backup
+ * crystal.
  *
  * This is the canonical configuration:
  *   System Clock source           : PLL (HSE)
- *   SYSCLK(Hz)                    : 180000000    Determined by PLL configuration
+ *   SYSCLK(Hz)                    : 180000000    Determined by PLL config
  *   HCLK(Hz)                      : 180000000    (STM32_RCC_CFGR_HPRE)
  *   AHB Prescaler                 : 1            (STM32_RCC_CFGR_HPRE)
  *   APB1 Prescaler                : 4            (STM32_RCC_CFGR_PPRE1)
@@ -160,7 +160,7 @@
 #define BOARD_TIM7_FREQUENCY    (STM32_HCLK_FREQUENCY/2)
 #define BOARD_TIM8_FREQUENCY    STM32_HCLK_FREQUENCY
 
-/* LED definitions ******************************************************************/
+/* LED definitions ************************************************************/
 /* If CONFIG_ARCH_LEDS is not defined, then the user can control the LEDs in any
  * way.  The following definitions are used to access individual LEDs.
  */
@@ -179,21 +179,8 @@
 #define BOARD_LED1_BIT    (1 << BOARD_LED1)
 #define BOARD_LED2_BIT    (1 << BOARD_LED2)
 
-/* If CONFIG_ARCH_LEDs is defined, then NuttX will control the 4 LEDs on board the
- * stm32f429i-disco.  The following definitions describe how NuttX controls the LEDs:
- */
-
-#define LED_STARTED       0  /* LED1 */
-#define LED_HEAPALLOCATE  1  /* LED2 */
-#define LED_IRQSENABLED   2  /* LED1 + LED2 */
-#define LED_STACKCREATED  3  /* LED3 */
-#define LED_INIRQ         4  /* LED1 + LED3 */
-#define LED_SIGNAL        5  /* LED2 + LED3 */
-#define LED_ASSERTION     6  /* LED1 + LED2 + LED3 */
-#define LED_PANIC         7  /* N/C  + N/C  + N/C + LED4 */
-
 /* Button definitions ***************************************************************/
-/* The STM32F4 Discovery supports one button: */
+/* The hn70ap supports one button: */
 
 #define BUTTON_USER        0
 
