@@ -38,11 +38,8 @@
 -include $(TOPDIR)/Make.defs
 
 ASRCS =
-CSRCS = bootloader.c hn70ap_boot.c hn70ap_spi.c hn70ap_leds.c
-
-ifeq ($(CONFIG_NSH_LIBRARY),y)
-CSRCS += stm32_appinit.c
-endif
+CSRCS  = bootloader.c hn70ap_boot.c hn70ap_spi.c hn70ap_leds.c
+CSRCS += hn70ap_flash.c
 
 ifeq ($(CONFIG_ARCH_IDLE_CUSTOM),y)
 CSRCS += stm32_idle.c

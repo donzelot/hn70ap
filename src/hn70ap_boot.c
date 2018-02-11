@@ -111,17 +111,15 @@ void stm32_boardinitialize(void)
  *   may be used, for example, to initialize board-specific device drivers.
  *
  ****************************************************************************/
+#ifndef CONFIG_BOARD_INITIALIZE
+#error please enable CONFIG_BOARD_INITIALIZE
+#endif
 
-#ifdef CONFIG_BOARD_INITIALIZE
 void board_initialize(void)
 {
-#if defined(CONFIG_NSH_LIBRARY) && !defined(CONFIG_LIB_BOARDCTL)
-  /* Perform NSH initialization here instead of from the NSH.  This
-   * alternative NSH initialization is necessary when NSH is ran in user-space
-   * but the initialization function must run in kernel space.
-   */
 
-  (void)board_app_initialize(0);
+#if defined(CONFIG_STM32_SPI2) && defined(CONFIG_MTD_SST26)
+  hn70ap_flash_initialize();
 #endif
 }
-#endif
+

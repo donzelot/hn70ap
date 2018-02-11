@@ -71,8 +71,13 @@
 
 void hn70ap_spi_initialize(void)
 {
-#if defined(CONFIG_STM32_SPI4) && defined(CONFIG_MTD_SST26XX)
-  (void)stm32_configgpio(GPIO_CS_SST26);   /* SST26 FLASH chip select */
+#if defined(CONFIG_STM32_SPI2) && defined(CONFIG_MTD_SST26)
+  stm32_configgpio(GPIO_CS_SST26);   /* SST26 FLASH chip select */
+#endif
+
+#if defined(CONFIG_STM32_SPI4) && defined(CONFIG_GENRADIO)
+  stm32_configgpio(GPIO_CS_RADIOMAIN);  /* On-board si4463 */
+  stm32_configgpio(GPIO_CS_RADIOAUX);   /* Radio module */
 #endif
 }
 
@@ -104,7 +109,13 @@ void hn70ap_spi_initialize(void)
 #ifdef CONFIG_STM32_SPI2
 void stm32_spi2select(FAR struct spi_dev_s *dev, uint32_t devid, bool selected)
 {
-  spiinfo("devid: %d CS: %s\n", (int)devid, selected ? "assert" : "de-assert");
+//  spiinfo("devid: %d CS: %s\n", (int)devid, selected ? "assert" : "de-assert");
+#if defined(CONFIG_MTD_SST26)
+  if (devid == SPIDEV_FLASH(0))
+    {
+      stm32_gpiowrite(GPIO_CS_SST26, !selected);
+    }
+#endif
 }
 
 uint8_t stm32_spi2status(FAR struct spi_dev_s *dev, uint32_t devid)
@@ -116,10 +127,14 @@ uint8_t stm32_spi2status(FAR struct spi_dev_s *dev, uint32_t devid)
 #ifdef CONFIG_STM32_SPI4
 void stm32_spi4select(FAR struct spi_dev_s *dev, uint32_t devid, bool selected)
 {
-#if defined(CONFIG_MTD_SST26XX)
-  if (devid == SPIDEV_FLASH(0))
+#ifdef CONFIG_GENRADIO
+  if (devid == SPIDEV_GENRADIO(0))
     {
-      stm32_gpiowrite(GPIO_CS_SST26, !selected);
+      stm32_gpiowrite(GPIO_CS_RADIOMAIN, !selected);
+    }
+  if (devid == SPIDEV_GENRADIO(1))
+    {
+      stm32_gpiowrite(GPIO_CS_RADIOAUX, !selected);
     }
 #endif
 }

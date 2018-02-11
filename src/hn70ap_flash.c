@@ -1,8 +1,10 @@
 /****************************************************************************
- * config/hn70ap/src/stm32_appinit.c
+ * config/hn70ap/src/hn70ap_flash.c
  *
  *   Copyright (C) 2012, 2015-2016 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
+ *   Copyright (C) 2018 Sebastien Lorquet. All rights reserved.
+ *   Author: Sebastien Lorquet <sebastien@lorquet.fr>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -57,6 +59,9 @@
  ****************************************************************************/
 
 /* Configuration ************************************************************/
+#ifndef CONFIG_MTD_PARTITION
+#error MTD partition support is required
+#endif
 
 /****************************************************************************
  * Public Functions
@@ -69,17 +74,18 @@ struct mtd_partition_info_s
   bool        smartfs; //Enable SmartFS on this partition
 };
 
+/* Total space is 64 Mbit, 8 MB, 2048 sectors, 32768 blocks */
 static const struct mtd_partition_info_s parts[] =
 {
-  {"firmware",  64, false},
-  {"storage" , 128, false}
+  {"firmware",   8192, false}, // 2MB
+  {"storage" , 24576, false}   // 6MB
 };
 
 #define PARTCOUNT (sizeof(parts)/sizeof(parts[0]))
 
 FAR struct mtd_dev_s *mtdparts[PARTCOUNT];
 
-static int flash_initialize(void)
+int hn70ap_flash_initialize(void)
 {
   FAR struct spi_dev_s *spi2;
   FAR struct mtd_dev_s *mtd;
@@ -91,37 +97,38 @@ static int flash_initialize(void)
 
   /* Get the SPI port */
 
-  syslog(LOG_INFO, "Initializing SPI port 2\n");
-
   spi2 = stm32_spibus_initialize(2);
   if (!spi2)
     {
-      syslog(LOG_ERR, "ERROR: Failed to initialize SPI port 2\n");
+      _err("ERROR: Failed to initialize SPI port 2\n");
       return -ENODEV;
     }
 
-  syslog(LOG_INFO, "Successfully initialized SPI port 2\n");
-
   /* Now bind the SPI interface to the SST25F064 SPI FLASH driver. */
-
-  syslog(LOG_INFO, "Bind SPI to the SPI flash driver\n");
 
   mtd = sst26_initialize_spi(spi2);
   if (!mtd)
     {
-      syslog(LOG_ERR, "ERROR: Failed to bind SPI port 2 to the SPI FLASH driver\n");
+      _err("ERROR: Failed to bind SPI port 2 to the SPI FLASH driver\n");
       return -ENODEV;
     }
-  syslog(LOG_INFO, "Successfully bound SPI port 2 to the SPI FLASH driver\n");
 
   /* Get the geometry of the FLASH device */
 
-  ret = mtd->ioctl(mtd, MTDIOC_GEOMETRY, (unsigned long)((uintptr_t)&geo));
+  ret = mtd->ioctl(mtd, MTDIOC_GEOMETRY, (unsigned long)&geo);
   if (ret < 0)
     {
-      ferr("ERROR: mtd->ioctl failed: %d\n", ret);
+      _err("ERROR: mtd->ioctl failed: %d\n", ret);
       return ret;
     }
+  syslog(
+    LOG_INFO,
+    "SST26: %d erase blocks each %d bytes (total %d kB), blocksize %d\n",
+    geo.neraseblocks,
+    geo.erasesize, 
+    (geo.neraseblocks * geo.erasesize) >> 10,
+    geo.blocksize
+    );
 
   /* Now create partitions on the FLASH device */
 
@@ -133,7 +140,7 @@ static int flash_initialize(void)
 
       if (mtdparts[partno] == NULL)
         {
-          ferr("ERROR: failed to create partition %s\n", partname);
+          _err("ERROR: failed to create partition %s\n", parts[partno].name);
           continue;
         }
 
@@ -150,48 +157,10 @@ static int flash_initialize(void)
 #endif
 
 #if defined(CONFIG_MTD_PARTITION_NAMES)
-      mtd_setpartitionname(mtdparts[partno], partname);
+      mtd_setpartitionname(mtdparts[partno], part[parno].name);
 #endif
+      syslog(LOG_INFO, "SST26: Created partition %s (%d blocks)\n", parts[partno].name, parts[partno].blocks);
     }
   return OK;
 }
 
-
-/****************************************************************************
- * Name: board_app_initialize
- *
- * Description:
- *   Perform application specific initialization.  This function is never
- *   called directly from application code, but only indirectly via the
- *   (non-standard) boardctl() interface using the command BOARDIOC_INIT.
- *
- *   CONFIG_LIB_BOARDCTL=y :
- *     Called from the NSH library
- *
- *   CONFIG_BOARD_INITIALIZE=y, CONFIG_NSH_LIBRARY=y, &&
- *   CONFIG_LIB_BOARDCTL=n :
- *     Called from board_initialize().
- *
- * Input Parameters:
- *   arg - The boardctl() argument is passed to the board_app_initialize()
- *         implementation without modification.  The argument has no
- *         meaning to NuttX; the meaning of the argument is a contract
- *         between the board-specific initalization logic and the
- *         matching application logic.  The value cold be such things as a
- *         mode enumeration value, a set of DIP switch switch settings, a
- *         pointer to configuration data read from a file or serial FLASH,
- *         or whatever you would like to do with it.  Every implementation
- *         should accept zero/NULL as a default configuration.
- *
- * Returned Value:
- *   Zero (OK) is returned on success; a negated errno value is returned on
- *   any failure to indicate the nature of the failure.
- *
- ****************************************************************************/
-
-int board_app_initialize(uintptr_t arg)
-{
-  flash_initialize();
-
-  return OK;
-}

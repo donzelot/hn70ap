@@ -1,9 +1,11 @@
 /*******************************************************************************
- * configs/stm32f429i-disco/include/board.h
+ * configs/hn70ap/include/board.h
  * include/arch/board/board.h
  *
  *   Copyright (C) 2012, 2015-2016 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
+ *   Copyright (C) 2018 Sebastien Lorquet. All rights reserved.
+ *   Author: Sebastien Lorquet <sebastien@lorquet.fr>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,8 +36,8 @@
  *
  ******************************************************************************/
 
-#ifndef __CONFIG_STM32F429I_DISCO_INCLUDE_BOARD_H
-#define __CONFIG_STM32F429I_DISCO_INCLUDE_BOARD_H
+#ifndef __CONFIG_HN70AP_INCLUDE_BOARD_H
+#define __CONFIG_HN70AP_INCLUDE_BOARD_H
 
 /*******************************************************************************
  * Included Files
@@ -160,51 +162,30 @@
 #define BOARD_TIM7_FREQUENCY    (STM32_HCLK_FREQUENCY/2)
 #define BOARD_TIM8_FREQUENCY    STM32_HCLK_FREQUENCY
 
-/* LED definitions ************************************************************/
-/* If CONFIG_ARCH_LEDS is not defined, then the user can control the LEDs in any
- * way.  The following definitions are used to access individual LEDs.
- */
-
-/* LED index values for use with board_userled() */
-
-#define BOARD_LED1        0
-#define BOARD_LED2        1
-#define BOARD_NLEDS       2
-
-#define BOARD_LED_LINK    BOARD_LED1
-#define BOARD_LED_BOOT    BOARD_LED2
-
-/* LED bits for use with board_userled_all() */
-
-#define BOARD_LED1_BIT    (1 << BOARD_LED1)
-#define BOARD_LED2_BIT    (1 << BOARD_LED2)
-
-/* Button definitions ***************************************************************/
-/* The hn70ap supports one button: */
-
-#define BUTTON_USER        0
-
-#define NUM_BUTTONS        0
-
-#define BUTTON_USER_BIT    (1 << BUTTON_USER)
-
 /* Alternate function pin selections ************************************************/
+/* The only pins declared here are the one required for the drivers in arch.
+ * All board specific pins (LEDs, CS, IRQs) are declared in the local header only.
+ * These resources are either available to the board directory only, or via
+ * specific drivers.
+ */
 
 #define GPIO_UART4_RX GPIO_UART4_RX_2 /* PC10 */
 #define GPIO_UART4_TX GPIO_UART4_TX_2 /* PC11 */
 
-/* I2C - There is a STMPE811 TouchPanel on I2C3 using these pins: */
+/* I2C - For 24AA02E48 EEPROM */
 
 #define GPIO_I2C3_SCL GPIO_I2C3_SCL_1 /* PA8 */
 #define GPIO_I2C3_SDA GPIO_I2C3_SDA_1 /* PC9 */
 
-/* SPI - There is a MEMS device on SPI5 using these pins: */
+/* SPI - For SST26F064 Flash */
 
 #define GPIO_SPI2_MISO GPIO_SPI2_MISO_1 /* PB14 */
 #define GPIO_SPI2_MOSI GPIO_SPI2_MOSI_1 /* PB15 */
 #define GPIO_SPI2_SCK  GPIO_SPI2_SCK_1 /*  PB10 */
+#define DMACHAN_SPI2_RX DMAMAP_SPI2_RX
+#define DMACHAN_SPI2_TX DMAMAP_SPI2_TX
 
-/* SPI - External SPI flash may be connected on SPI4: */
+/* SPI - For both si4463 transceivers */
 
 #define GPIO_SPI4_MISO GPIO_SPI4_MISO_1 /* PE5 */
 #define GPIO_SPI4_MOSI GPIO_SPI4_MOSI_1 /* PE6 */
@@ -238,7 +219,7 @@ extern "C"
  *
  * Description:
  *   All STM32 architectures must provide the following entry point.  This entry point
- *   is called early in the intitialization -- after all memory has been configured
+ *   is called early in the initialization -- after all memory has been configured
  *   and mapped but before any devices have been initialized.
  *
  ************************************************************************************/
@@ -251,4 +232,4 @@ void stm32_boardinitialize(void);
 #endif
 
 #endif /* __ASSEMBLY__ */
-#endif  /* __CONFIG_STM32F429I_DISCO_INCLUDE_BOARD_H */
+#endif  /* __CONFIG_HN70AP_INCLUDE_BOARD_H */
