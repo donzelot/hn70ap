@@ -121,5 +121,10 @@ void board_initialize(void)
 #if defined(CONFIG_STM32_SPI2) && defined(CONFIG_MTD_SST26)
   hn70ap_flash_initialize();
 #endif
+
+#if defined(CONFIG_STM32_I2C3) //&& defined(CONFIG_EEPROM_I2C)
+  hn70ap_eeprom_initialize();
+#endif
+
 }
 

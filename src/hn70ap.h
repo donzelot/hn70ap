@@ -104,6 +104,7 @@ void hn70ap_leds_initialize(void);
 void hn70ap_spi_initialize(void);
 
 int hn70ap_flash_initialize(void);
+int hn70ap_eeprom_initialize(void);
 
 #endif /* __ASSEMBLY__ */
 #endif /* __CONFIGS_HN70AP_SRC_HN70AP_H */

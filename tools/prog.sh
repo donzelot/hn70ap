@@ -3,5 +3,5 @@ openocd \
 	-c "transport select jtag" \
 	-c "reset_config srst_only connect_deassert_srst" \
 	-f target/stm32f4x.cfg \
-	-c "program nuttx verify reset exit"
+	-c "program nuttx verify exit"
 

@@ -39,7 +39,7 @@
 
 ASRCS =
 CSRCS  = bootloader.c hn70ap_boot.c hn70ap_spi.c hn70ap_leds.c
-CSRCS += hn70ap_flash.c
+CSRCS += hn70ap_flash.c hn70ap_eeprom.c
 
 ifeq ($(CONFIG_ARCH_IDLE_CUSTOM),y)
 CSRCS += stm32_idle.c
