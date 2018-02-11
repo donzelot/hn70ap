@@ -48,6 +48,7 @@
 #include <nuttx/kmalloc.h>
 
 #include <nuttx/i2c/i2c_master.h>
+#include <nuttx/eeprom/i2c_xx24xx.h>
 
 #include "stm32.h"
 #include "hn70ap.h"
@@ -56,8 +57,6 @@ int hn70ap_eeprom_initialize(void)
 {
   struct i2c_master_s *i2c3;
   int ret;
-
-  syslog(LOG_INFO, "i2c initialization\n");
 
   i2c3 = stm32_i2cbus_initialize(3);
   if (!i2c3)
@@ -74,7 +73,17 @@ int hn70ap_eeprom_initialize(void)
       _err("Failed to register char driver for i2c3\n");
       return -EIO;
     }
-  syslog(LOG_INFO, "Registered i2c bus device\n");
+  syslog(LOG_INFO, "Registered i2c bus device /dev/i2c3\n");
+#endif
+
+#if defined(CONFIG_I2C_EE_24XX)
+  ret = ee24xx_initialize(i2c3, 0x50, "/dev/eeprom", EEPROM_24xx02, false);
+  if(ret != 0)
+    {
+      _err("Failed to register char driver for eeprom\n");
+      return -EIO;
+    }
+  syslog(LOG_INFO, "Registered /dev/eeprom\n");
 #endif
 
   return 0;
