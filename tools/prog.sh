@@ -1,3 +1,5 @@
+#	-f interface/stlink-v2.cfg \
+#	-c "transport select hla_swd" \
 openocd \
 	-f interface/ftdi/jtag-lock-pick_tiny_2.cfg \
 	-c "transport select jtag" \

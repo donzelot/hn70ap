@@ -49,6 +49,10 @@ ifeq ($(CONFIG_ARCH_FPU),y)
 CSRCS += stm32_ostest.c
 endif
 
+ifeq ($(CONFIG_VIDEO_FB),y)
+CSRCS += hn70ap_oled.c
+endif
+
 stm32_boot.c: grxversion.h
 
 .PHONY: stm32_boot.c grxversion.h

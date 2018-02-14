@@ -117,6 +117,7 @@ void stm32_boardinitialize(void)
 
 void board_initialize(void)
 {
+  int ret;
 
 #if defined(CONFIG_STM32_SPI2) && defined(CONFIG_MTD_SST26)
   hn70ap_flash_initialize();
@@ -126,5 +127,14 @@ void board_initialize(void)
   hn70ap_eeprom_initialize();
 #endif
 
+#if defined(CONFIG_VIDEO_FB)
+  /* Initialize and register the framebuffer driver */
+
+  ret = fb_register(0, 0);
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "ERROR: fb_register() failed: %d\n", ret);
+    }
+#endif
 }
 
