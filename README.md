@@ -1,9 +1,11 @@
 # hn70ap
 Development board for modern packet radio on UHF
 
-This repository contains sources for a few kicad projects and a NuttX board support package for the board.
+This repository contains sources for a few kicad projects and a NuttX board
+support package for the board.
 
-The main schematic and additional schematics and board designs are released under the CERN OHL license.
+The main schematic and additional schematics and board designs are released
+under the CERN OHL license.
 
 Prerequisites
 =============
@@ -16,16 +18,20 @@ Prerequisites
  
 Mandatory: Install toolchain
 ============================
-The arm-none-eabi toolchain provided by your distro probably does not work OK (from experience). You may be lucky but this is not widespread enough. So we're installing a really working toolchain.
+The arm-none-eabi toolchain provided by your distro probably does not work OK
+(from experience). You may be lucky but this is not widespread enough. So we're
+installing a really working toolchain.
 
 The hardest way: compile a toolchain
 ------------------------------------
-Hey this is a beginner guide. you dont need my guide if you are doing that. Help yourself!
+Hey this is a beginner guide. you dont need my guide if you are doing that. Help
+yourself!
 
 The hard way: download and install
 ----------------------------------
 
-Open a bash shell console, then type commands ONE BY ONE (adapt them if you know what you are doing):
+Open a bash shell console, then type commands ONE BY ONE (adapt them if you know
+what you are doing):
 ```
 $ cd $HOME
 $ mkdir toolchains
@@ -35,7 +41,9 @@ $ tar jxvf toolchain.tar.bz2
 $ cd $HOME
 $ export PATH=$PATH:$HOME/toolchains/gcc-arm-none-eabi-5_4-2016q3/bin
 ```
-The last line makes the ARM compiler available in your shell environment. You can make that automatic, search the web. Otherwise you have to execute this last line in each new shell window.
+The last line makes the ARM compiler available in your shell environment. You
+can make that automatic, search the web. Otherwise you have to execute this last
+line in each new shell window.
 
 The easy way for ubuntu based distros
 -------------------------------------
@@ -50,18 +58,21 @@ sudo apt-get install gcc-arm-embedded
 Toolchain test
 --------------
 
-You can test that the toolchain is functional by typing this command and expecting this answer:
+You can test that the toolchain is functional by typing this command and
+expecting this answer:
 ```
 $ arm-none-eabi-gcc
 arm-none-eabi-gcc: fatal error: no input files
 compilation terminated.
 ```
 
-If the command is not found, then the toolchain is not correctly installed and the following will NOT work.
+If the command is not found, then the toolchain is not correctly installed and
+the following will NOT work.
 
 Optional: kconfig-frontends
 ===========================
-Skip for now. TODO, https://bitbucket.org/nuttx/tools, ./configure && make && make install
+Skip for now.
+TODO, https://bitbucket.org/nuttx/tools, ./configure && make && make install
 
 openocd
 =======
@@ -78,15 +89,26 @@ $ git clone https://bitbucket.org/nuttx/nuttx
 $ git clone https://bitbucket.org/nuttx/apps
 $ cd nuttx
 ```
-Then you can clone the board config in the proper directory (This is NOT a submodule!)
+Then you can clone the board config in the proper directory
+(This is NOT a submodule!)
 ```
 $ cd configs
 $ git clone https://github.com/f4grx/hn70ap
 $ cd ..
 ```
-Then build the binary image for this board:
+
+Then choose any of the following test configurations
 ```
-$ tools/configure.sh hn70ap/build/nsh
+$ tools/configure.sh hn70ap/build/0_boot
+```
+```
+$ tools/configure.sh hn70ap/build/1_memories
+```
+```
+$ tools/configure.sh hn70ap/build/2_oled
+```
+And build the binary image for this board:
+```
 $ make
 ```
 This should end up with an ELF binary 'nuttx', and binary images nuttx.bin
