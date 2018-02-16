@@ -53,6 +53,10 @@ ifeq ($(CONFIG_HN70AP_SCREEN),y)
 CSRCS += hn70ap_oled.c
 endif
 
+ifeq ($(CONFIG_HN70AP_ETHERNET),y)
+CSRCS += hn70ap_ethernet.c
+endif
+
 ifeq ($(CONFIG_HN70AP_RADIO),y)
 CSRCS += hn70ap_genradio.c
 endif

@@ -74,23 +74,14 @@
 
 void stm32_boardinitialize(void)
 {
-#ifdef CONFIG_HN70AP_HWDEBUG_BLINK
-  int state = 0;
-#endif
-
-  /* Configure hardware */
-  hn70ap_spi_initialize();
-  hn70ap_leds_initialize();
-
-#ifdef HAVE_CCM_HEAP
-  /* Initialize CCM allocator */
-
-  ccm_initialize();
-#endif
-
-#ifdef CONFIG_HN70AP_HWDEBUG_BLINK
+#if defined(CONFIG_HN70AP_HWDEBUG_BLINK)
   /* Configuration is just a hardware debug helper for blinking the leds.
      We wont go farther than this loop. */
+
+  int state = 0;
+
+  stm32_configgpio(GPIO_LED_HEARTBEAT);
+  stm32_configgpio(GPIO_LED_CPUACT);
 
   while(1)
     {
@@ -99,6 +90,18 @@ void stm32_boardinitialize(void)
       stm32_gpiowrite(GPIO_LED_CPUACT, state);
       up_mdelay(1000);
     }
+#endif
+
+  /* Configure hardware */
+  hn70ap_spi_initialize();
+  hn70ap_leds_initialize();
+
+#ifdef HAVE_CCM_HEAP
+  ccm_initialize(); /* Initialize CCM allocator */
+#endif
+
+#if defined(CONFIG_HN70AP_ETHERNET)
+  hn70ap_net_initialize();
 #endif
 
 }

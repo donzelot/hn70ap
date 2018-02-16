@@ -1,3 +1,42 @@
+/****************************************************************************
+ * config/hn70ap/src/hn70ap_ethernet.c
+ *
+ *   Copyright (C) 2018 Sebastien Lorquet. All rights reserved.
+ *   Author: Sebastien Lorquet <sebastien@lorquet.fr>
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
+ *    distribution.
+ * 3. Neither the name NuttX nor the names of its contributors may be
+ *    used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+ * BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+ * OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+ * AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ ****************************************************************************/
+
+/****************************************************************************
+ * Included Files
+ ****************************************************************************/
+
 #include <nuttx/config.h>
 #include <nuttx/arch.h>
 #include <debug.h>
@@ -6,44 +45,65 @@
 #include "chip.h"
 #include "stm32.h"
 #include <arch/board/board.h>
+#include "hn70ap.h"
 
-#define GPIO_ETH_PHY_INT    (GPIO_INPUT|GPIO_PULLUP|GPIO_SPEED_50MHz|GPIO_PORTE|GPIO_PIN14)
+/****************************************************************************
+ * Private Data
+ ****************************************************************************/
 
 static xcpt_t g_phy_handler;
 static void  *g_phy_arg;
 
-void stm32_netinitialize(void)
+/****************************************************************************
+ * Public Functions
+ ****************************************************************************/
+
+/****************************************************************************
+ * Name: hn70ap_net_initialize
+ ****************************************************************************/
+
+void hn70ap_net_initialize(void)
     {
-    _info("Enabling PHY power\n");
-    stm32_configgpio(GPIO_PWR_ETH);
-    stm32_gpiowrite(GPIO_PWR_ETH, 1);
-    up_mdelay(1);
+    _info("Configuring PHY GPIOs\n");
+    stm32_configgpio(GPIO_IRQ_ETHERNET);
+    stm32_configgpio(GPIO_ETHERNET_RST);
+    g_phy_handler = NULL;
+    g_phy_arg     = NULL;
+    }
+
+/****************************************************************************
+ * Name: stm32_phy_boardinitialize
+ ****************************************************************************/
+
+int stm32_phy_boardinitialize(int intf)
+    {
+    _info("called (intf=%d)\n", intf);
 
     _info("PHY reset...\n");
-    stm32_configgpio(GPIO_ETH_RST);
-    stm32_gpiowrite(GPIO_ETH_RST, 0);
+    stm32_gpiowrite(GPIO_ETHERNET_RST, 0);
     up_mdelay(1);
     _info("PHY reset done.\n");
-    stm32_gpiowrite(GPIO_ETH_RST, 1);
+    stm32_gpiowrite(GPIO_ETHERNET_RST, 1);
     up_mdelay(1);
 
-    _info("Configuring PHY int\n");
-    stm32_configgpio(GPIO_ETH_PHY_INT);
-    g_phy_handler = NULL;
-
+    return 0;
     }
+
+/****************************************************************************
+ * Name: stm32_phy_enable
+ ****************************************************************************/
 
 static void stm32_phy_enable(bool enable)
     {
     //_info("PHY IRQ enable :%d\n", enable);
     if (enable)
         {
-        stm32_gpiosetevent(GPIO_ETH_PHY_INT, /*rising*/ FALSE, /*falling*/ TRUE, TRUE,
+        stm32_gpiosetevent(GPIO_IRQ_ETHERNET, /*rising*/ FALSE, /*falling*/ TRUE, TRUE,
                            g_phy_handler, /*arg*/ g_phy_arg);
         }
     else
         {
-        stm32_gpiosetevent(GPIO_ETH_PHY_INT, /*rising*/ FALSE, /*falling*/ FALSE, FALSE,
+        stm32_gpiosetevent(GPIO_IRQ_ETHERNET, /*rising*/ FALSE, /*falling*/ FALSE, FALSE,
                            NULL, /*arg*/ NULL);
         }
     }
@@ -140,21 +200,6 @@ int arch_phy_irq(FAR const char *intf, xcpt_t handler, void *arg, phy_enable_t *
     stm32_phy_enable(FALSE);
 
     leave_critical_section(flags);
-    return 0;
-    }
-
-int stm32_phy_boardinitialize(int intf)
-    {
-    _info("called (intf=%d)\n", intf);
-
-    _info("PHY reset...\n");
-    stm32_configgpio(GPIO_ETH_RST);
-    stm32_gpiowrite(GPIO_ETH_RST, 0);
-    up_mdelay(1);
-    _info("PHY reset done.\n");
-    stm32_gpiowrite(GPIO_ETH_RST, 1);
-    up_mdelay(1);
-
     return 0;
     }
 
