@@ -5,60 +5,63 @@
 
 if ARCH_BOARD_CUSTOM
 
-choice
-	prompt "Hardware Debug Function"
-	default HN70AP_HWDEBUG_NONE
-
-	config HN70AP_HWDEBUG_NONE
-		bool "None (normal startup)"
-
-	config HN70AP_HWDEBUG_BLINK
-		bool "Blink leds"
-
-endchoice
-
 comment "----- hn70ap board features -----"
+
+config HN70AP_HWDEBUG_BLINK
+	bool "Just Blink leds instead of starting NuttX"
 
 config HN70AP_EEPROM
 	bool "Enable EEPROM"
-	select STM32_I2C3
-	select EEPROM
-	select I2C_EE_24XX
+	#select STM32_I2C3
+	#select EEPROM
+	#select I2C_EE_24XX
 
 config HN70AP_SPIFLASH
 	bool "Enable SPI FLASH"
-	select STM32_SPI2
-	select MTD
-	select MTD_PARTITION
-	select MTD_SST26
+	#select STM32_SPI2
+	#select MTD
+	#select MTD_PARTITION
+	#select MTD_SST26
 
 config HN70AP_SCREEN
 	bool "Enable OLED screen"
-	select DRIVERS_VIDEO
-	select VIDEO_FB
-	select LCD
-	select LCD_UPDATE
-	select LCD_FRAMEBUFFER
-	select LCD_UG2864HSWEG01
-	select LCD_SSD1306_I2C
+	#select DRIVERS_VIDEO
+	#select VIDEO_FB
+	#select LCD
+	#select LCD_UPDATE
+	#select LCD_FRAMEBUFFER
+	#select LCD_UG2864HSWEG01
+	#select LCD_SSD1306_I2C
 
 config HN70AP_ETHERNET
 	bool "Enable Ethernet"
-	select STM32_ETHMAC
+	#select STM32_ETHMAC
 
 config HN70AP_RADIO
 	bool
-	select STM32_SPI4
-	select GENERICRADIO_SI4463
+	#select STM32_SPI4
+	#select GENERICRADIO_SI4463
 
 config HN70AP_MAINRADIO
 	bool "Enable main radio"
 	select HN70AP_RADIO
 
+if HN70AP_MAINRADIO
+
+config HN70AP_MAINRADIO_TCXO
+	bool "Clock provided by TCXO / External clock"
+
+endif
+
 config HN70AP_AUXRADIO
 	bool "Enable aux radio"
 	select HN70AP_RADIO
 
-comment "----------"
+if HN70AP_AUXRADIO
+
+config HN70AP_AUXRADIO_HIGHPOWER
+	bool "Board has a high-power RF4463 module instead of a RFM26"
+
+endif
 
 endif # ARCH_BOARD_HN70AP
