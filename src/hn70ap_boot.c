@@ -157,5 +157,6 @@ void board_initialize(void)
     }
 #endif
 
+  (void)ret;
 }
 

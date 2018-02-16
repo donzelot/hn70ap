@@ -1,7 +1,7 @@
 /****************************************************************************
- * configs/grxbetastamp/src/bootloader.c
+ * configs/hn70ap/src/bootloader.c
  *
- *   Copyright (C) 2016 Sebastien Lorquet. All rights reserved.
+ *   Copyright (C) 2016-2018 Sebastien Lorquet. All rights reserved.
  *   Author: Sebastien Lorquet <sebastien@lorquet.fr>
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,8 @@
 /************************************************************************************
  * Pre-processor Definitions
  ************************************************************************************/
+
+#include "bootloader.h"
 
 #define BOOT_STACKSIZE  (16 * 1024)
 #define BOOT_STACK      ((unsigned)&_ebss+ BOOT_STACKSIZE-4)
@@ -81,8 +83,7 @@ unsigned __boot_vectors[] __attribute__((section(".boot.vectors"))) =
   [2 ... (15 + BOOT_PERIPHERAL_INTERRUPTS)] = (unsigned)&__boot_exception_common
 };
 
-#define BOOTCODE __attribute__(( section(".boot.text") ))
-
+/* ------------------------------------------------------------------------- */
 BOOTCODE __attribute__((naked)) void __boot_app(void)
   {
     __asm__ __volatile__ ("\t"
@@ -111,12 +112,48 @@ BOOTCODE __attribute__((naked)) void __boot_app(void)
     );
   }
 
+/* ------------------------------------------------------------------------- */
 BOOTCODE void __boot_start(void)
   {
-    __boot_app();
+    bool has_update = false;
+    bool do_app    = true;
+
+    bootloader_inithardware();
+
+retry:
+    if(bootloader_button())
+      {
+        /* Boot button is pressed -> dont boot app, do a download */
+        do_app     = false;
+        has_update = false;
+      }
+    else
+      {
+        /* Button not pressed: normal process */
+        has_update = bootloader_checkupdate();
+      }
+
+    if(has_update)
+      {
+        do_app = bootloader_apply(); /* If app was updated, only boot if update was successful */
+      }
+
+    if(do_app)
+      {
+        /* Boot app if, no update, or button not pressed, or update and it was successful */
+        bootloader_stophardware();
+        __boot_app();
+      }
+    else
+      {
+        bootloader_download();
+        goto retry;
+      }
+
     while(1);
   }
 
+/* ------------------------------------------------------------------------- */
 BOOTCODE void __boot_exception_common(void)
   {
     while(1);
