@@ -52,7 +52,7 @@
 #include <stm32.h>
 #include "hn70ap.h"
 
-#if defined(CONFIG_STM32_SPI4) && defined(CONFIG_GENERICRADIO_SI4463)
+#if defined(HN70AP_RADIO)
 
 struct si4463_priv_s
 {
@@ -100,22 +100,25 @@ void si4463_enable(FAR const struct si4463_lower_s *lower, int state)
     }
 }
 
+#if defined(HN70AP_RADIO_MAIN)
 struct si4463_priv_s si4463_priv_main;
-struct si4463_priv_s si4463_priv_aux;
-
 const struct si4463_lower_s si4463_lower_main =
 {
   si4463_attach,
   si4463_enable,
   &si4463_priv_main
 };
+#endif
 
+#if defined(HN70AP_RADIO_AUX)
+struct si4463_priv_s si4463_priv_aux;
 const struct si4463_lower_s si4463_lower_aux =
 {
   si4463_attach,
   si4463_enable,
   &si4463_priv_aux
 };
+#endif
 
 /*******************************************************************************
  * Name: hn70ap_genradio_initialize
@@ -141,6 +144,7 @@ int hn70ap_genradio_initialize(void)
 
   /* Initialize radio devices */
 
+#if defined(HN70AP_RADIO_MAIN)
   si4463_priv_main.gpio_irq = GPIO_IRQ_RADIOMAIN;
   radio = RFM26_init(spi4, 1, SI4463_IO0, SI4463_IO1, &si4463_lower_main);
   if(radio==NULL)
@@ -155,7 +159,9 @@ int hn70ap_genradio_initialize(void)
           _err("Failed to register si4463 /dev/rmain\n");
         }
     }
+#endif
 
+#if defined(HN70AP_RADIO_MAIN)
   si4463_priv_aux.gpio_irq = GPIO_IRQ_RADIOAUX;
   radio = RFM26_init(spi4, 2, SI4463_IO0, SI4463_IO1, &si4463_lower_aux);
   if(radio==NULL)
@@ -170,6 +176,7 @@ int hn70ap_genradio_initialize(void)
           _err("Failed to register si4463 /dev/raux\n");
         }
     }
+#endif
 
   return 0;
 }

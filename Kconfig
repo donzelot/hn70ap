@@ -17,4 +17,48 @@ choice
 
 endchoice
 
+comment "----- hn70ap board features -----"
+
+config HN70AP_EEPROM
+	bool "Enable EEPROM"
+	select STM32_I2C3
+	select EEPROM
+	select I2C_EE_24XX
+
+config HN70AP_SPIFLASH
+	bool "Enable SPI FLASH"
+	select STM32_SPI2
+	select MTD
+	select MTD_PARTITION
+	select MTD_SST26
+
+config HN70AP_SCREEN
+	bool "Enable OLED screen"
+	select DRIVERS_VIDEO
+	select VIDEO_FB
+	select LCD
+	select LCD_UPDATE
+	select LCD_FRAMEBUFFER
+	select LCD_UG2864HSWEG01
+	select LCD_SSD1306_I2C
+
+config HN70AP_ETHERNET
+	bool "Enable Ethernet"
+	select STM32_ETHMAC
+
+config HN70AP_RADIO
+	bool
+	select STM32_SPI4
+	select GENERICRADIO_SI4463
+
+config HN70AP_MAINRADIO
+	bool "Enable main radio"
+	select HN70AP_RADIO
+
+config HN70AP_AUXRADIO
+	bool "Enable aux radio"
+	select HN70AP_RADIO
+
+comment "----------"
+
 endif # ARCH_BOARD_HN70AP

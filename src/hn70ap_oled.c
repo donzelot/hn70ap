@@ -65,8 +65,6 @@
 #  define CONFIG_LCD_MAXPOWER 1
 #endif
 
-#define OLED_I2C_PORT         1 /* OLED display connected to I2C1 */
-
 /****************************************************************************
  * Private Data
  ****************************************************************************/
@@ -115,7 +113,10 @@ int board_lcd_initialize(void)
 
 FAR struct lcd_dev_s *board_lcd_getdev(int devno)
 {
-  if(devno == 0) return g_lcddev;
+  switch(devno)
+    {
+      case 0: return g_lcddev;
+    }
   return NULL; //unknown device
 }
 

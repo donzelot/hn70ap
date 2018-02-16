@@ -39,7 +39,22 @@
 
 ASRCS =
 CSRCS  = bootloader.c hn70ap_boot.c hn70ap_spi.c hn70ap_leds.c
-CSRCS += hn70ap_flash.c hn70ap_eeprom.c hn70ap_oled.c hn70ap_genradio.c
+
+ifeq ($(CONFIG_HN70AP_SPIFLASH),y)
+CSRCS += hn70ap_flash.c
+endif
+
+ifeq ($(CONFIG_HN70AP_EEPROM),y)
+CSRCS += hn70ap_eeprom.c
+endif
+
+ifeq ($(CONFIG_HN70AP_SCREEN),y)
+CSRCS += hn70ap_oled.c
+endif
+
+ifeq ($(CONFIG_HN70AP_RADIO),y)
+CSRCS += hn70ap_genradio.c
+endif
 
 ifeq ($(CONFIG_ARCH_IDLE_CUSTOM),y)
 CSRCS += stm32_idle.c

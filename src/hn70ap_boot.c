@@ -123,26 +123,38 @@ void board_initialize(void)
 {
   int ret;
 
-#if defined(CONFIG_STM32_SPI2) && defined(CONFIG_MTD_SST26)
-  hn70ap_flash_initialize();
+#if defined(CONFIG_HN70AP_SPIFLASH)
+  ret = hn70ap_flash_initialize();
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "ERROR: flash init failed: %d\n", ret);
+    }
 #endif
 
-#if defined(CONFIG_STM32_I2C3) && defined(CONFIG_I2C_EE_24XX)
-  hn70ap_eeprom_initialize();
+#if defined(CONFIG_HN70AP_EEPROM)
+  ret = hn70ap_eeprom_initialize();
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "ERROR: eeprom init failed: %d\n", ret);
+    }
 #endif
 
-#if defined(CONFIG_VIDEO_FB)
+#if defined(CONFIG_HN70AP_SCREEN)
   /* Initialize and register the framebuffer driver */
 
   ret = fb_register(0, 0);
   if (ret < 0)
     {
-      syslog(LOG_ERR, "ERROR: fb_register() failed: %d\n", ret);
+      syslog(LOG_ERR, "ERROR: screen init failed: %d\n", ret);
     }
 #endif
 
-#if defined(CONFIG_STM32_SPI4) && defined(CONFIG_GENERICRADIO_SI4463)
+#if defined(CONFIG_HN70AP_RADIO)
   ret = hn70ap_genradio_initialize();
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "ERROR: radio init failed: %d\n", ret);
+    }
 #endif
 
 }
