@@ -11,6 +11,12 @@ schematic library.
 
 To open it you need kicad version 4.0.7.
 
+Enclosure
+=========
+Any enclosure that can host a 80x100mm PCBs with connectors on both 100mm
+sides is usable, for example a slotted extrusion box. I am using a
+Multicomp MCREBS80 box from Farnell.
+
 Power supply
 ============
  * Input via Anderson PowerPole for standard 13.8V ham
