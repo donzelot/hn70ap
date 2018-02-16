@@ -186,6 +186,8 @@
 #define GPIO_SPI4_MISO GPIO_SPI4_MISO_1 /* PE5 */
 #define GPIO_SPI4_MOSI GPIO_SPI4_MOSI_1 /* PE6 */
 #define GPIO_SPI4_SCK  GPIO_SPI4_SCK_1  /* PE2 */
+#define DMACHAN_SPI4_RX DMAMAP_SPI4_RX_1
+#define DMACHAN_SPI4_TX DMAMAP_SPI4_TX_1
 
 /* Ethernet - Not all pins can be configured, some of them are dedicated. */
 #define GPIO_ETH_RMII_TXD0  GPIO_ETH_RMII_TXD0_1 /* PB12 */

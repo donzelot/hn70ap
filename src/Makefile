@@ -39,7 +39,7 @@
 
 ASRCS =
 CSRCS  = bootloader.c hn70ap_boot.c hn70ap_spi.c hn70ap_leds.c
-CSRCS += hn70ap_flash.c hn70ap_eeprom.c
+CSRCS += hn70ap_flash.c hn70ap_eeprom.c hn70ap_oled.c hn70ap_genradio.c
 
 ifeq ($(CONFIG_ARCH_IDLE_CUSTOM),y)
 CSRCS += stm32_idle.c
@@ -49,14 +49,11 @@ ifeq ($(CONFIG_ARCH_FPU),y)
 CSRCS += stm32_ostest.c
 endif
 
-ifeq ($(CONFIG_VIDEO_FB),y)
-CSRCS += hn70ap_oled.c
-endif
+hn70ap_boot.c: grxversion.h
 
-stm32_boot.c: grxversion.h
-
-.PHONY: stm32_boot.c grxversion.h
+.PHONY: hn70ap_boot.c grxversion.h
 grxversion.h:
 	$(shell echo "#define GRXVERSION \"$(shell git describe --always --dirty)\"" > $@)
 
 include $(TOPDIR)/configs/Board.mk
+

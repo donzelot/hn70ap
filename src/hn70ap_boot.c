@@ -44,6 +44,10 @@
 #include <nuttx/board.h>
 #include <arch/board/board.h>
 
+#if defined(CONFIG_VIDEO_FB)
+#include <nuttx/video/fb.h>
+#endif
+
 #include "up_arch.h"
 #include "hn70ap.h"
 #include "stm32_ccm.h"
@@ -123,7 +127,7 @@ void board_initialize(void)
   hn70ap_flash_initialize();
 #endif
 
-#if defined(CONFIG_STM32_I2C3) //&& defined(CONFIG_EEPROM_I2C)
+#if defined(CONFIG_STM32_I2C3) && defined(CONFIG_I2C_EE_24XX)
   hn70ap_eeprom_initialize();
 #endif
 
@@ -136,5 +140,10 @@ void board_initialize(void)
       syslog(LOG_ERR, "ERROR: fb_register() failed: %d\n", ret);
     }
 #endif
+
+#if defined(CONFIG_STM32_SPI4) && defined(CONFIG_GENERICRADIO_SI4463)
+  ret = hn70ap_genradio_initialize();
+#endif
+
 }
 
