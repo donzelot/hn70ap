@@ -165,4 +165,14 @@ Wire Wire Line
 Connection ~ 8300 4500
 Wire Wire Line
 	7650 3900 8850 3900
+Text Notes 2850 2000 0    200  ~ 0
+4xx
+Text Notes 3100 4000 0    200  ~ 0
+6xx
+Text Notes 6250 2950 0    200  ~ 0
+3xx
+Text Notes 9900 1950 0    200  ~ 0
+2xx
+Text Notes 9700 4050 0    200  ~ 0
+5xx
 $EndSCHEMATC
