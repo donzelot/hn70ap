@@ -75,7 +75,7 @@ void hn70ap_spi_initialize(void)
   stm32_configgpio(GPIO_CS_SST26);   /* SST26 FLASH chip select */
 #endif
 
-#if defined(CONFIG_STM32_SPI4) && defined(CONFIG_GENRADIO)
+#if defined(CONFIG_STM32_SPI4) && defined(CONFIG_DRIVERS_GENERICRADIO)
   stm32_configgpio(GPIO_CS_RADIOMAIN);  /* On-board si4463 */
   stm32_configgpio(GPIO_CS_RADIOAUX);   /* Radio module */
 #endif
@@ -127,12 +127,13 @@ uint8_t stm32_spi2status(FAR struct spi_dev_s *dev, uint32_t devid)
 #ifdef CONFIG_STM32_SPI4
 void stm32_spi4select(FAR struct spi_dev_s *dev, uint32_t devid, bool selected)
 {
-#ifdef CONFIG_GENRADIO
+//  spiinfo("devid: %08X CS: %s\n", devid, selected ? "assert" : "de-assert");  
+#ifdef CONFIG_DRIVERS_GENERICRADIO
   if (devid == SPIDEV_GENRADIO(0))
     {
       stm32_gpiowrite(GPIO_CS_RADIOMAIN, !selected);
     }
-  if (devid == SPIDEV_GENRADIO(1))
+  else if (devid == SPIDEV_GENRADIO(1))
     {
       stm32_gpiowrite(GPIO_CS_RADIOAUX, !selected);
     }

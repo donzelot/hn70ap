@@ -37,15 +37,29 @@
 #define BOOTLOADER_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #define BOOTCODE __attribute__(( section(".boot.text") ))
 
 BOOTCODE void bootloader_inithardware(void);
 BOOTCODE void bootloader_stophardware(void);
-BOOTCODE bool bootloader_button(void);
+BOOTCODE bool bootloader_buttonpressed(void);
 BOOTCODE bool bootloader_checkupdate(void);
 BOOTCODE bool bootloader_apply(void);
 BOOTCODE void bootloader_download(void);
+
+/* Functions required for implementation of the above high level routines */
+
+/* Register access */
+
+#define putreg32(addr, val) *((volatile uint32_t*)(addr)) = (val)
+#define getreg32(addr)     (*((volatile uint32_t*)(addr)))
+
+/* Register addresses */
+/* Note: Only add here the required registers and bits.
+ * For clarity, do not add unused registers. */
+
+#define UART4_
 
 #endif /* BOOTLOADER_H */
 

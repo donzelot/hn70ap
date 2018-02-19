@@ -52,7 +52,7 @@
 #include <stm32.h>
 #include "hn70ap.h"
 
-#if defined(HN70AP_RADIO)
+#if defined(CONFIG_HN70AP_RADIO)
 
 struct si4463_priv_s
 {
@@ -100,7 +100,7 @@ void si4463_enable(FAR const struct si4463_lower_s *lower, int state)
     }
 }
 
-#if defined(HN70AP_RADIO_MAIN)
+#if defined(CONFIG_HN70AP_MAINRADIO)
 struct si4463_priv_s si4463_priv_main;
 const struct si4463_lower_s si4463_lower_main =
 {
@@ -110,7 +110,7 @@ const struct si4463_lower_s si4463_lower_main =
 };
 #endif
 
-#if defined(HN70AP_RADIO_AUX)
+#if defined(CONFIG_HN70AP_AUXRADIO)
 struct si4463_priv_s si4463_priv_aux;
 const struct si4463_lower_s si4463_lower_aux =
 {
@@ -140,41 +140,55 @@ int hn70ap_genradio_initialize(void)
   if (!spi4)
     {
       spierr("ERROR: FAILED to initialize SPI port 4\n");
+      return -EIO;
     }
+
+  _info("Strobing shutdown\n");
+  /* Strobe the SDN pin to reset both devices */
+  stm32_configgpio(GPIO_RADIO_SDN);
+  stm32_gpiowrite(GPIO_RADIO_SDN, 1);
+  up_mdelay(1);
+  stm32_gpiowrite(GPIO_RADIO_SDN, 0);
 
   /* Initialize radio devices */
 
-#if defined(HN70AP_RADIO_MAIN)
+#if defined(CONFIG_HN70AP_MAINRADIO)
+  _info("Prepare main radio\n");
   si4463_priv_main.gpio_irq = GPIO_IRQ_RADIOMAIN;
-  radio = RFM26_init(spi4, 1, SI4463_IO0, SI4463_IO1, &si4463_lower_main);
+  radio = RFM26_init(spi4, 0, SI4463_IO0, SI4463_IO1, &si4463_lower_main);
   if(radio==NULL)
     {
       _err("Unable to initialize si4463\n");
     }
   else
     {
+      _info("Initialized main radio\n");
       ret = genradio_register(radio, "/dev/rmain");
       if(ret)
         {
           _err("Failed to register si4463 /dev/rmain\n");
         }
+      _info("Registered main radio\n");
     }
 #endif
 
-#if defined(HN70AP_RADIO_MAIN)
+#if defined(CONFIG_HN70AP_AUXRADIO)
+  _info("Prepare aux radio\n");
   si4463_priv_aux.gpio_irq = GPIO_IRQ_RADIOAUX;
-  radio = RFM26_init(spi4, 2, SI4463_IO0, SI4463_IO1, &si4463_lower_aux);
+  radio = RFM26_init(spi4, 1, SI4463_IO0, SI4463_IO1, &si4463_lower_aux);
   if(radio==NULL)
     {
       _err("Unable to initialize si4463\n");
     }
   else
     {
+      _info("Initialized aux radio\n");
       ret = genradio_register(radio, "/dev/raux");
       if(ret)
         {
           _err("Failed to register si4463 /dev/raux\n");
         }
+      _info("Registered aux radio\n");
     }
 #endif
 

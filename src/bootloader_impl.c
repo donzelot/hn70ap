@@ -37,36 +37,56 @@
 #include "bootloader.h"
 
 /* ------------------------------------------------------------------------- */
+/* Initialize all hardware needed by the bootloader */
 BOOTCODE void bootloader_inithardware(void)
-  {
-  }
+{
+  /* Initialize UART4 */
+  /* Initialize SPI2 */
+  /* Initialize external flash */
+  /* Initialize LEDs */
+  /* Initialize Button */
+}
 
 /* ------------------------------------------------------------------------- */
+/* Deinitialize all hardware that was initialized.
+ * Specially important for SPI
+ */
 BOOTCODE void bootloader_stophardware(void)
-  {
-  }
+{
+  /* Disable SPI2 */
+  /* Disable UART4 */
+}
 
 /* ------------------------------------------------------------------------- */
-BOOTCODE bool bootloader_button(void)
-  {
-    return false;
-  }
+/* Return the state of the on-board button */
+BOOTCODE bool bootloader_buttonpressed(void)
+{
+  return false;
+}
 
 /* ------------------------------------------------------------------------- */
+/* Read the contents of the external flash and determine if a valid
+ * software image is present.
+ */
 BOOTCODE bool bootloader_checkupdate(void)
-  {
-    return false;
-  }
+{
+  return false;
+}
 
 /* ------------------------------------------------------------------------- */
+/* Copy the firmware (supposed valid) from the external flash to the
+ * internal stm32 flash. Return true on success, false on failure.
+ */
 BOOTCODE bool bootloader_apply(void)
-  {
-    return false;
-  }
+{
+  return false;
+}
 
 /* ------------------------------------------------------------------------- */
+/* Handle a download protocol to fill the external flash from data received
+ * through the UART
+ */
 BOOTCODE void bootloader_download(void)
-  {
-  }
-
+{
+}
 

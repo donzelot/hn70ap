@@ -121,7 +121,7 @@ BOOTCODE void __boot_start(void)
     bootloader_inithardware();
 
 retry:
-    if(bootloader_button())
+    if(bootloader_buttonpressed())
       {
         /* Boot button is pressed -> dont boot app, do a download */
         do_app     = false;
