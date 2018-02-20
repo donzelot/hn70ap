@@ -39,7 +39,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define BOOTCODE __attribute__(( section(".boot.text") ))
+#define BOOTCODE   __attribute__(( section(".boot.text") ))
+#define BOOTRODATA __attribute__(( section(".boot.rodata") ))
 
 BOOTCODE void bootloader_inithardware(void);
 BOOTCODE void bootloader_stophardware(void);
@@ -55,11 +56,7 @@ BOOTCODE void bootloader_download(void);
 #define putreg32(addr, val) *((volatile uint32_t*)(addr)) = (val)
 #define getreg32(addr)     (*((volatile uint32_t*)(addr)))
 
-/* Register addresses */
-/* Note: Only add here the required registers and bits.
- * For clarity, do not add unused registers. */
-
-#define UART4_
+#define modreg32(addr, set, clr) putreg32(addr, (getreg32(addr) & ~(clr)) | (set))
 
 #endif /* BOOTLOADER_H */
 
