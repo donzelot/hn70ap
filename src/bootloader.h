@@ -42,6 +42,8 @@
 #define BOOTCODE   __attribute__(( section(".boot.text") ))
 #define BOOTRODATA __attribute__(( section(".boot.rodata") ))
 
+#define CLOCK_SPEED 16000000LU
+
 BOOTCODE void bootloader_inithardware(void);
 BOOTCODE void bootloader_stophardware(void);
 BOOTCODE bool bootloader_buttonpressed(void);

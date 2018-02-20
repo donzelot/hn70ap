@@ -39,9 +39,10 @@
  */
 #include "bootloader.h"
 #include "bootloader_gpio.h"
+#include "bootloader_uart.h"
 
-#define UART4_TX      GPIO_PORT_C | GPIO_PIN_10 | GPIO_MODE_ALT | GPIO_TYPE_PP | GPIO_ALT_8
-#define UART4_RX      GPIO_PORT_C | GPIO_PIN_11 | GPIO_MODE_ALT | GPIO_TYPE_PP | GPIO_ALT_8
+#define UART4_TX      GPIO_PORT_C | GPIO_PIN_10 | GPIO_MODE_ALT | GPIO_TYPE_PP | GPIO_INIT_SET | GPIO_ALT_8
+#define UART4_RX      GPIO_PORT_C | GPIO_PIN_11 | GPIO_MODE_ALT | GPIO_TYPE_PP | GPIO_INIT_SET | GPIO_ALT_8
 #define SPI2_MOSI     GPIO_PORT_B | GPIO_PIN_15 | GPIO_MODE_ALT | GPIO_TYPE_PP | GPIO_ALT_5
 #define SPI2_MISO     GPIO_PORT_B | GPIO_PIN_14 | GPIO_MODE_ALT | GPIO_TYPE_PP | GPIO_ALT_5
 #define SPI2_SCLK     GPIO_PORT_B | GPIO_PIN_10 | GPIO_MODE_ALT | GPIO_TYPE_PP | GPIO_ALT_5
@@ -50,6 +51,8 @@
 #define LED_CPUACT    GPIO_PORT_D | GPIO_PIN_11 | GPIO_MODE_OUT | GPIO_TYPE_OD | GPIO_INIT_SET
 #define BUTTON        GPIO_PORT_E | GPIO_PIN_11 | GPIO_MODE_IN  | GPIO_PULL_UP
 
+static const char BOOTRODATA STR_WELCOME[] = "\r\n\r\n***** hn70ap bootloader *****\r\n";
+
 /* -------------------------------------------------------------------------- */
 /* Initialize all hardware needed by the bootloader */
 BOOTCODE void bootloader_inithardware(void)
@@ -57,6 +60,8 @@ BOOTCODE void bootloader_inithardware(void)
   /* Initialize UART4 */
   bootloader_gpio_init(UART4_TX);
   bootloader_gpio_init(UART4_RX);
+  bootloader_uart_init(4);
+  bootloader_uart_setbaud(4, 230400);
 
   /* Initialize SPI2 */
   bootloader_gpio_init(SPI2_MISO);
@@ -72,6 +77,8 @@ BOOTCODE void bootloader_inithardware(void)
 
   /* Initialize Button */
   bootloader_gpio_init(BUTTON);
+
+  bootloader_uart_write_string(4, STR_WELCOME);
 }
 
 /* -------------------------------------------------------------------------- */
