@@ -21,10 +21,11 @@
 #define GPIO_REGOFF_AFRL     0x020
 #define GPIO_REGOFF_AFRH     0x024
 
-BOOTCODE void bootloader_gpio_init(uint32_t gpiodesc)
+/* -------------------------------------------------------------------------- */
+BOOTCODE void bootloader_gpio_init(uint32_t gpio)
 {
-  uint32_t line = (gpiodesc & GPIO_FLAGS_MASK_LINE) >> GPIO_FLAGS_SHIFT_LINE;
-  uint32_t port = (gpiodesc & GPIO_FLAGS_MASK_PORT) >> GPIO_FLAGS_SHIFT_PORT;
+  uint32_t line = (gpio & GPIO_PIN_MASK ) >> GPIO_PIN_SHIFT;
+  uint32_t port = (gpio & GPIO_PORT_MASK) >> GPIO_PORT_SHIFT;
   uint32_t base, val;
 
   //get port base address
@@ -40,12 +41,12 @@ BOOTCODE void bootloader_gpio_init(uint32_t gpiodesc)
 
   //configure 1-bit ports
   //Define initial state Initial state and output type (output only)
-  if((gpiodesc & GPIO_FLAGS_MASK_MODE) == GPIO_MODE_OUT)
+  if((gpio & GPIO_MODE_MASK) == GPIO_MODE_OUT)
     {
-      val = (gpiodesc & GPIO_FLAGS_MASK_INIT) >> GPIO_FLAGS_SHIFT_INIT;
-      bootloader_gpio_write(gpiodesc, val);
+      val = (gpio & GPIO_INIT_MASK) >> GPIO_INIT_SHIFT;
+      bootloader_gpio_write(gpio, val);
 
-      val = (gpiodesc & GPIO_FLAGS_MASK_TYPE) >> GPIO_FLAGS_SHIFT_TYPE;
+      val = (gpio & GPIO_TYPE_MASK) >> GPIO_TYPE_SHIFT;
       modreg32(base + GPIO_REGOFF_OTYPER, val << line, 1 << line);
     }
 	
@@ -53,18 +54,18 @@ BOOTCODE void bootloader_gpio_init(uint32_t gpiodesc)
   line += line;
 	
   //Define pin mode
-  val = (gpiodesc & GPIO_FLAGS_MASK_MODE) >> GPIO_FLAGS_SHIFT_MODE;
+  val = (gpio & GPIO_MODE_MASK) >> GPIO_MODE_SHIFT;
   modreg32(base + GPIO_REGOFF_MODER, val << line, 3 << line);
 	
   //Define output speed (output only)
-  if((gpiodesc & GPIO_FLAGS_MASK_MODE) == GPIO_MODE_OUT)
+  if((gpio & GPIO_MODE_MASK) == GPIO_MODE_OUT)
     {
-      val = (gpiodesc & GPIO_FLAGS_MASK_SPD) >> GPIO_FLAGS_SHIFT_SPD;
+      val = (gpio & GPIO_SPD_MASK) >> GPIO_SPD_SHIFT;
       modreg32(base + GPIO_REGOFF_OSPEEDER, val << line, 3 << line);
     }
 
   //Define pull mode
-  val = (gpiodesc & GPIO_FLAGS_MASK_PULL) >> GPIO_FLAGS_SHIFT_PULL;
+  val = (gpio & GPIO_PULL_MASK) >> GPIO_PULL_SHIFT;
   modreg32(base + GPIO_REGOFF_PUPDR, val << line, 3 << line);
 
   //configure 4-bit ports
@@ -72,7 +73,7 @@ BOOTCODE void bootloader_gpio_init(uint32_t gpiodesc)
 	
   //Offset 20 AFRL (for lines 0-7)
   //Offset 24 AFRH (for lines 8-15)
-  val = (gpiodesc & GPIO_FLAGS_MASK_ALT) >> GPIO_FLAGS_SHIFT_ALT;
+  val = (gpio & GPIO_ALT_MASK) >> GPIO_ALT_SHIFT;
   if(line < (8 << 2))
     {
       modreg32(base + GPIO_REGOFF_AFRL, val << line, 15 << line);
@@ -80,14 +81,15 @@ BOOTCODE void bootloader_gpio_init(uint32_t gpiodesc)
   else
     {
       line -= 32;
-      modreg32(base + GPIO_REGOFF_AFRL, val << line, 15 << line);
+      modreg32(base + GPIO_REGOFF_AFRH, val << line, 15 << line);
     }
 }
 
+/* -------------------------------------------------------------------------- */
 BOOTCODE void bootloader_gpio_write(uint32_t gpio, int state)
 {
-  uint32_t line = (gpio & GPIO_FLAGS_MASK_LINE) >> GPIO_FLAGS_SHIFT_LINE;
-  uint32_t port = (gpio & GPIO_FLAGS_MASK_PORT) >> GPIO_FLAGS_SHIFT_PORT;
+  uint32_t line = (gpio & GPIO_PIN_MASK ) >> GPIO_PIN_SHIFT;
+  uint32_t port = (gpio & GPIO_PORT_MASK) >> GPIO_PORT_SHIFT;
   uint32_t base;
 
   //get port base address
@@ -105,10 +107,11 @@ BOOTCODE void bootloader_gpio_write(uint32_t gpio, int state)
   putreg32(base, 1<<line);
 }
 
+/* -------------------------------------------------------------------------- */
 BOOTCODE int bootloader_gpio_read(uint32_t gpio)
 {
-  uint32_t line = (gpio & GPIO_FLAGS_MASK_LINE) >> GPIO_FLAGS_SHIFT_LINE;
-  uint32_t port = (gpio & GPIO_FLAGS_MASK_PORT) >> GPIO_FLAGS_SHIFT_PORT;
+  uint32_t line = (gpio & GPIO_PIN_MASK ) >> GPIO_PIN_SHIFT;
+  uint32_t port = (gpio & GPIO_PORT_MASK) >> GPIO_PORT_SHIFT;
   uint32_t base;
 
   //get port base address

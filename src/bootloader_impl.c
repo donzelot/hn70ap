@@ -50,7 +50,7 @@
 #define LED_CPUACT    GPIO_PORT_D | GPIO_PIN_11 | GPIO_MODE_OUT | GPIO_TYPE_OD | GPIO_INIT_SET
 #define BUTTON        GPIO_PORT_E | GPIO_PIN_11 | GPIO_MODE_IN  | GPIO_PULL_UP
 
-/* ------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 /* Initialize all hardware needed by the bootloader */
 BOOTCODE void bootloader_inithardware(void)
 {
@@ -74,7 +74,7 @@ BOOTCODE void bootloader_inithardware(void)
   bootloader_gpio_init(BUTTON);
 }
 
-/* ------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 /* Deinitialize all hardware that was initialized.
  * Specially important for SPI
  */
@@ -85,14 +85,14 @@ BOOTCODE void bootloader_stophardware(void)
   /* Disable UART4 */
 }
 
-/* ------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 /* Return the state of the on-board button */
 BOOTCODE bool bootloader_buttonpressed(void)
 {
   return bootloader_gpio_read(BUTTON) == 0;
 }
 
-/* ------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 /* Read the contents of the external flash and determine if a valid
  * software image is present.
  */
@@ -101,7 +101,7 @@ BOOTCODE bool bootloader_checkupdate(void)
   return false;
 }
 
-/* ------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 /* Copy the firmware (supposed valid) from the external flash to the
  * internal stm32 flash. Return true on success, false on failure.
  */
@@ -110,7 +110,7 @@ BOOTCODE bool bootloader_apply(void)
   return false;
 }
 
-/* ------------------------------------------------------------------------- */
+/* -------------------------------------------------------------------------- */
 /* Handle a download protocol to fill the external flash from data received
  * through the UART
  */
