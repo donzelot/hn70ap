@@ -123,6 +123,8 @@ Flashing without JTAG
 This will be possible later, when the bootloader is made ready. The hardware is ready to support that.
 A python tool will build an update image from the nuttx elf output, and you will be able to send that image via ethernet or serial.
 
+The bootloader is currently being written. The algorithm is as follows: At CPU startup, the external flash is initialized and searched for a firmware update, except when the button is pressed. If the update is valid, it is applied. If a failure happens, or the button has been pressed, enter a serial download mode. This mode will expect a firmware update image on the serial port and then write it to the external flash. Once done, an update attempt will be attempted after a reboot.
+
 Advanced build
 ==============
 More configurations will be added later that can be used to test ethernet, spi/i2c memories, etc

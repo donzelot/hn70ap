@@ -48,7 +48,8 @@ Ethernet
 --------
 
 The STM32 Ethernet Peripheral is connected to a KSZ8081RNA PHY via RMII. 50 MHz
-RMII Clocking is provided via a 25 MHz XTAL doubled by the PHY.
+RMII Clocking is provided via a 25 MHz XTAL doubled by the PHY. Current status:
+soldering failed, waiting for a new device to install.
 
 ```
 RX0    PC4/33
@@ -66,7 +67,7 @@ MDC    PC1/16
 Some GPIOs are used to indicate the link status and reset the PHY:
 
 ```
-MAC_LINK PD8/55 Open Drain for a LED
+MAC_LINK PD8/55 Open Drain output for a LED
 MAC_RST  PB0/35
 ```
 
@@ -74,27 +75,28 @@ Debug UART
 ----------
 This uart is used to display the NuttX console. It is connected to UART4 (not an
 USART). It runs at 230400 bauds, 8N1. The FTDI chip is powered via USB only, so
-UART LEDs are not powered when USB is not connected.
+UART LEDs are not powered when USB is not connected. Current status: Hardware
+working, but current PCB footprint has an issue.
 
 ```
-TXD4  PC10/78
-RXD4  PC11/79
+TXD4  PC10/78 (AF8)
+RXD4  PC11/79 (AF8)
 ```
 
 SPI Flash
 ---------
 This memory is used to store the firmware update to be programmed by the
 bootloader, and a flash filesystem for file storage. It is connected to bus
-SPI2.
+SPI2. Current status: Validated in hardware and software.
 
 NuttX creates two partitions on it:
 * a 2 MB partition for firmware updates
 * a 6 MB partition for data storage
 
 ```
-MOSI2  PB15/54
-MISO2  PB14/53
-SCLK2  PB10/47 via pin PD10/57 to help routing
+MOSI2  PB15/54 (AF5)
+MISO2  PB14/53 (AF5)
+SCLK2  PB10/47 (AF5) - via pin PD10/57 to help routing
 CS     PA9/68
 ```
 
@@ -105,11 +107,11 @@ that must survive reset. The device is connected to I2C3. The I2C bus is also
 available on a pin header, can be used to add some daugterboards. The pinout is
 compatible with standard I2C OLED screens based on the SSD1306 controller. Some
 configurations enable support for this screen so debug information can be
-displayed.
+displayed. Current status: Validated in hardware and software.
 
 ```
-SDA3  PC9/66
-SCL3  PA8/67
+SDA3  PC9/66 (AF4)
+SCL3  PA8/67 (AF4)
 ```
 
 Main radio transceiver
@@ -122,12 +124,12 @@ any frequency of your choice (have a look at Silabs app notes). The device is
 connected to SPI4.
 
 ```
-MOSI4  PE6/5
-MISO4  PE5/4
-SCLK4  PE2/1
+MOSI4  PE6/5 (AF5)
+MISO4  PE5/4 (AF5)
+SCLK4  PE2/1 (AF5)
 CS     PE4/3
 IRQ    PC13/7
-SDN    PE3/2 Used to reset the chips in a clean way
+SDN    PE3/2 Used to reset BOTH radio chips in a clean way
 ```
 
 Auxiliary radio transceiver
@@ -160,16 +162,32 @@ their GPIO pins are configured as open drain, except for the bicolor LED.
 Signification of external LEDs may change in the future.
 
 ```
-LED1  (D301, Panel)    PB9/96 + PE0/97 (Bicolor Green/Red - Status)
-LED2  (D302, Panel)    PB8/95 (Blue - Clients connected)
-LED3  (D303, Panel)    PB7/93 (Orange - Transmit)
-LED4  (D304, Panel)    PB6/92 (Green - Receive)
-LED5  (D305, Internal) PD15/62 (Ay color - Heartbeat)
-LED6  (D306, Internal) PD11/58 (Any color - CPU Activity)
-LED7  (D401, Internal) ---     (Any color - FTDI TX)
-LED8  (D402, Internal) ---     (Any color - FTDI RX)
-LED9  (J201, Ethernet) ---     (Ethernet activity)
-LED10 (J201, Ethernet) PD8/55  (Ethernet link status)
+D301 (Panel)    PB9/96 + PE0/97 (Bicolor Green/Red - Status)
+D302 (Panel)    PB8/95  (Blue - Clients connected)
+D303 (Panel)    PB7/93  (Orange - Transmit)
+D304 (Panel)    PB6/92  (Green - Receive)
+D305 (Internal) PD15/62 (Ay color - Heartbeat)
+D306 (Internal) PD11/58 (Any color - CPU Activity)
+J201 (Ethernet) PD8/55  (Ethernet link status)
+```
+
+These LEDs are not driven by the CPU:
+
+```
+D602 (Power)    ---     (Blue)
+D401 (Internal) ---     (Any color - FTDI TX)
+D402 (Internal) ---     (Any color - FTDI RX)
+J201 (Ethernet) ---     (Ethernet activity)
+```
+
+Button
+------
+A push button with a 100nF debounce to ground and a pull-up is available for misc functions.
+If the button is pressed at power up, the bootloader will enter the serial download mode without
+even looking at the external flash contents.
+
+```
+BUTTON PE11/42
 ```
 
 eof
