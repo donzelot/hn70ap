@@ -44,14 +44,14 @@ struct uart_params {
 };
 
 static const struct uart_params g_uart[] BOOTRODATA = {
-  [0] = {0x40011000, RCC_APB2ENR,  4},
-  [1] = {0x40004400, RCC_APB1ENR, 17},
-  [2] = {0x40004800, RCC_APB1ENR, 18},
-  [3] = {0x40004C00, RCC_APB1ENR, 19},
-  [4] = {0x40005000, RCC_APB1ENR, 20},
-  [5] = {0x40011400, RCC_APB2ENR,  5},
-  [6] = {0x40007800, RCC_APB1ENR, 30},
-  [7] = {0x40007C00, RCC_APB1ENR, 31}
+  {0x40011000, RCC_APB2ENR,  4},
+  {0x40004400, RCC_APB1ENR, 17},
+  {0x40004800, RCC_APB1ENR, 18},
+  {0x40004C00, RCC_APB1ENR, 19},
+  {0x40005000, RCC_APB1ENR, 20},
+  {0x40011400, RCC_APB2ENR,  5},
+  {0x40007800, RCC_APB1ENR, 30},
+  {0x40007C00, RCC_APB1ENR, 31}
 };
 
 BOOTCODE void bootloader_uart_init(uint32_t uartid)
@@ -72,16 +72,16 @@ BOOTCODE void bootloader_uart_init(uint32_t uartid)
   //configure registers for a simple uart, 8 bits, 1 stop bit, no parity
   //CR1: OVER8=0, UE=1, M=0, WAKE=0, PCE=0, no parity, no interrupts, RE=1, RWU=0
   modreg32(
-    base + REGOFF_USART_CR1,
+    base + USART_OFF_CR1,
     USART_CR1_UE | USART_CR1_RE | USART_CR1_TE,
     0
     );
 
   //CR2: LINEN=0, STOP=00, CLKEN=0, no cpol, no cpha, no lbcl, no lin
-  modreg32(base + REGOFF_USART_CR2, 0, 0);
+  modreg32(base + USART_OFF_CR2, 0, 0);
 
   //CR3: ONEBIT=0, no interrupts, CTSE=0, RTSE=0, no dma, SCEN=0, NACK=0, HDSEL=0, no irda
-  modreg32(base + REGOFF_USART_CR3, 0, 0);
+  modreg32(base + USART_OFF_CR3, 0, 0);
 }
 
 /*
@@ -109,7 +109,7 @@ BOOTCODE void bootloader_uart_setbaud(uint32_t uartid, uint32_t baud)
   baud = CLOCK_SPEED / baud;
   //mask high bits
   baud &= 0xFFFF;
-  putreg32(base + REGOFF_USART_BRR, baud);
+  putreg32(base + USART_OFF_BRR, baud);
 }
 
 BOOTCODE void bootloader_uart_send(uint32_t uartid, int data)
@@ -122,13 +122,13 @@ BOOTCODE void bootloader_uart_send(uint32_t uartid, int data)
   uartid -= 1;
 
   reg = g_uart[uartid].base;
-  reg += REGOFF_USART_SR;
+  reg += USART_OFF_SR;
 
   //wait until the tx buffer is not empty
   while(!(getreg32(reg) & USART_SR_TXE));
 
   //send a single byte
-  putreg32(g_uart[uartid].base + REGOFF_USART_DR, data&0xFF);
+  putreg32(g_uart[uartid].base + USART_OFF_DR, data&0xFF);
 }
 
 BOOTCODE void bootloader_uart_write_string(uint32_t uartid, const char *s)

@@ -40,6 +40,7 @@
 #include "bootloader.h"
 #include "bootloader_gpio.h"
 #include "bootloader_uart.h"
+#include "bootloader_spi.h"
 
 #define UART4_TX      GPIO_PORT_C | GPIO_PIN_10 | GPIO_MODE_ALT | GPIO_TYPE_PP | GPIO_INIT_SET | GPIO_ALT_8
 #define UART4_RX      GPIO_PORT_C | GPIO_PIN_11 | GPIO_MODE_ALT | GPIO_TYPE_PP | GPIO_INIT_SET | GPIO_ALT_8
@@ -51,7 +52,13 @@
 #define LED_CPUACT    GPIO_PORT_D | GPIO_PIN_11 | GPIO_MODE_OUT | GPIO_TYPE_OD | GPIO_INIT_SET
 #define BUTTON        GPIO_PORT_E | GPIO_PIN_11 | GPIO_MODE_IN  | GPIO_PULL_UP
 
-static const char BOOTRODATA STR_WELCOME[] = "\r\n\r\n***** hn70ap bootloader *****\r\n";
+/* All text messages should be defined here instead of directly as parameters to
+ * functions, because there is absolutely NO WAY to control which rodata section
+ * is used to store litteral strings passed as parameters.
+ * String messages must be declared as char arrays, NOT pointers.
+ */
+static const char STR_WELCOME[] BOOTRODATA = "\r\n\r\n***** hn70ap bootloader *****\r\n";
+static const char STR_BOOT[]    BOOTRODATA = "Starting OS.\r\n";
 
 /* -------------------------------------------------------------------------- */
 /* Initialize all hardware needed by the bootloader */
@@ -67,6 +74,7 @@ BOOTCODE void bootloader_inithardware(void)
   bootloader_gpio_init(SPI2_MISO);
   bootloader_gpio_init(SPI2_MOSI);
   bootloader_gpio_init(SPI2_SCLK);
+  bootloader_spi_init(2, SPI_MODE_0 | SPI_BAUDDIV_64);
 
   /* Initialize external flash */
   bootloader_gpio_init(FLASH_CS);
@@ -87,9 +95,11 @@ BOOTCODE void bootloader_inithardware(void)
  */
 BOOTCODE void bootloader_stophardware(void)
 {
-  /* Disable SPI2 */
+  /* Disable SPI2, else NuttX wont properly initialize the SPI block */
+  bootloader_spi_fini(2);
 
-  /* Disable UART4 */
+  /* Last string displayed before starting the OS */
+  bootloader_uart_write_string(4, STR_BOOT);
 }
 
 /* -------------------------------------------------------------------------- */

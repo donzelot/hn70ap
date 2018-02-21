@@ -39,12 +39,12 @@
 #include <stdint.h>
 
 //reg offsets
-#define REGOFF_USART_SR     0x00
-#define REGOFF_USART_DR     0x04
-#define REGOFF_USART_BRR    0x08
-#define REGOFF_USART_CR1    0x0C
-#define REGOFF_USART_CR2    0x10
-#define REGOFF_USART_CR3    0x14
+#define USART_OFF_SR     0x00
+#define USART_OFF_DR     0x04
+#define USART_OFF_BRR    0x08
+#define USART_OFF_CR1    0x0C
+#define USART_OFF_CR2    0x10
+#define USART_OFF_CR3    0x14
 
 //bits values
 #define USART_SR_CTS         (1<<9)
