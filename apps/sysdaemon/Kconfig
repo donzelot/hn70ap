@@ -1,0 +1,30 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+config HN70AP_SYSDAEMON
+	bool "hn70ap system daemon"
+	default y
+	---help---
+		The system daemon manages the ethernet link status, the oled screen, then starts nsh.
+
+if HN70AP_SYSDAEMON
+
+config HN70AP_SYSDAEMON_PROGNAME
+	string "Program name"
+	default "sysdaemon"
+	depends on BUILD_KERNEL
+	---help---
+		This is the name of the program that will be use when the NSH ELF
+		program is installed.
+
+config HN70AP_SYSDAEMON_PRIORITY
+	int "hn70ap sysdaemon task priority"
+	default 100
+
+config HN70AP_SYSDAEMON_STACKSIZE
+	int "hn70ap sysdaemon stack size"
+	default 2048
+
+endif

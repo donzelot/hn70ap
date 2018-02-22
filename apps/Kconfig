@@ -6,5 +6,7 @@
 #
 
 menu "hn70ap apps"
-source "/home/grx/nuttx/apps/hn70ap/status/Kconfig"
+source "/home/slo/mynut/apps/hn70ap/libhn70ap/Kconfig"
+source "/home/slo/mynut/apps/hn70ap/status/Kconfig"
+source "/home/slo/mynut/apps/hn70ap/sysdaemon/Kconfig"
 endmenu # hn70ap apps
