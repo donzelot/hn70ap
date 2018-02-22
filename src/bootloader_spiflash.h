@@ -33,46 +33,13 @@
  *
  ****************************************************************************/
 
-#ifndef BOOTLOADER_H
-#define BOOTLOADER_H
+#ifndef BOOTLOADER_SPIFLASH_H
+#define BOOTLOADER_SPIFLASH_H
 
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "bootloader_gpio.h"
+void bootloader_spiflash_readjedec(uint8_t *id);
 
-#define BOOTCODE   __attribute__(( section(".boot.text") ))
-#define BOOTRODATA __attribute__(( section(".boot.rodata") ))
-#define BOOTBSS    __attribute__(( section(".boot.bss") ))
-
-#define NULL ((void*)0)
-#define CLOCK_SPEED 16000000LU
-
-#define UART4_TX      GPIO_PORT_C | GPIO_PIN_10 | GPIO_MODE_ALT | GPIO_TYPE_PP | GPIO_INIT_SET | GPIO_ALT_8
-#define UART4_RX      GPIO_PORT_C | GPIO_PIN_11 | GPIO_MODE_ALT | GPIO_TYPE_PP | GPIO_INIT_SET | GPIO_ALT_8
-#define SPI2_MOSI     GPIO_PORT_B | GPIO_PIN_15 | GPIO_MODE_ALT | GPIO_TYPE_PP | GPIO_ALT_5
-#define SPI2_MISO     GPIO_PORT_B | GPIO_PIN_14 | GPIO_MODE_ALT | GPIO_TYPE_PP | GPIO_ALT_5
-#define SPI2_SCLK     GPIO_PORT_B | GPIO_PIN_10 | GPIO_MODE_ALT | GPIO_TYPE_PP | GPIO_ALT_5
-#define FLASH_CS      GPIO_PORT_A | GPIO_PIN_9  | GPIO_MODE_OUT | GPIO_TYPE_PP | GPIO_INIT_SET
-#define LED_HEARTBEAT GPIO_PORT_D | GPIO_PIN_15 | GPIO_MODE_OUT | GPIO_TYPE_OD | GPIO_INIT_SET
-#define LED_CPUACT    GPIO_PORT_D | GPIO_PIN_11 | GPIO_MODE_OUT | GPIO_TYPE_OD | GPIO_INIT_SET
-#define BUTTON        GPIO_PORT_E | GPIO_PIN_11 | GPIO_MODE_IN  | GPIO_PULL_UP
-
-/* Register access */
-
-#define putreg32(addr, val) *((volatile uint32_t*)(addr)) = (val)
-#define getreg32(addr)     (*((volatile uint32_t*)(addr)))
-
-#define modreg32(addr, set, clr) putreg32(addr, (getreg32(addr) & ~(clr)) | (set))
-
-/* Functions required for implementation of the above high level routines */
-
-BOOTCODE void bootloader_inithardware(void);
-BOOTCODE void bootloader_stophardware(void);
-BOOTCODE bool bootloader_buttonpressed(void);
-BOOTCODE bool bootloader_checkupdate(void);
-BOOTCODE bool bootloader_apply(void);
-BOOTCODE void bootloader_download(void);
-
-#endif /* BOOTLOADER_H */
+#endif /* BOOTLOADER_SPIFLASH_H */
 

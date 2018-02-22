@@ -40,7 +40,6 @@
 #include "bootloader.h"
 
 #define BOOT_STACKSIZE  (16 * 1024)
-#define BOOT_STACK      ((unsigned)&_ebss+ BOOT_STACKSIZE-4)
 #define BOOT_PERIPHERAL_INTERRUPTS   16
 
 /*******************************************************************************
@@ -62,8 +61,9 @@ extern void __boot_exception_common(void);
 /* Provided by the linker script to indicate the end of the BSS
  * and start of text */
 
-extern char _ebss;
-extern char _stext;
+extern const uint32_t _ebss;
+extern const uint32_t _stext;
+extern const uint32_t _bootstack;
 
 /* The v7m vector table consists of an array of function pointers, with the first
  * slot (vector zero) used to hold the initial stack pointer.
@@ -76,8 +76,8 @@ extern char _stext;
 
 unsigned __boot_vectors[] __attribute__((section(".boot.vectors"))) =
 {
-  BOOT_STACK,              /* Initial stack */
-  (unsigned)&__boot_start, /* Reset exception handler */
+  (unsigned)&_bootstack + BOOT_STACKSIZE, /* Initial stack */
+  (unsigned)&__boot_start,                /* Reset exception handler */
 
   /* Vectors 2 - n point directly at the generic handler */
 
@@ -85,7 +85,7 @@ unsigned __boot_vectors[] __attribute__((section(".boot.vectors"))) =
 };
 
 /* -------------------------------------------------------------------------- */
-BOOTCODE __attribute__((naked)) void __boot_app(void)
+BOOTCODE __attribute__((naked, noreturn)) void __boot_app(void)
   {
     __asm__ __volatile__ ("\t"
         /* load SP (from 08004000) */

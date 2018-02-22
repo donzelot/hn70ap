@@ -4,11 +4,11 @@
  *   Copyright (C) 2011-2013 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
  *   Copyright (C) 2017 Sebastien Lorquet. All rights reserved.
- *   Author: Sebastien F4GRX <f4grx@f4grx.net>
+ *   Author: Sebastien Lorquet <sebastien@lorquet.fr>
  *
  *       Modified 11/4/2013 for STM32F429 support
  *
- *       (f4grx) Modified Aug 8, 2017 for bootloader support.
+ *       (slorquet) Modified Aug 8, 2017 for bootloader support.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -120,6 +120,19 @@ SECTIONS
 		*(.gnu.linkonce.b.*)
 		*(COMMON)
 		_ebss = ABSOLUTE(.);
+	} > sram
+
+	/* This section is OVERLAYED over the normal data/bss so that:
+	 * - the bootloader BSS does not consume any useful memory for the app.
+	 * - the initial stack pointer of the bootloader does NOT depend on vars
+	 *   added in the application!
+	 */
+	.bootbss _sdata (OVERLAY) : {
+        _sbootbss = ABSOLUTE(.);
+        *(.boot.bss .boot.bss.*)
+        _ebootbss = ABSOLUTE(.);
+        . = ABSOLUTE(ALIGN(4));
+        _bootstack = .;
 	} > sram
 
 	/* Stabs debugging sections. */

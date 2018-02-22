@@ -41,16 +41,7 @@
 #include "bootloader_gpio.h"
 #include "bootloader_uart.h"
 #include "bootloader_spi.h"
-
-#define UART4_TX      GPIO_PORT_C | GPIO_PIN_10 | GPIO_MODE_ALT | GPIO_TYPE_PP | GPIO_INIT_SET | GPIO_ALT_8
-#define UART4_RX      GPIO_PORT_C | GPIO_PIN_11 | GPIO_MODE_ALT | GPIO_TYPE_PP | GPIO_INIT_SET | GPIO_ALT_8
-#define SPI2_MOSI     GPIO_PORT_B | GPIO_PIN_15 | GPIO_MODE_ALT | GPIO_TYPE_PP | GPIO_ALT_5
-#define SPI2_MISO     GPIO_PORT_B | GPIO_PIN_14 | GPIO_MODE_ALT | GPIO_TYPE_PP | GPIO_ALT_5
-#define SPI2_SCLK     GPIO_PORT_B | GPIO_PIN_10 | GPIO_MODE_ALT | GPIO_TYPE_PP | GPIO_ALT_5
-#define FLASH_CS      GPIO_PORT_A | GPIO_PIN_9  | GPIO_MODE_OUT | GPIO_TYPE_PP | GPIO_INIT_SET
-#define LED_HEARTBEAT GPIO_PORT_D | GPIO_PIN_15 | GPIO_MODE_OUT | GPIO_TYPE_OD | GPIO_INIT_SET
-#define LED_CPUACT    GPIO_PORT_D | GPIO_PIN_11 | GPIO_MODE_OUT | GPIO_TYPE_OD | GPIO_INIT_SET
-#define BUTTON        GPIO_PORT_E | GPIO_PIN_11 | GPIO_MODE_IN  | GPIO_PULL_UP
+#include "bootloader_crc.h"
 
 /* All text messages should be defined here instead of directly as parameters to
  * functions, because there is absolutely NO WAY to control which rodata section
@@ -58,7 +49,11 @@
  * String messages must be declared as char arrays, NOT pointers.
  */
 static const char STR_WELCOME[] BOOTRODATA = "\r\n\r\n***** hn70ap bootloader *****\r\n";
+static const char STR_NOFLASH[] BOOTRODATA = "External flash device not detected.\r\n";
 static const char STR_BOOT[]    BOOTRODATA = "Starting OS.\r\n";
+
+static uint8_t hdrbuf[256] BOOTBSS;  /* Buffer for the header page containing update parameters */
+static uint8_t pagebuf[256]; /* Additional Buffer for flash data handling */
 
 /* -------------------------------------------------------------------------- */
 /* Initialize all hardware needed by the bootloader */
@@ -111,25 +106,72 @@ BOOTCODE bool bootloader_buttonpressed(void)
 
 /* -------------------------------------------------------------------------- */
 /* Read the contents of the external flash and determine if a valid
- * software image is present.
+ * software image is present. If a check error happens, the update header page
+ * is erased to avoid an infinite update failure loop, which will allow the
+ * current OS to start.
  */
 BOOTCODE bool bootloader_checkupdate(void)
 {
+  uint8_t  flashid[3];
+  bool     success    = false;
+  uint32_t sectorsize = 0; //size of the external flash erase block size
+
+  /* Preparations. */
+  bootloader_crc_init();
+
+  /* Attempt to detect the flash */
+  bootloader_spiflash_readjedec(flashid);
+
+  if(flashid[0] == 0xBF && flashid[1] == 0x25 && flashid[2] == 0x43)
+  {
+    success    = true;
+    sectorsize = 4096;
+  }
+
+  /* If the hardware is upgraded to support more flash devices, detect these
+   * here. */
+
+  if(!success)
+    {
+      bootloader_uart_write_string(4, STR_NOFLASH);
+      return false;
+    }
+
+  /* Flash is there. Read the first page. */
+
+  /* Check CRC of header page */
+
+  /* CRC is correct, means we're very likely to have an update */
+
+  /* Get update parameters */
+
+  /* Compute the CRC/SHA-256 of the image */
+
   return false;
 }
 
 /* -------------------------------------------------------------------------- */
 /* Copy the firmware (supposed valid) from the external flash to the
  * internal stm32 flash. Return true on success, false on failure.
+ * If we are interrupted anywhere in this proces, the update (previously
+ * declared valid) can still be applied at next boot.
  */
 BOOTCODE bool bootloader_apply(void)
 {
+  /* Erase the internal flash */
+
+  /* Copy the update from spi flash to internal flash */
+
+  /* Verify the contents of the internal flash */
+
+  /* We can now erase the update header in the external flash. */
+
   return false;
 }
 
 /* -------------------------------------------------------------------------- */
 /* Handle a download protocol to fill the external flash from data received
- * through the UART
+ * through the UART. Protocol undefined yet.
  */
 BOOTCODE void bootloader_download(void)
 {

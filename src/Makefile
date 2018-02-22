@@ -3,8 +3,8 @@
 #
 #   Copyright (C) 2011-2013 Gregory Nutt. All rights reserved.
 #   Author: Gregory Nutt <gnutt@nuttx.org>
-#   Copyright (C) 2017 Sebastien F4GRX. All rights reserved.
-#   Author: Sebastien F4GRX <f4grx@f4grx.net>
+#   Copyright (C) 2017 Sebastien Lorquet. All rights reserved.
+#   Author: Sebastien Lorquet <sebastien@lorquet.fr>
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -40,6 +40,7 @@
 ASRCS =
 CSRCS  = bootloader.c bootloader_impl.c
 CSRCS += bootloader_gpio.c bootloader_uart.c bootloader_spi.c
+CSRCS += bootloader_crc.c bootloader_spiflash.c
 CSRCS += hn70ap_boot.c hn70ap_spi.c hn70ap_leds.c
 
 ifeq ($(CONFIG_HN70AP_SPIFLASH),y)
