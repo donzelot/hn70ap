@@ -96,8 +96,10 @@ to the update. The first 4 bytes are the CRC-32 (ZIP or GZIP algorithm) of the
 next 252 bytes. If the CRC is not valid, the update is not applied by the
 bootloader.
 The next 252 bytes contain a sequence of TLV elements. TLV elements are a
-nestable binary data structure similar to BER or DER, but simpler. TLVs have
-3 fields:
+nestable binary data structure similar to BER or DER, but simpler. This
+structure easy future extensions.
+
+TLVs have 3 fields:
  * a TAG: actually a bit field. It indicates a tag number, a tag class, a bit
 indicating if the tag data field is raw or contains more tag.
 * a LENGTH: this one describes how many bytes are in the payload (value).
@@ -124,12 +126,12 @@ https://www.openscdp.org/scripts/tutorial/emv/TLV.html
 
 The following private tags are used to describe some metadata about the update:
 ```
-0x80 - User software size (4 bytes, required)
-0x81 - Major version (1 byte, optional)
-0x82 - Minor version (1 byte, optional)
-0x83 - CRC32 of the user software (4 bytes, required)
-0x84 - SHA256 of the user software (32 bytes, optional)
-0x8F - Padding (Enough 0xFF bytes so the header is 256 bytes long, required)
+0xC0 - User software size (4 bytes, required)
+0xC1 - Major version (1 byte, optional)
+0xC2 - Minor version (1 byte, optional)
+0xC3 - CRC32 of the user software (4 bytes, required)
+0xC4 - SHA256 of the user software (32 bytes, optional)
+0xCF - Padding (Enough 0xFF bytes so the header is 256 bytes long, required)
 ```
 
 If multiple tags are defined, which is not normally done by the generation
