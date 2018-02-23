@@ -1,10 +1,8 @@
 /****************************************************************************
- * hn70ap/apps/status/status_main.c
+ * hn70ap/apps/update/update_serial.c
  *
- *   Copyright (C) 2008, 2011-2012 Gregory Nutt. All rights reserved.
- *   Author: Gregory Nutt <gnutt@nuttx.org>
- *   Copyright (C) 2017 Sebastien F4GRX. All rights reserved.
- *   Author: Sebastien F4GRX <f4grx@f4grx.net>
+ *   Copyright (C) 2018 Sebastien Lorquet. All rights reserved.
+ *   Author: Sebastien Lorquet <sebastien@lorquet.fr>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,23 +37,7 @@
  * Included Files
  ****************************************************************************/
 
-#include <nuttx/config.h>
-#include <stdio.h>
-
-/****************************************************************************
- * Public Functions
- ****************************************************************************/
-
-/****************************************************************************
- * status_main
- ****************************************************************************/
-
-#ifdef CONFIG_BUILD_KERNEL
-int main(int argc, FAR char *argv[])
-#else
-int status_main(int argc, char *argv[])
-#endif
+void update_serial(int mtdfd)
 {
-  printf("Hello, hn70ap World!!\n");
-  return 0;
 }
+

@@ -1,9 +1,10 @@
 ############################################################################
-# hn70ap/apps/status/Make.defs
-# Adds selected applications to apps/ build
+# hn70ap/apps/update/Makefile
 #
-#   Copyright (C) 2015 Gregory Nutt. All rights reserved.
+#   Copyright (C) 2008, 2010-2013 Gregory Nutt. All rights reserved.
 #   Author: Gregory Nutt <gnutt@nuttx.org>
+#   Copyright (C) 2017 Sebastien Lorquet. All rights reserved.
+#   Author: Sebastien Lorquet <sebastien@lorquet.fr>
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,6 +35,25 @@
 #
 ############################################################################
 
-ifeq ($(CONFIG_HN70AP_STATUS),y)
-CONFIGURED_APPS += hn70ap/status
-endif
+-include $(TOPDIR)/Make.defs
+
+# hn70ap update tool built-in application info
+
+CONFIG_HN70AP_UPDATE_PRIORITY ?= SCHED_PRIORITY_DEFAULT
+CONFIG_HN70AP_UPDATE_STACKSIZE ?= 2048
+
+APPNAME = status
+PRIORITY = $(CONFIG_HN70AP_UPDATE_PRIORITY)
+STACKSIZE = $(CONFIG_HN70AP_UPDATE_STACKSIZE)
+
+# hn70ap update tool
+
+ASRCS =
+CSRCS =
+MAINSRC = update_main.c update_serial.c
+
+CONFIG_HN70AP_UPDATE_PROGNAME ?= update$(EXEEXT)
+PROGNAME = $(CONFIG_HN70AP_UPDATE_PROGNAME)
+
+include $(APPDIR)/Application.mk
+
