@@ -42,6 +42,7 @@
 #include "bootloader_uart.h"
 #include "bootloader_spi.h"
 #include "bootloader_crc.h"
+#include "bootloader_spiflash.h"
 
 /* All text messages should be defined here instead of directly as parameters to
  * functions, because there is absolutely NO WAY to control which rodata section
@@ -120,7 +121,7 @@ BOOTCODE bool bootloader_checkupdate(void)
   bootloader_crc_init();
 
   /* Attempt to detect the flash */
-  bootloader_spiflash_readjedec(flashid);
+  bootloader_spiflash_readjedec(2, flashid);
 
   if(flashid[0] == 0xBF && flashid[1] == 0x25 && flashid[2] == 0x43)
   {
@@ -138,6 +139,7 @@ BOOTCODE bool bootloader_checkupdate(void)
     }
 
   /* Flash is there. Read the first page. */
+  bootloader_spiflash_readpage(2, hdrbuf);
 
   /* Check CRC of header page */
 

@@ -39,7 +39,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-void bootloader_spiflash_readjedec(uint8_t *id);
+void bootloader_spiflash_readjedec(int spidev, uint8_t *id);
+void bootloader_spiflash_readpage(int spidev, uint32_t page, uint8_t *page);
 
 #endif /* BOOTLOADER_SPIFLASH_H */
 
