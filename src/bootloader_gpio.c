@@ -93,11 +93,8 @@ BOOTCODE void bootloader_gpio_init(uint32_t gpio)
   modreg32(base + GPIO_REGOFF_MODER, val << line, 3 << line);
 	
   //Define output speed (output only)
-  if((gpio & GPIO_MODE_MASK) == GPIO_MODE_OUT)
-    {
-      val = (gpio & GPIO_SPD_MASK) >> GPIO_SPD_SHIFT;
-      modreg32(base + GPIO_REGOFF_OSPEEDER, val << line, 3 << line);
-    }
+  val = (gpio & GPIO_SPD_MASK) >> GPIO_SPD_SHIFT;
+  modreg32(base + GPIO_REGOFF_OSPEEDER, val << line, 3 << line);
 
   //Define pull mode
   val = (gpio & GPIO_PULL_MASK) >> GPIO_PULL_SHIFT;

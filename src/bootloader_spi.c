@@ -122,7 +122,7 @@ BOOTCODE void bootloader_spi_transac8(uint32_t spiid, uint32_t len, uint8_t *mos
   spiid -= 1;
 
   sreg = g_spi[spiid].base + SPI_OFF_SR;
-  dreg  = g_spi[spiid].base + SPI_OFF_DR;
+  dreg = g_spi[spiid].base + SPI_OFF_DR;
 
   //see RM0090 (docid 018909) page 871, figure 253
   //tx write and rx read must be managed concurrently,

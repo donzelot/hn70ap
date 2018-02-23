@@ -49,12 +49,12 @@
  * is used to store litteral strings passed as parameters.
  * String messages must be declared as char arrays, NOT pointers.
  */
+static const char hex[]         BOOTRODATA = "0123456789ABCDEF";
 static const char STR_WELCOME[] BOOTRODATA = "\r\n\r\n***** hn70ap bootloader *****\r\n";
 static const char STR_NOFLASH[] BOOTRODATA = "External flash device not detected.\r\n";
 static const char STR_BOOT[]    BOOTRODATA = "Starting OS.\r\n";
 
-static uint8_t hdrbuf[256] BOOTBSS;  /* Buffer for the header page containing update parameters */
-static uint8_t pagebuf[256]; /* Additional Buffer for flash data handling */
+static uint8_t pgbuf[256] BOOTBSS;
 
 /* -------------------------------------------------------------------------- */
 /* Initialize all hardware needed by the bootloader */
@@ -70,14 +70,18 @@ BOOTCODE void bootloader_inithardware(void)
   bootloader_gpio_init(SPI2_MISO);
   bootloader_gpio_init(SPI2_MOSI);
   bootloader_gpio_init(SPI2_SCLK);
-  bootloader_spi_init(2, SPI_MODE_0 | SPI_BAUDDIV_64);
+  bootloader_spi_init(2, SPI_MSBFIRST | SPI_MODE_0 | SPI_BAUDDIV_64);
 
   /* Initialize external flash */
   bootloader_gpio_init(FLASH_CS);
+  bootloader_gpio_write(FLASH_CS, 1);
 
   /* Initialize LEDs */
   bootloader_gpio_init(LED_HEARTBEAT);
   bootloader_gpio_init(LED_CPUACT);
+
+  bootloader_gpio_write(LED_HEARTBEAT, 0);
+  bootloader_gpio_write(LED_CPUACT   , 0);
 
   /* Initialize Button */
   bootloader_gpio_init(BUTTON);
@@ -86,11 +90,22 @@ BOOTCODE void bootloader_inithardware(void)
 }
 
 /* -------------------------------------------------------------------------- */
+BOOTCODE void puthb(uint32_t uartid, uint8_t b)
+{
+  bootloader_uart_send(uartid, hex[b>> 4]);
+  bootloader_uart_send(uartid, hex[b&0xf]);
+}
+
+/* -------------------------------------------------------------------------- */
 /* Deinitialize all hardware that was initialized.
  * Specially important for SPI
  */
 BOOTCODE void bootloader_stophardware(void)
 {
+  /* Stop internal LEDs, signalling starting of OS */
+  bootloader_gpio_write(LED_HEARTBEAT, 1);
+  bootloader_gpio_write(LED_CPUACT   , 1);
+
   /* Disable SPI2, else NuttX wont properly initialize the SPI block */
   bootloader_spi_fini(2);
 
@@ -113,21 +128,21 @@ BOOTCODE bool bootloader_buttonpressed(void)
  */
 BOOTCODE bool bootloader_checkupdate(void)
 {
-  uint8_t  flashid[3];
   bool     success    = false;
   uint32_t sectorsize = 0; //size of the external flash erase block size
+  uint32_t crc;
 
   /* Preparations. */
   bootloader_crc_init();
 
   /* Attempt to detect the flash */
-  bootloader_spiflash_readjedec(2, flashid);
-
-  if(flashid[0] == 0xBF && flashid[1] == 0x25 && flashid[2] == 0x43)
-  {
-    success    = true;
-    sectorsize = 4096;
-  }
+  bootloader_spiflash_readjedec(2, pgbuf);
+  
+  if(pgbuf[0] == 0xBF && pgbuf[1] == 0x26 && pgbuf[2] == 0x43)
+    {
+      success    = true;
+      sectorsize = 4096;
+    }
 
   /* If the hardware is upgraded to support more flash devices, detect these
    * here. */
@@ -139,7 +154,7 @@ BOOTCODE bool bootloader_checkupdate(void)
     }
 
   /* Flash is there. Read the first page. */
-  bootloader_spiflash_readpage(2, 0, hdrbuf);
+  bootloader_spiflash_readpage(2, 0, pgbuf);
 
   /* Check CRC of header page */
 
