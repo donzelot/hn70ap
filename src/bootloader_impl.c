@@ -139,7 +139,7 @@ BOOTCODE bool bootloader_checkupdate(void)
     }
 
   /* Flash is there. Read the first page. */
-  bootloader_spiflash_readpage(2, hdrbuf);
+  bootloader_spiflash_readpage(2, 0, hdrbuf);
 
   /* Check CRC of header page */
 
