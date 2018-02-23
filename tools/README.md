@@ -2,7 +2,7 @@ The hn70ap bootloader
 =====================
 
 The firmware on the hn70ap board can be directly flashed via JTAG. It can also
-be updated using an update process.
+be updated using a dedicated process that does not required JTAG.
 
 How it works
 ------------
@@ -26,7 +26,7 @@ The internal STM32 flash memory is also logically split into two parts:
 (address range 0x08000000 - 0x08004000).
  * the user software, in the other sectors (starting at 0x08004000)
 
-What this means is that, instead of directly starting to execute the user
+This means is that instead of directly starting to execute the user
 software, the CPU always starts to execute inside the bootloader. The bootloader
 runs some update process described later, then remaps the CPU vector table to
 the beginning of the user software using the ARM VTOR register, setups the
@@ -44,11 +44,37 @@ can check that an update is present by looking at the image header in the first
 256 bytes of the external flash. The first 4 bytes are the CRC32 of the next
 252 bytes. If the image header is found valid, the update stored in the
 following pages is programmed in the internal STM32 flash. If not valid, the
-update partition is wiped.
+update partition is wiped before the current user software starts.
+
+After having erased and reprogrammed the internal STM32 flash, the update
+partition is then wiped.
 
 The bootloader itself writes protects itself during its startup process, so it
 cannot be erased inadvertently. If a bug is found during the life of the
 product, the bootloader will be forced to update via a specific process.
+
+Update failures
+---------------
+
+We have to be sure that the update process cannot brick the board. We believe
+that it is not possible to end up with a board that cannot boot any software
+because
+ * the bootloader is write protected as soon as it starts
+ * Any power interruption during the erase or programming of the internal
+flash will trigger another attempt at next power cycle
+ * Internal flash is verified before the external flash is wiped
+ * Any invalid image is detected before any update takes place.
+
+These reasons make us believe that the update process as designed is safe.
+However, implementation bugs are still possible.
+
+If the stm32 flash becomes erased, power is interrupted, and, because of this,
+the external flash contents become invalid (which is highly unlikely), the
+update will actually fail, and the bootloader will attempt to start an half
+erased or half programmed stm32, while the external flash has become
+unusable. This particular section cannot be detected at the
+moment, but the update button can still be pressed to trigger a serial
+downloader that will be able to put a new update image in the external flash.
 
 Firmware update image format
 ============================
@@ -63,7 +89,7 @@ the firmware update image)
 Header
 ------
 
-Note: bits in bytes are enumerated the right way, b7 = 0x80 and b0 = 0x01.
+Note: bits in bytes are enumerated the natural way, b7 = 0x80 and b0 = 0x01.
 
 The first 256 bytes of the update image contains critical information related
 to the update. The first 4 bytes are the CRC-32 (ZIP or GZIP algorithm) of the

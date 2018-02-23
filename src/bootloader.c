@@ -114,44 +114,28 @@ BOOTCODE __attribute__((naked, noreturn)) void __boot_app(void)
   }
 
 /* -------------------------------------------------------------------------- */
-BOOTCODE void __boot_start(void)
+BOOTCODE __attribute__((noreturn)) void __boot_start(void)
   {
-    bool has_update = false;
-    bool do_app    = true;
-
     bootloader_inithardware();
 
-retry:
     if(bootloader_buttonpressed())
       {
         /* Boot button is pressed -> dont boot app, do a download */
-        do_app     = false;
-        has_update = false;
-      }
-    else
-      {
-        /* Button not pressed: normal process */
-        has_update = bootloader_checkupdate();
-      }
-
-    if(has_update)
-      {
-        do_app = bootloader_apply(); /* If app was updated, only boot if update was successful */
-      }
-
-    if(do_app)
-      {
-        /* Boot app if, no update, or button not pressed, or update and it was successful */
-        bootloader_stophardware();
-        __boot_app();
-      }
-    else
-      {
         bootloader_download();
-        goto retry;
+        while(1); /* We have to reboot manually */
       }
 
-    while(1);
+    /* Button not pressed: normal process */
+
+    if(bootloader_check())
+      {
+        bootloader_apply(); /* If app was updated, only boot if update was successful */
+        bootloader_cleanup();
+      }
+
+    /* Update was not interrupted. Do the boot. */
+    bootloader_stophardware();
+    __boot_app();
   }
 
 /* -------------------------------------------------------------------------- */

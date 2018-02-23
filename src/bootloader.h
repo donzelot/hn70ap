@@ -70,8 +70,9 @@
 BOOTCODE void bootloader_inithardware(void);
 BOOTCODE void bootloader_stophardware(void);
 BOOTCODE bool bootloader_buttonpressed(void);
-BOOTCODE bool bootloader_checkupdate(void);
-BOOTCODE bool bootloader_apply(void);
+BOOTCODE bool bootloader_check(void);
+BOOTCODE void bootloader_apply(void);
+BOOTCODE void bootloader_cleanup(void);
 BOOTCODE void bootloader_download(void);
 
 #endif /* BOOTLOADER_H */

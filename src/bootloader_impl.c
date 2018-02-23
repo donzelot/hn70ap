@@ -49,10 +49,11 @@
  * is used to store litteral strings passed as parameters.
  * String messages must be declared as char arrays, NOT pointers.
  */
-static const char hex[]         BOOTRODATA = "0123456789ABCDEF";
-static const char STR_WELCOME[] BOOTRODATA = "\r\n\r\n***** hn70ap bootloader *****\r\n";
-static const char STR_NOFLASH[] BOOTRODATA = "External flash device not detected.\r\n";
-static const char STR_BOOT[]    BOOTRODATA = "Starting OS.\r\n";
+static const char hex[]          BOOTRODATA = "0123456789ABCDEF";
+static const char STR_WELCOME[]  BOOTRODATA = "\r\n\r\n***** hn70ap bootloader *****\r\n";
+static const char STR_NOFLASH[]  BOOTRODATA = "Flash not detected.\r\n";
+static const char STR_BOOT[]     BOOTRODATA = "Starting OS.\r\n";
+static const char STR_DOWNLOAD[] BOOTRODATA = "Download mode.\r\n";
 
 static uint8_t pgbuf[256] BOOTBSS;
 
@@ -126,10 +127,10 @@ BOOTCODE bool bootloader_buttonpressed(void)
  * is erased to avoid an infinite update failure loop, which will allow the
  * current OS to start.
  */
-BOOTCODE bool bootloader_checkupdate(void)
+BOOTCODE bool bootloader_check(void)
 {
   bool     success    = false;
-  uint32_t sectorsize = 0; //size of the external flash erase block size
+  uint32_t sectorsize = 0; //external flash erase block size
   uint32_t crc;
 
   /* Preparations. */
@@ -169,11 +170,10 @@ BOOTCODE bool bootloader_checkupdate(void)
 
 /* -------------------------------------------------------------------------- */
 /* Copy the firmware (supposed valid) from the external flash to the
- * internal stm32 flash. Return true on success, false on failure.
- * If we are interrupted anywhere in this proces, the update (previously
- * declared valid) can still be applied at next boot.
+ * internal stm32 flash. If we are interrupted anywhere in this proces, the
+ * update (previously declared valid) can still be applied at next boot.
  */
-BOOTCODE bool bootloader_apply(void)
+BOOTCODE void bootloader_apply(void)
 {
   /* Erase the internal flash */
 
@@ -183,7 +183,10 @@ BOOTCODE bool bootloader_apply(void)
 
   /* We can now erase the update header in the external flash. */
 
-  return false;
+}
+
+BOOTCODE void bootloader_cleanup(void)
+{
 }
 
 /* -------------------------------------------------------------------------- */
@@ -192,5 +195,6 @@ BOOTCODE bool bootloader_apply(void)
  */
 BOOTCODE void bootloader_download(void)
 {
+  bootloader_uart_write_string(4, STR_DOWNLOAD);
 }
 
