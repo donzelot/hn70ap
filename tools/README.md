@@ -131,17 +131,13 @@ The following private tags are used to describe some metadata about the update:
 0xC2 - Minor version (1 byte, optional)
 0xC3 - CRC32 of the user software (4 bytes, required)
 0xC4 - SHA256 of the user software (32 bytes, optional)
-0xCF - Padding (Enough 0xFF bytes so the header is 256 bytes long, required)
 ```
 
 If multiple tags are defined, which is not normally done by the generation
 tool, then the first values are used.
 
-The padding tag is made as big as necessary to bring the total length of TLV
-objects to 256 bytes, so that it fits exactly in one flash page.
-
-The next 16384 - 256 = 16128 bytes is filled with FF bytes for padding. In
-the future this space will be usable to hold firmware signatures.
+The tags are padded with 0xFF (invalid tag) to a length of 16384 bytes. In the
+future this space will be usable to hold firmware signatures.
 
 Image
 -----

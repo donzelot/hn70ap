@@ -22,7 +22,7 @@
 # Note that this tool is not a part of NuttX and has a different licence than
 # the NuttX RTOS.
 
-import sys, struct
+import sys, struct, binascii, hashlib
 
 #This class can be used to read an ELF file
 class elfreader:
@@ -132,6 +132,47 @@ for seg in segs:
   binoff = seg['paddr'] - binbase
   binimg[binoff:binoff+seg['filesz']] = seg['mem']
 
-with open('output','wb') as out:
-  out.write(binimg)
+#carve the bootloader
+bootloader = binimg[0:16384]
+usersoftwr = binimg[16384:]
+updatelen = len(usersoftwr)
+crc       = binascii.crc32(usersoftwr)
 
+#create firmware update image header
+header = bytearray(4)
+
+header.append(0xC0)
+header.append(0x04)
+header.append((updatelen >> 24) & 0xFF)
+header.append((updatelen >> 16) & 0xFF)
+header.append((updatelen >>  8) & 0xFF)
+header.append( updatelen        & 0xFF)
+
+header.append(0xC3)
+header.append(0x04)
+header.append((crc >> 24) & 0xFF)
+header.append((crc >> 16) & 0xFF)
+header.append((crc >>  8) & 0xFF)
+header.append( crc        & 0xFF)
+
+header.append(0xC4)
+header.append(0x20)
+header.extend(hashlib.sha256(usersoftwr).digest())
+
+#add padding to 16 kbytes
+for i in range(16384 - len(header)): header.append(0xFF)
+
+crc = binascii.crc32(header[4:256])
+header[0] = (crc >> 24) &0xFF
+header[1] = (crc >> 16) &0xFF
+header[2] = (crc >>  8) &0xFF
+header[3] =  crc        &0xFF
+
+with open('output_image', 'wb') as out:
+  out.write(header)
+  out.write(usersoftwr)
+
+with open('output_bootloader','wb') as out:
+  out.write(bootloader)
+
+print("all done.")
