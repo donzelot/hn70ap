@@ -41,7 +41,17 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#define MTDCHAR_ERASE   _MTDIOC(1000)
+#define MTDCHAR_BREAD   _MTDIOC(1001)
+#define MTDCHAR_BWRITE  _MTDIOC(1002)
+
 struct mtd_dev_s;
+struct mtdchar_req_s
+{
+  uint32_t block; /* Index of sector or page */
+  uint8_t *buf;   /* Data IO buffer for r/w */
+  int count;      /* sector or page count */
+};
 
 int mtdchar_register(FAR struct mtd_dev_s *dev, FAR char *devname);
 

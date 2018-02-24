@@ -48,6 +48,8 @@
 #include <nuttx/kmalloc.h>
 #include <nuttx/mtd/mtd.h>
 
+#include "driver_mtdchar.h"
+
 /****************************************************************************
  * Pre-processor Definitions
  ****************************************************************************/
@@ -145,7 +147,7 @@ static inline void mtdchar_semgive(FAR struct mtdchar_dev_s *mtdchardev)
 /****************************************************************************
  * Name: mtdchar_open
  *
- * Description: Open the block device
+ * Description: Open the device
  *
  ****************************************************************************/
 
@@ -367,27 +369,30 @@ done:
 /****************************************************************************
  * Name: mtdchar_ioctl
  *
- * Description: TODO: Erase a sector/page/device or read device ID / MAC.
- * This is completely optional.
+ * Description: 
  *
  ****************************************************************************/
 
 static int mtdchar_ioctl(FAR struct file *filep, int cmd, unsigned long arg)
 {
   FAR struct mtdchar_dev_s *mtdchardev;
-  FAR struct inode        *inode = filep->f_inode;
-  int                      ret   = 0;
+  FAR struct inode         *inode = filep->f_inode;
+  int                       ret   = 0;
+  FAR struct mtdchar_req_s *req = (FAR struct mtdchar_req_s *)arg;
 
   DEBUGASSERT(inode && inode->i_private);
   mtdchardev = (FAR struct mtdchar_dev_s *)inode->i_private;
 
+  mtdchar_semtake(mtdchardev);
   switch (cmd)
     {
-      default:
-        (void)mtdchardev;
-        ret = -EINVAL;
+      case MTDCHAR_ERASE:  ret = MTD_ERASE (mtdchardev->mtd, req->block, req->count); break;
+      case MTDCHAR_BREAD:  ret = MTD_BREAD (mtdchardev->mtd, req->block, req->count, req->buf); break;
+      case MTDCHAR_BWRITE: ret = MTD_BWRITE(mtdchardev->mtd, req->block, req->count, req->buf); break;
+      default:             ret = MTD_IOCTL(mtdchardev->mtd, cmd, arg);
     }
 
+  mtdchar_semgive(mtdchardev);
   return ret;
 }
 

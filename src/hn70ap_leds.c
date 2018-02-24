@@ -55,15 +55,16 @@ void hn70ap_leds_initialize(void)
   {
     stm32_configgpio(GPIO_LED_1A       );
     stm32_configgpio(GPIO_LED_1B       );
-    stm32_configgpio(GPIO_LED_2        );
-    stm32_configgpio(GPIO_LED_3        );
-    stm32_configgpio(GPIO_LED_4        );
+    stm32_configgpio(GPIO_LED_RED      );
+    stm32_configgpio(GPIO_LED_ORANGE   );
+    stm32_configgpio(GPIO_LED_GREEN    );
     stm32_configgpio(GPIO_LED_HEARTBEAT);
     stm32_configgpio(GPIO_LED_CPUACT   );
     stm32_configgpio(GPIO_LED_MACLINK  );
 
     stm32_gpiowrite(GPIO_LED_HEARTBEAT, 1);
     stm32_gpiowrite(GPIO_LED_CPUACT, 1);
+    stm32_gpiowrite(GPIO_LED_GREEN, 0);
 
   }
 

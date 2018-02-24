@@ -80,9 +80,10 @@ BOOTCODE void bootloader_inithardware(void)
   /* Initialize LEDs */
   bootloader_gpio_init(LED_HEARTBEAT);
   bootloader_gpio_init(LED_CPUACT);
+  bootloader_gpio_init(LED_RED);
+  bootloader_gpio_init(LED_ORANGE);
 
-  bootloader_gpio_write(LED_HEARTBEAT, 0);
-  bootloader_gpio_write(LED_CPUACT   , 0);
+  bootloader_gpio_write(LED_RED      , 0);
 
   /* Initialize Button */
   bootloader_gpio_init(BUTTON);
@@ -104,8 +105,7 @@ BOOTCODE void puthb(uint32_t uartid, uint8_t b)
 BOOTCODE void bootloader_stophardware(void)
 {
   /* Stop internal LEDs, signalling starting of OS */
-  bootloader_gpio_write(LED_HEARTBEAT, 1);
-  bootloader_gpio_write(LED_CPUACT   , 1);
+  bootloader_gpio_write(LED_RED      , 1);
 
   /* Disable SPI2, else NuttX wont properly initialize the SPI block */
   bootloader_spi_fini(2);
@@ -115,9 +115,12 @@ BOOTCODE void bootloader_stophardware(void)
 }
 
 /* -------------------------------------------------------------------------- */
-/* Return the state of the on-board button */
+/* Return the state of the on-board button. We need a small delay to ensure
+ * that the debounce capacitor had time to discharge through the pin pullup. */
 BOOTCODE bool bootloader_buttonpressed(void)
 {
+  volatile uint32_t delay;
+  for(delay=0;delay<100000LU;delay++) {}
   return bootloader_gpio_read(BUTTON) == 0;
 }
 
@@ -195,6 +198,8 @@ BOOTCODE void bootloader_cleanup(void)
  */
 BOOTCODE void bootloader_download(void)
 {
+  bootloader_gpio_write(LED_RED      , 1);
+  bootloader_gpio_write(LED_ORANGE   , 0);
   bootloader_uart_write_string(4, STR_DOWNLOAD);
 }
 

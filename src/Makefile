@@ -44,6 +44,7 @@ CSRCS += bootloader_crc.c bootloader_spiflash.c
 CSRCS += hn70ap_boot.c hn70ap_spi.c hn70ap_leds.c
 
 ifeq ($(CONFIG_HN70AP_SPIFLASH),y)
+CSRCS += driver_mtdchar.c
 CSRCS += hn70ap_flash.c
 endif
 
@@ -70,6 +71,7 @@ endif
 ifeq ($(CONFIG_ARCH_FPU),y)
 CSRCS += stm32_ostest.c
 endif
+
 
 hn70ap_boot.c: grxversion.h
 

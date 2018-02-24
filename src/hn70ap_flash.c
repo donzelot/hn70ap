@@ -53,6 +53,7 @@
 
 #include "stm32.h"
 #include "hn70ap.h"
+#include "driver_mtdchar.h"
 
 /****************************************************************************
  * Pre-processor Definitions
@@ -160,7 +161,15 @@ int hn70ap_flash_initialize(void)
       mtd_setpartitionname(mtdparts[partno], part[parno].name);
 #endif
       syslog(LOG_INFO, "SST26: Created partition %s (%d blocks)\n", parts[partno].name, parts[partno].blocks);
+
     }
+
+  _info("before mtdchar VTOR=%08X\n", getreg32(0xe000ed08));
+
+  /* Create char device for firmware update partition */
+  mtdchar_register(mtdparts[0], "/dev/firmware");
+  _info("Registered /dev/firmware\n");
+
   return OK;
 }
 
