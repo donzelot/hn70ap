@@ -164,8 +164,6 @@ int hn70ap_flash_initialize(void)
 
     }
 
-  _info("before mtdchar VTOR=%08X\n", getreg32(0xe000ed08));
-
   /* Create char device for firmware update partition */
   mtdchar_register(mtdparts[0], "/dev/firmware");
   _info("Registered /dev/firmware\n");

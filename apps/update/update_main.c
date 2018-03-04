@@ -45,6 +45,9 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/ioctl.h>
+
+#include <nuttx/mtd/mtd.h>
 
 #include "update.h"
 
@@ -69,6 +72,8 @@ int update_main(int argc, char *argv[])
 #endif
 {
   int fd;
+  int ret;
+  struct mtd_geometry_s geo;
 
   if(argc<2)
     {
@@ -79,6 +84,22 @@ int update_main(int argc, char *argv[])
   if(fd < 0)
     {
       fprintf(stderr, "Cannot open firmware partition\n");
+      return ERROR;
+    }
+
+  /* Make sure it's a MTD partition of 2 Mbytes */
+  ret = ioctl(fd, MTDIOC_GEOMETRY, (unsigned long)&geo);
+  if(ret != 0)
+    {
+      fprintf(stderr, "Cannot get MTD geometry\n");
+      return ERROR;
+    }
+
+  fprintf(stderr, "neraseblocks=%d erasesize=%d blocksize=%d\n", geo.neraseblocks, geo.erasesize, geo.blocksize);
+
+  if(geo.blocksize != 256)
+    {
+      fprintf(stderr, "Block size !=256 not supported!\n");
       return ERROR;
     }
 
