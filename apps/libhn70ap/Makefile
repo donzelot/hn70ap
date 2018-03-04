@@ -37,5 +37,6 @@
 
 ASRCS  =
 CSRCS  = eeprom.c
+CSRCS += tlv.c crc.c hdlc.c
 
 include $(APPDIR)/Application.mk

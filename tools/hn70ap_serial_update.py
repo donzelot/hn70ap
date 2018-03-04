@@ -134,7 +134,8 @@ if len(sys.argv) != 3:
 
 up = open(sys.argv[2], 'rb')
 
-port = serial.Serial(port=sys.argv[1], baudrate=230400, timeout=1)
+#a short timeout will not work since erase needs time
+port = serial.Serial(port=sys.argv[1], baudrate=230400, timeout=100)
 done = False
 while not done:
   print("Sending prompt...")
@@ -155,7 +156,7 @@ while not done:
 uplen = os.fstat(up.fileno()).st_size
 print("upload start")
 
-BLOCKSIZE = 100
+BLOCKSIZE = 256
 
 done = 0
 seq = 0
@@ -165,7 +166,14 @@ while True:
   s = seq.to_bytes(2,byteorder='big')
   #print("seq=", s.hex(), "len=", l, buf.hex())
   frame_send(port, INST_WRITE+s+buf)
-  print(frame_receive(port,1+2+BLOCKSIZE).hex())
+  rx = frame_receive(port,1+2+BLOCKSIZE)
+  #print(rx.hex())
+  status = rx[3];
+  #print("status:",status);
+  if status == 3:
+    print("send complete")
+    break
+
   done += l
   print("sent bytes",done,"of",uplen, end='\r')
   if l < BLOCKSIZE:
