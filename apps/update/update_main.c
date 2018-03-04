@@ -105,7 +105,7 @@ int update_main(int argc, char *argv[])
 
   if(!strcmp(argv[1], "serial"))
     {
-      update_serial(fd);
+      update_serial(fd, geo.blocksize, geo.erasesize);
     }
  
  close(fd);

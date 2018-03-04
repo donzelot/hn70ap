@@ -171,8 +171,11 @@ header[3] =  crc        &0xFF
 with open('output_image', 'wb') as out:
   out.write(header)
   out.write(usersoftwr)
+print("Wrote output_image")
 
 with open('output_bootloader','wb') as out:
   out.write(bootloader)
+print("Wrote output_bootloader")
 
 print("all done.")
+

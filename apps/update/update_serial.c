@@ -40,13 +40,16 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <fcntl.h>
+#include <termios.h>
 
 /* Load an update image via a serial port. Protocol:
  * update is sent as a sequence of HDLC framed packets (RFC1662) containing the
  * following fields:
  * 1 byte 0x7E (packet separator)
+ * 1 byte instruction (only one for now: 0x00 = write)
  * 2 bytes packet index big endian (increments starting at zero)
  * 2 bytes ISO14443-B CRC16
  * 1 byte 0x7E (packet separator)
@@ -55,6 +58,7 @@
  * 0x7D becomes 0x7D 0x5D
  * Valid packets are replied to by an ACK packet with a similar format:
  * 1 byte 0x7E (packet separator)
+ * 1 byte write ACK = 0x01
  * 2 bytes packet index big endian of ACKed packet
  * 1 byte status (0 is OK 1 is repeat, any other is an error)
  * 2 bytes ISO14443-B/ISO3309/HDLC/RFC1662 CRC16
@@ -79,6 +83,9 @@ enum
 #define FDELIM 0x7E
 #define FESC   0x7D
 
+#define INST_WRITE 0 /*Write buffer to external flash*/
+#define RESP_WRITE 1 /*Write confirmation*/
+
 /*----------------------------------------------------------------------------*/
 uint16_t crc16(uint16_t crc, uint8_t data)
 {
@@ -102,7 +109,7 @@ static inline void send_esc(FILE *out, uint8_t buf)
     }
   fputc(buf, out);
 }
-#include <termios.h>
+
 /*----------------------------------------------------------------------------*/
 static void frame_send(FILE *out, uint8_t *buf, int len)
 {
@@ -166,11 +173,12 @@ static int frame_receive(FILE *in, uint8_t *buf, int maxlen)
                 frame_state = STATE_DATA;
                 frame_len = 0;
                 crc = crc16(crc, ret);
-                buf[frame_len++] = ret;
                 if(frame_len == maxlen)
                   {
+                    printf("frame overflow\n");
                     goto done;
                   }
+                buf[frame_len++] = ret;
                 continue;
               }
             break;
@@ -188,22 +196,24 @@ static int frame_receive(FILE *in, uint8_t *buf, int maxlen)
             else
               {
                 crc = crc16(crc, ret);
-                buf[frame_len++] = ret;
                 if(frame_len == maxlen)
                   {
+                    printf("frame overflow\n");
                     goto done;
                   }
+                buf[frame_len++] = ret;
                 continue;
               }
 
           case STATE_ESC: //unescape char and back to data unless overflow
             ret ^= 0x20;
             crc  = crc16(crc, ret);
-            buf[frame_len++] = ret;
             if(frame_len == maxlen)
               {
+                printf("frame overflow\n");
                 goto done;
               }
+            buf[frame_len++] = ret;
             frame_state = STATE_DATA;
             continue;
         }
@@ -225,44 +235,166 @@ done:
   return frame_len - 2;
 }
 
-/*----------------------------------------------------------------------------*/
-int update_doframe(uint8_t *buf, int len)
+struct update_context_s
 {
-  printf("got frame, %d bytes\n", len);
-  frame_send(stdout, buf, len);
+  uint8_t *header;
+  uint8_t *block;
+  int header_len; /*number of bytes of header received so far */
+  int block_len; /*flash block size*/
+  int block_received; /*number of bytes of current block received so far */
+  int seq;
+};
+
+/*----------------------------------------------------------------------------*/
+int update_write(struct update_context_s *ctx, uint8_t *buf, int len)
+{
+  uint8_t *block;
+  uint8_t status = 0;
+  int need;
+  int off;
+
+  len -= 1; //subtract instruction
+  if(len < 2)
+    {
+      fprintf(stderr, "no sequence\n");
+      status = 1;
+      goto done;
+    }
+
+  ctx->seq = buf[1];
+  ctx->seq <<= 8;
+  ctx->seq |= buf[2];
+  len -= 2;
+
+  buf += 3; //now we are looking at data
+
+  if(len < 1)
+    {
+      fprintf(stderr, "no data\n");
+      status = 1;
+      goto done;
+    }
+
+  /* Manage data block */
+  if(ctx->seq == 0)
+    {
+      /* First block: reset context */
+      ctx->header_len = 0;
+      ctx->block_received = 0;
+      printf("header reset\n");
+    }
+  else
+    {
+      /* Next blocks: sequence number must be incremented */
+    }
+
+  /* Process received data fragments */
+
+  off = 0;
+again:
+  printf("curpagelen=%d rxlen=%d \n", ctx->block_received, len);
+  need = ctx->block_len - ctx->block_received; /* compute length needed to fill current page*/
+  if(len <= need)
+    {
+      need = len;
+      printf("all block goes into page (rxoff %d)\n", off);
+    }
+  else
+    {
+      /* We have more data than what is needed to finish a page*/
+      printf("partial block (%d bytes, rxoff %d) goes into page\n", need, off);
+    }
+
+  memcpy(ctx->block + ctx->block_received, buf+off, need);
+  ctx->block_received += need;
+  len -= need;
+  off += need;
+
+  if(ctx->block_received == ctx->block_len)
+    {
+      if(ctx->header_len == 0)
+        {
+          int i;
+          printf("HEADER\n");
+          memcpy(ctx->header, ctx->block, 256);
+          for(i=0;i<256;i++) printf("%02X",ctx->header[i]); printf("\n");
+          ctx->header_len = ctx->block_len;
+        }
+      else
+        {
+          printf("WRITE\n");
+        }
+      ctx->block_received = 0;
+    }
+
+  if(len > 0)
+    {
+      goto again;
+    }
+
+  /* No more data in rx buffer */
+done:
+  buf[0] = RESP_WRITE;
+  buf[3] = status;
+  frame_send(stdout, buf, 4);
   return OK;
 }
 
 /*----------------------------------------------------------------------------*/
-void update_serial(int mtdfd)
+int update_doframe(struct update_context_s *ctx, uint8_t *buf, int len)
+{
+  printf("got frame, %d bytes\n", len);
+  if(len<1)
+    {
+      fprintf(stderr, "no instruction\n");
+      return ERROR;
+    }
+  if(buf[0] == INST_WRITE)
+    {
+      update_write(ctx, buf, len);
+    }
+  return OK;
+}
+
+/*----------------------------------------------------------------------------*/
+void update_serial(int mtdfd, int blocksize, int erasesize)
 {
   int ret;
-  uint8_t *header;
-  uint8_t *block;
+  uint8_t *pktbuf;
 
-  header = malloc(256);
-  if(header==0)
+  struct update_context_s ctx;
+
+  ctx.header = malloc(256);
+  if(ctx.header==0)
     {
       fprintf(stderr, "alloc error!\n");
       return;
     }
 
-  block = malloc(2+256); //add room for seqnum
-  if(block==0)
+  ctx.block_len = blocksize;
+  ctx.block = malloc(256);
+  if(ctx.block == 0)
     {
       fprintf(stderr, "alloc error!\n");
       return;
     }
 
-  printf("waiting...\n");
+  pktbuf = malloc(1+2+256+2); //with room for inst seqnum and CRC
+  if(pktbuf == 0)
+    {
+      fprintf(stderr, "alloc error!\n");
+      return;
+    }
+
+  printf("hn70ap serial update waiting...\n");
   while(true)
     {
-      ret = frame_receive(stdin, block, 2+2+256);
+      ret = frame_receive(stdin, pktbuf, 1+2+256+2);
       if(ret == 0)
         {
           return;
         }
-      update_doframe(block,ret);
+      update_doframe(&ctx,pktbuf,ret);
     }
 
 }

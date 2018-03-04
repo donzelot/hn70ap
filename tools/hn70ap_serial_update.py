@@ -21,10 +21,14 @@
 # Note that this tool is not a part of NuttX and has a different licence than
 # the NuttX RTOS.
 
-import sys, serial
+import sys, serial, os
 
-FDELIM   = (0x7E).to_bytes(1, byteorder='big')
-FESC     = (0x7D).to_bytes(1, byteorder='big')
+INST_WRITE = (0x00).to_bytes(1, byteorder='big')
+
+FDELIMB  = 0x7E
+FDELIM   = FDELIMB.to_bytes(1, byteorder='big')
+FESCB    = 0x7D
+FESC     = FESCB.to_bytes(1, byteorder='big')
 CRC_INIT = 0xFFFF
 CRC_GOOD = 0xF0B8
 
@@ -46,7 +50,7 @@ def crc16(crc, val):
 def frame_send(port, frame):
 
   def write_esc(port,data):
-    if data == FDELIM or data == FESC:
+    if data == FDELIMB or data == FESCB:
       port.write(FESC)
       data ^= 0x20
     port.write(data.to_bytes(1, byteorder='big'))
@@ -70,10 +74,14 @@ def frame_receive(port, maxlen):
   state = STATE_NOSYNC
   packet = bytearray()
   crc = CRC_INIT
+  maxlen += 2 #include the length required to receive the CRC after the user bytes
 
   while True:
     ret = port.read(1)
-    #print("state",state,"char",ret.hex())
+    if len(ret)==0:
+      raise Exception("Receive timeout!")
+
+    #print("state",state,"char",ret.hex(),"'",ret,"'", "len",len(packet))
     b = ret[0]
     if state == STATE_NOSYNC:
       if ret == FDELIM:
@@ -86,7 +94,8 @@ def frame_receive(port, maxlen):
         packet.append(b)
         crc = crc16(crc, b)
         state = STATE_DATA
-        if len(packet) == maxlen:
+        if len(packet) > maxlen:
+          print("packet too long")
           break
 
     elif state == STATE_DATA:
@@ -97,14 +106,16 @@ def frame_receive(port, maxlen):
       else:
         packet.append(b)
         crc = crc16(crc, b)
-        if len(packet) == maxlen:
+        if len(packet) > maxlen:
+          print("packet too long")
           break
 
     elif state == STATE_ESC:
       b ^= 0x20;
       packet.append(b)
       crc = crc16(crc, b)
-      if len(packet) == maxlen:
+      if len(packet) > maxlen:
+        print("packet too long")
         break
       state = STATE_DATA
 
@@ -123,11 +134,45 @@ if len(sys.argv) != 3:
 
 up = open(sys.argv[2], 'rb')
 
-port = serial.Serial(port=sys.argv[1], baudrate=230400)
-port.write(b"update serial\r\n")
+port = serial.Serial(port=sys.argv[1], baudrate=230400, timeout=1)
+done = False
+while not done:
+  print("Sending prompt...")
+  port.reset_input_buffer()
+  port.reset_output_buffer()
+  port.write(b"\r\n\r\nupdate serial\r\n")
+  while True:
+    resp = port.readline()
+    if len(resp) == 0:
+      break
+    #print(">",resp)
+    if b"hn70ap serial update waiting..." in resp:
+      print("Good response")
+      done = True
+      break
+  if not done: print("Unexpected response, trying again") 
 
-frame_send(port, bytes.fromhex('0A123456'))
-print('[', frame_receive(port,2+256).hex(), ']')
+uplen = os.fstat(up.fileno()).st_size
+print("upload start")
+
+BLOCKSIZE = 100
+
+done = 0
+seq = 0
+while True:
+  buf = up.read(BLOCKSIZE)
+  l = len(buf)
+  s = seq.to_bytes(2,byteorder='big')
+  #print("seq=", s.hex(), "len=", l, buf.hex())
+  frame_send(port, INST_WRITE+s+buf)
+  print(frame_receive(port,1+2+BLOCKSIZE).hex())
+  done += l
+  print("sent bytes",done,"of",uplen, end='\r')
+  if l < BLOCKSIZE:
+    break
+  seq = (seq + 1) & 0xFFFF
+
+print("\nupload complete")
 
 port.close()
 up.close()
