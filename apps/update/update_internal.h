@@ -41,5 +41,6 @@
 #define UPDATE_INTERNAL_H
 
 void update_serial(int mtdfd, int blocksize, int erasesize);
+int update_status(int mtdfd);
 
 #endif

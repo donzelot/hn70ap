@@ -38,7 +38,7 @@
  ****************************************************************************/
 
 #include <stdint.h>
-
+#include <stddef.h>
 #include <hn70ap/crc.h>
 
 static uint32_t crc32_table[256];
@@ -84,6 +84,13 @@ uint32_t crc32_do(uint32_t crc, uint8_t *data, uint32_t len)
 {
   uint32_t c = crc;
   uint32_t n;
+  static uint32_t *table = NULL;
+
+  if(table == NULL)
+    {
+      crc32_init();
+      *table = crc32_table;
+    }
 
   for (n = 0; n < len; n++)
     {

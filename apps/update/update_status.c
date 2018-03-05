@@ -1,5 +1,5 @@
 /****************************************************************************
- * hn70ap/apps/update/update_main.c
+ * hn70ap/apps/update/update_status.c
  *
  *   Copyright (C) 2008, 2011-2012 Gregory Nutt. All rights reserved.
  *   Author: Gregory Nutt <gnutt@nuttx.org>
@@ -41,13 +41,18 @@
 
 #include <nuttx/config.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
+#include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
 
-#include <nuttx/mtd/mtd.h>
+#include <hn70ap/mtdchar.h>
+#include <hn70ap/update.h>
+#include <hn70ap/crc.h>
+#include <hn70ap/sha256.h>
 
 #include "update_internal.h"
 
@@ -55,65 +60,100 @@
  * Public Functions
  ****************************************************************************/
 
-int usage(void)
+int update_status(int mtdfd)
 {
-  printf("update serial - receive update from console\n"
-         "update status - show info about current firmware update\n");
+  struct mtdchar_req_s req;
+  struct update_header_s hdr;
+  uint8_t *buf;
+  uint8_t acc;
+  int ret;
+  uint32_t todo;
+  uint32_t crc;
+  struct sha256_s sha;
+
+  buf = malloc(256);
+  if(!buf)
+    {
+      fprintf(stderr, "Mem error\n");
+      return ERROR;
+    }
+
+  /* Read the header page */
+  req.block = 0;
+  req.buf   = buf;
+  req.count = 1;
+  ret = ioctl(mtdfd, MTDCHAR_BREAD, (unsigned long)&req);
+  if(ret < 0)
+    {
+      fprintf(stderr, "Cannot read external flash\n");
+      goto err;
+    }
+
+  acc = 0xFF;
+  for(ret = 0; ret < 256; ret++)
+    {
+      acc &= buf[ret];
+    }
+
+  if(acc == 0xFF)
+    {
+      printf("No update in external flash.\n");
+      goto err;
+    }
+
+  ret = update_parseheader(&hdr, buf, 256);
+  if(ret < 0)
+    {
+      fprintf(stderr, "Update header not valid\n");
+      goto err;
+    }
+  printf("Computing image checksums...\n");
+
+  todo = hdr.size - 16384; //Dont include extended header in CRC
+  req.block = 64;
+  crc = CRC32_INIT;
+  sha256_init(&sha);
+
+  while(todo > 0)
+    {
+      ret = ioctl(mtdfd, MTDCHAR_BREAD, (unsigned long)&req);
+      if(ret < 0)
+        {
+        fprintf(stderr, "failed to read flash page %d (errno %d)\n", req.block, errno);
+        while(1);
+        goto err;
+        }
+      crc = crc32_do(crc, buf, (todo > 256) ? 256 : todo );
+      sha256_update(&sha, buf, (todo > 256) ? 256 : todo );
+      if(todo > 256)
+        {
+          todo -= 256;
+          req.block += 1;
+        }
+      else
+        {
+          todo = 0; //done
+        }
+    }
+  crc ^= CRC32_MASK;
+  sha256_final(&sha, buf);
+
+  printf("Update size    : %u bytes\n", hdr.size);
+  printf("Update CRC     : %08X (%s)\n", hdr.crc, (hdr.crc == crc) ? "OK" : "FAIL" );
+  printf("Update SHA-256 : ");
+  acc = 0;
+  for(ret = 0; ret < 32; ret++)
+    {
+      printf("%02X", hdr.sha[ret]);
+      acc |= (buf[ret] ^ hdr.sha[ret]);
+    }
+  printf(" (%s)\n", (acc == 0) ? "OK": "FAIL");
+
+  free(buf);
+  return OK;
+
+err:
+  free(buf);
   return ERROR;
 }
 
-/****************************************************************************
- * status_main
- ****************************************************************************/
-
-#ifdef CONFIG_BUILD_KERNEL
-int main(int argc, FAR char *argv[])
-#else
-int update_main(int argc, char *argv[])
-#endif
-{
-  int fd;
-  int ret;
-  struct mtd_geometry_s geo;
-
-  if(argc<2)
-    {
-      return usage();
-    }
-
-  fd = open("/dev/firmware", O_RDWR);
-  if(fd < 0)
-    {
-      fprintf(stderr, "Cannot open firmware partition\n");
-      return ERROR;
-    }
-
-  /* Make sure it's a MTD partition of 2 Mbytes */
-  ret = ioctl(fd, MTDIOC_GEOMETRY, (unsigned long)&geo);
-  if(ret != 0)
-    {
-      fprintf(stderr, "Cannot get MTD geometry\n");
-      return ERROR;
-    }
-
-  fprintf(stderr, "neraseblocks=%d erasesize=%d blocksize=%d\n", geo.neraseblocks, geo.erasesize, geo.blocksize);
-
-  if(geo.blocksize != 256)
-    {
-      fprintf(stderr, "Block size !=256 not supported!\n");
-      return ERROR;
-    }
-
-  if(!strcmp(argv[1], "serial"))
-    {
-      update_serial(fd, geo.blocksize, geo.erasesize);
-    }
-  else if(!strcmp(argv[1], "status"))
-    {
-      update_status(fd);
-    }
- 
- close(fd);
-
- return 0;
-}

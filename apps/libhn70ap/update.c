@@ -60,7 +60,11 @@ int update_parseheader(struct update_header_s *hdr, uint8_t *buf, int buflen)
 
   /* Check CRC of header */
   crc = crc32_do(crc, buf+4, buflen-4);
-  crc ^= PEEK_U32LE(buf);
+  crc ^= CRC32_MASK;
+
+  //printf("Computed CRC: %08X / Stored %08X\n", crc, PEEK_U32BE(buf));
+
+  crc ^= PEEK_U32BE(buf);
 
   if(crc)
     {
@@ -80,7 +84,6 @@ int update_parseheader(struct update_header_s *hdr, uint8_t *buf, int buflen)
       return ERROR;
     }
   hdr->size = PEEK_U32BE(ptr);
-  printf("Update size : %u bytes\n", hdr->size);
   hdr->size += 16384; //add size of bootloader, not encoded in field.
 
   ptr = tlv_find(buf, buflen, TAG_UPCRC, &len, 0);
@@ -91,7 +94,6 @@ int update_parseheader(struct update_header_s *hdr, uint8_t *buf, int buflen)
   else
     {
     hdr->crc = PEEK_U32BE(ptr);
-    printf("Update CRC : %08X\n", hdr->crc);
     }
 
   ptr = tlv_find(buf, buflen, TAG_UPSHA, &len, 0);
@@ -101,11 +103,7 @@ int update_parseheader(struct update_header_s *hdr, uint8_t *buf, int buflen)
     }
   else
     {
-    int i;
     memcpy(hdr->sha, ptr, 32);
-    printf("Update SHA : ");
-    for(i=0;i<32;i++) printf("%02X",*ptr++);
-    printf("\n");
     }
 
   return OK;

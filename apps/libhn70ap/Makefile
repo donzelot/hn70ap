@@ -37,7 +37,7 @@
 
 ASRCS  =
 CSRCS  = eeprom.c
-CSRCS += tlv.c crc.c hdlc.c
+CSRCS += tlv.c crc.c sha256.c hdlc.c
 CSRCS += update.c
 
 include $(APPDIR)/Application.mk
