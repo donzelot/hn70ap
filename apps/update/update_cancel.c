@@ -1,5 +1,5 @@
 /****************************************************************************
- * hn70ap/apps/update/update_status.c
+ * hn70ap/apps/update/update_cancel.c
  *
  *   Copyright (C) 2018 Sebastien Lorquet. All rights reserved.
  *   Author: Sebastien Lorquet <sebastien@lorquet.fr>
@@ -47,10 +47,7 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 
-#include <hn70ap/mtdchar.h>
-#include <hn70ap/update.h>
-#include <hn70ap/crc.h>
-#include <hn70ap/sha256.h>
+#include <nuttx/mtd/mtd.h>
 
 #include "update_internal.h"
 
@@ -58,100 +55,18 @@
  * Public Functions
  ****************************************************************************/
 
-int update_status(int mtdfd)
+int update_cancel(int mtdfd)
 {
-  struct mtdchar_req_s req;
-  struct update_header_s hdr;
-  uint8_t *buf;
-  uint8_t acc;
   int ret;
-  uint32_t todo;
-  uint32_t crc;
-  struct sha256_s sha;
 
-  buf = malloc(256);
-  if(!buf)
+  printf("Erasing update partition... "); fflush(stdout);
+  ret = ioctl(mtdfd, MTDIOC_BULKERASE, 0);
+  if(ret < 0)
     {
-      fprintf(stderr, "Mem error\n");
+      printf("failed!\n");
       return ERROR;
     }
-
-  /* Read the header page */
-  req.block = 0;
-  req.buf   = buf;
-  req.count = 1;
-  ret = ioctl(mtdfd, MTDCHAR_BREAD, (unsigned long)&req);
-  if(ret < 0)
-    {
-      fprintf(stderr, "Cannot read external flash\n");
-      goto err;
-    }
-
-  acc = 0xFF;
-  for(ret = 0; ret < 256; ret++)
-    {
-      acc &= buf[ret];
-    }
-
-  if(acc == 0xFF)
-    {
-      printf("No update in external flash.\n");
-      goto err;
-    }
-
-  ret = update_parseheader(&hdr, buf, 256);
-  if(ret < 0)
-    {
-      fprintf(stderr, "Update header not valid\n");
-      goto err;
-    }
-  printf("Computing image checksums...\n");
-
-  todo = hdr.size - 16384; //Dont include extended header in CRC
-  req.block = 64;
-  crc = CRC32_INIT;
-  sha256_init(&sha);
-
-  while(todo > 0)
-    {
-      ret = ioctl(mtdfd, MTDCHAR_BREAD, (unsigned long)&req);
-      if(ret < 0)
-        {
-        fprintf(stderr, "failed to read flash page %d (errno %d)\n", req.block, errno);
-        while(1);
-        goto err;
-        }
-      crc = crc32_do(crc, buf, (todo > 256) ? 256 : todo );
-      sha256_update(&sha, buf, (todo > 256) ? 256 : todo );
-      if(todo > 256)
-        {
-          todo -= 256;
-          req.block += 1;
-        }
-      else
-        {
-          todo = 0; //done
-        }
-    }
-  crc ^= CRC32_MASK;
-  sha256_final(&sha, buf);
-
-  printf("Update size    : %u bytes\n", hdr.size);
-  printf("Update CRC     : %08X (%s)\n", hdr.crc, (hdr.crc == crc) ? "OK" : "FAIL" );
-  printf("Update SHA-256 : ");
-  acc = 0;
-  for(ret = 0; ret < 32; ret++)
-    {
-      printf("%02X", hdr.sha[ret]);
-      acc |= (buf[ret] ^ hdr.sha[ret]);
-    }
-  printf(" (%s)\n", (acc == 0) ? "OK": "FAIL");
-
-  free(buf);
+  printf("Complete.\n");
   return OK;
-
-err:
-  free(buf);
-  return ERROR;
 }
 

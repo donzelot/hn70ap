@@ -57,8 +57,9 @@
 
 int usage(void)
 {
-  printf("update serial - receive update from console\n"
-         "update status - show info about current firmware update\n");
+  printf("update serial - Receive update from console\n"
+         "update status - Show info about current firmware update\n"
+         "update cancel - Erase the firmware update partition\n");
   return ERROR;
 }
 
@@ -112,7 +113,14 @@ int update_main(int argc, char *argv[])
     {
       update_status(fd);
     }
- 
+  else if(!strcmp(argv[1], "cancel"))
+    {
+      update_cancel(fd);
+    }
+  else
+    {
+      return usage();
+    } 
  close(fd);
 
  return 0;

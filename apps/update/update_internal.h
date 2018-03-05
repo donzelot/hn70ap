@@ -42,5 +42,6 @@
 
 void update_serial(int mtdfd, int blocksize, int erasesize);
 int update_status(int mtdfd);
+int update_cancel(int mtdfd);
 
 #endif
