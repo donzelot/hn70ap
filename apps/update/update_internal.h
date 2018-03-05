@@ -1,5 +1,5 @@
 /****************************************************************************
- * hn70ap/apps/update/update.h
+ * hn70ap/apps/update/update_internal.h
  *
  *   Copyright (C) 2018 Sebastien Lorquet. All rights reserved.
  *   Author: Sebastien Lorquet <sebastien@lorquet.fr>

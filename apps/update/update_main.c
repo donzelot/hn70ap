@@ -49,7 +49,7 @@
 
 #include <nuttx/mtd/mtd.h>
 
-#include "update.h"
+#include "update_internal.h"
 
 /****************************************************************************
  * Public Functions
