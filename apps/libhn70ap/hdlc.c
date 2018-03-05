@@ -89,7 +89,7 @@ void frame_send(FILE *out, uint8_t *buf, int len)
       buf++;
     }
 
-  crc ^= 0xFFFF;
+  crc ^= CRC16_MASK;
   send_esc(out,  crc    &0xFF);
   send_esc(out, (crc>>8)&0xFF);
 

@@ -46,6 +46,7 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 
+#include <hn70ap/crc.h>
 #include <hn70ap/hdlc.h>
 #include <hn70ap/mtdchar.h>
 #include <hn70ap/update.h>
@@ -86,6 +87,7 @@ struct updateapp_context_s
   uint32_t block_len; /*flash block size*/
   uint32_t block_received; /* number of bytes of current block received so far */
   uint32_t total_received; /* total number of UPDATE bytes received so far */
+  uint32_t datacrc; /* Computed image CRC */
   uint16_t seq; /* packet sequence number */
   uint32_t block_id; /*flash page sequence number */
 
@@ -140,6 +142,7 @@ int update_write(struct updateapp_context_s *ctx, uint8_t *buf, int len)
       ctx->block_received = 0;
       ctx->total_received = 0;
       ctx->block_id = 1; //Start flash write right after header block
+      ctx->datacrc = CRC32_INIT;
       //printf("header reset\n");
     }
   else
@@ -205,6 +208,11 @@ again:
       else
         {
           printf("WRITE [%u]:",ctx->block_id);
+          /* Only data past 16k enters the CRC */
+          if(ctx->block_id > 63)
+            {
+              ctx->datacrc = crc32_do(ctx->datacrc, ctx->block, 256);
+            }
           req.block = ctx->block_id;
           req.buf   = ctx->block;
           req.count = 1;
@@ -239,6 +247,10 @@ again:
           if(ctx->block_received>0)
             {
               printf("WRITE LAST [%u]:",ctx->block_id);
+              if(ctx->block_id > 63)
+                {
+                  ctx->datacrc = crc32_do(ctx->datacrc, ctx->block, ctx->block_received);
+                }
               req.block = ctx->block_id;
               req.buf   = ctx->block;
               req.count = 1;
@@ -254,6 +266,14 @@ again:
                   printf("OK\n");
                 }
             }
+          /* Check data CRC against info in header */
+          if(ctx->datacrc != ctx->update.crc)
+            {
+              fprintf(stderr, "Data integrity error\n");
+              status = RESP_WRITE_ERRPARAMS;
+              goto done;
+            }
+
           /* Copy header into first block of flash */
           printf("WRITE HEADER:");
           req.block = 0;

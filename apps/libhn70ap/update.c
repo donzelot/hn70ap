@@ -1,5 +1,5 @@
 /****************************************************************************
- * hn70ap/apps/export/update.h
+ * hn70ap/apps/libhn70ap/update.c
  *
  *   Copyright (C) 2018 Sebastien Lorquet. All rights reserved.
  *   Author: Sebastien Lorquet <sebastien@lorquet.fr>
@@ -44,6 +44,7 @@
 
 #include <hn70ap/tlv.h>
 #include <hn70ap/memio.h>
+#include <hn70ap/crc.h>
 #include <hn70ap/update.h>
 
 #define TAG_UPSIZE 0xC0
@@ -55,7 +56,17 @@ int update_parseheader(struct update_header_s *hdr, uint8_t *buf, int buflen)
 {
   uint8_t *ptr;
   uint32_t len;
+  uint32_t crc = CRC32_INIT;
+
   /* Check CRC of header */
+  crc = crc32_do(crc, buf+4, buflen-4);
+  crc ^= PEEK_U32LE(buf);
+
+  if(crc)
+    {
+      fprintf(stderr, "Bad Header CRC\n");
+      return ERROR;
+    }
 
   /* Skip CRC */
   buf    += 4;

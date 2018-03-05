@@ -1,5 +1,5 @@
 /****************************************************************************
- * hn70ap/apps/export/hdlc.h
+ * hn70ap/apps/export/crc.c
  *
  *   Copyright (C) 2018 Sebastien Lorquet. All rights reserved.
  *   Author: Sebastien Lorquet <sebastien@lorquet.fr>
@@ -41,6 +41,8 @@
 
 #include <hn70ap/crc.h>
 
+static uint32_t crc32_table[256];
+
 /*----------------------------------------------------------------------------*/
 uint16_t crc16(uint16_t crc, uint8_t data)
 {
@@ -52,5 +54,41 @@ uint16_t crc16(uint16_t crc, uint8_t data)
     (uint16_t)((crc&0xFF)>>4);
 
   return crc;
+}
+
+/*----------------------------------------------------------------------------*/
+void crc32_init(void)
+{
+  unsigned long c;
+  int n, k;
+  for (n = 0; n < 256; n++)
+    {
+      c = (unsigned long) n;
+      for (k = 0; k < 8; k++)
+        {
+          if (c & 1)
+            {
+              c = 0xedb88320L ^ (c >> 1);
+            }
+          else
+            {
+              c = c >> 1;
+            }
+        }
+      crc32_table[n] = c;
+    }
+}
+
+/*----------------------------------------------------------------------------*/
+uint32_t crc32_do(uint32_t crc, uint8_t *data, uint32_t len)
+{
+  uint32_t c = crc;
+  uint32_t n;
+
+  for (n = 0; n < len; n++)
+    {
+      c = crc32_table[(c ^ data[n]) & 0xff] ^ (c >> 8);
+    }
+  return c;
 }
 

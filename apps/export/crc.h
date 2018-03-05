@@ -43,8 +43,15 @@
 #include <stdint.h>
 
 #define CRC16_INIT 0xFFFF
+#define CRC16_MASK 0xFFFF
 #define CRC16_GOOD 0xF0B8
 
+#define CRC32_INIT 0xFFFFFFFFL
+#define CRC32_MASK 0xFFFFFFFFL
+
 uint16_t crc16(uint16_t crc, uint8_t data);
+
+void crc32_init(void);
+uint32_t crc32_do(uint32_t crc, uint8_t *data, uint32_t len);
 
 #endif
