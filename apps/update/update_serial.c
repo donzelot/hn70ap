@@ -314,7 +314,7 @@ done:
 int update_doframe(struct updateapp_context_s *ctx, uint8_t *buf, int len)
 {
   //printf("got frame, %d bytes\n", len);
-  if(len<1)
+  if(len < 1)
     {
       fprintf(stderr, "no instruction\n");
       return ERROR;

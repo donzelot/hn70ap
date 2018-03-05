@@ -38,8 +38,11 @@
 
 #include <stdint.h>
 
-void     bootloader_crc_init(void);
-uint32_t bootloader_crc_do(uint32_t crc, uint32_t len, uint8_t *data);
+#define CRC32_INIT 0xFFFFFFFFL
+#define CRC32_MASK 0xFFFFFFFFL
+
+void bootloader_crc_init(void);
+uint32_t bootloader_crc_do(uint32_t crc, uint8_t *data, uint32_t len);
 
 #endif //BOOTLOADER_CRC_H
 

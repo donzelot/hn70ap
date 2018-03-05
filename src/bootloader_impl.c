@@ -54,6 +54,9 @@ static const char STR_WELCOME[]  BOOTRODATA = "\r\n\r\n***** hn70ap bootloader *
 static const char STR_NOFLASH[]  BOOTRODATA = "Flash not detected.\r\n";
 static const char STR_BOOT[]     BOOTRODATA = "Starting OS.\r\n";
 static const char STR_DOWNLOAD[] BOOTRODATA = "Download mode.\r\n";
+static const char STR_NOUPDATE[] BOOTRODATA = "No update.\r\n";
+static const char STR_BADHCRC[]  BOOTRODATA = "Bad Header CRC!\r\n";
+static const char STR_OK[]       BOOTRODATA = "Update OK.\r\n";
 
 static uint8_t pgbuf[256] BOOTBSS;
 
@@ -135,6 +138,8 @@ BOOTCODE bool bootloader_check(void)
   bool     success    = false;
   uint32_t sectorsize = 0; //external flash erase block size
   uint32_t crc;
+  uint8_t  check;
+  int i;
 
   /* Preparations. */
   bootloader_crc_init();
@@ -160,9 +165,33 @@ BOOTCODE bool bootloader_check(void)
   /* Flash is there. Read the first page. */
   bootloader_spiflash_readpage(2, 0, pgbuf);
 
+  /* Check for blank */
+  check = 0xFF;
+  for(i=0;i<256;i++)
+    {
+      puthb(4, pgbuf[i]);
+      check &= pgbuf[i];
+    }
+  if(check == 0xFF)
+    {
+      bootloader_uart_write_string(4, STR_NOUPDATE);
+      return false;
+    }
+
   /* Check CRC of header page */
+  crc  = CRC32_INIT;
+  crc  = bootloader_crc_do(crc, pgbuf+4, 252);
+  crc ^= CRC32_MASK;
+  crc ^= PEEK_U32BE(pgbuf);
+
+  if(crc)
+    {
+      bootloader_uart_write_string(4, STR_BADHCRC);
+      return false;
+    }
 
   /* CRC is correct, means we're very likely to have an update */
+  bootloader_uart_write_string(4, STR_OK);
 
   /* Get update parameters */
 

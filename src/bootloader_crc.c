@@ -1,5 +1,5 @@
 /****************************************************************************
- * configs/hn70ap/src/bootloader.h
+ * configs/hn70ap/src/bootloader_crc.c
  *
  *   Copyright (C) 2018 Sebastien Lorquet. All rights reserved.
  *   Author: Sebastien Lorquet <sebastien@lorquet.fr>
@@ -38,10 +38,9 @@
 #include <stdint.h>
 #include "bootloader.h"
 
-BOOTBSS static uint32_t crc_table[256];
+static uint32_t bootloader_crc_table[256] BOOTBSS;
 
 /* -------------------------------------------------------------------------- */
-/* init crc table */
 BOOTCODE void bootloader_crc_init(void)
 {
   uint32_t c;
@@ -53,28 +52,25 @@ BOOTCODE void bootloader_crc_init(void)
         {
           if (c & 1)
             {
-              c = 0xEBB88320L ^ (c >> 1);
+              c = 0xEDB88320L ^ (c >> 1);
             }
           else
             {
               c = c >> 1;
             }
         }
-      crc_table[n] = c;
+      bootloader_crc_table[n] = c;
     }
 }
 
 /* -------------------------------------------------------------------------- */
-/* add data to crc */
-BOOTCODE uint32_t bootloader_crc_do(uint32_t crc, uint32_t len, uint8_t *data)
+BOOTCODE uint32_t bootloader_crc_do(uint32_t crc, uint8_t *data, uint32_t len)
 {
-  uint32_t c = crc ^ 0xffffffffL;
   uint32_t n;
-
   for (n = 0; n < len; n++)
     {
-      c = crc_table[(c ^ data[n]) & 0xff] ^ (c >> 8);
+      crc = bootloader_crc_table[(crc ^ data[n]) & 0xff] ^ (crc >> 8);
     }
-  return c ^ 0xffffffffL;
+  return crc;
 }
 

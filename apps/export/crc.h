@@ -1,5 +1,5 @@
 /****************************************************************************
- * hn70ap/apps/export/hdlc.h
+ * hn70ap/apps/export/crc.h
  *
  *   Copyright (C) 2018 Sebastien Lorquet. All rights reserved.
  *   Author: Sebastien Lorquet <sebastien@lorquet.fr>

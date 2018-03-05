@@ -1,5 +1,5 @@
 /****************************************************************************
- * hn70ap/apps/export/crc.c
+ * hn70ap/apps/libhn70ap/crc.c
  *
  *   Copyright (C) 2018 Sebastien Lorquet. All rights reserved.
  *   Author: Sebastien Lorquet <sebastien@lorquet.fr>
@@ -89,7 +89,7 @@ uint32_t crc32_do(uint32_t crc, uint8_t *data, uint32_t len)
   if(table == NULL)
     {
       crc32_init();
-      *table = crc32_table;
+      table = crc32_table;
     }
 
   for (n = 0; n < len; n++)

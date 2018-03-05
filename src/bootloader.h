@@ -68,6 +68,10 @@
 
 #define modreg32(addr, set, clr) putreg32(addr, (getreg32(addr) & ~(clr)) | (set))
 
+/* MEMIO */
+
+#define PEEK_U32BE(addr) ( *(uint8_t*)(addr)<<24 | *((uint8_t*)(addr)+1)<<16 | *((uint8_t*)(addr)+2)<< 8 | *((uint8_t*)(addr)+3)     )
+
 /* Functions required for implementation of the above high level routines */
 
 BOOTCODE void bootloader_inithardware(void);
