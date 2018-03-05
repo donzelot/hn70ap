@@ -84,9 +84,10 @@ int update_status(int mtdfd)
   if(ret < 0)
     {
       fprintf(stderr, "Cannot read external flash\n");
-      goto err;
+      goto done;
     }
 
+  /* Blank check */
   acc = 0xFF;
   for(ret = 0; ret < 256; ret++)
     {
@@ -96,14 +97,15 @@ int update_status(int mtdfd)
   if(acc == 0xFF)
     {
       printf("No update in external flash.\n");
-      goto err;
+      ret = OK;
+      goto done;
     }
 
   ret = update_parseheader(&hdr, buf, 256);
   if(ret < 0)
     {
       fprintf(stderr, "Update header not valid\n");
-      goto err;
+      goto done;
     }
   printf("Computing image checksums...\n");
 
@@ -118,8 +120,7 @@ int update_status(int mtdfd)
       if(ret < 0)
         {
         fprintf(stderr, "failed to read flash page %d (errno %d)\n", req.block, errno);
-        while(1);
-        goto err;
+        goto done;
         }
       crc = crc32_do(crc, buf, (todo > 256) ? 256 : todo );
       sha256_update(&sha, buf, (todo > 256) ? 256 : todo );
@@ -147,11 +148,10 @@ int update_status(int mtdfd)
     }
   printf(" (%s)\n", (acc == 0) ? "OK": "FAIL");
 
-  free(buf);
-  return OK;
+  ret = OK;
 
-err:
+done:
   free(buf);
-  return ERROR;
+  return ret;
 }
 

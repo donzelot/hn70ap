@@ -105,6 +105,7 @@ struct updateapp_context_s
 int update_write(struct updateapp_context_s *ctx, uint8_t *buf, int len)
 {
   uint8_t status = RESP_WRITE_OK;
+  int retval = OK; //default will proceed with next packet after this one.
   int need;
   int off;
   int ret; /* ioctl return values */
@@ -198,6 +199,7 @@ again:
             {
               printf("FAILED\n");
               status = RESP_WRITE_ERRIO;
+              retval = ERROR;
               goto done;
             }
           else
@@ -221,6 +223,7 @@ again:
             {
               printf("FAILED\n");
               status = RESP_WRITE_ERRIO;
+              retval = ERROR;
               goto done;
             }
           else
@@ -259,6 +262,7 @@ again:
                 {
                   printf("FAILED\n");
                   status = RESP_WRITE_ERRIO;
+                  retval = ERROR;
                   goto done;
                 }
               else
@@ -266,11 +270,13 @@ again:
                   printf("OK\n");
                 }
             }
+          ctx->datacrc ^= CRC32_MASK;
           /* Check data CRC against info in header */
           if(ctx->datacrc != ctx->update.crc)
             {
               fprintf(stderr, "Data integrity error\n");
               status = RESP_WRITE_ERRPARAMS;
+              retval = ERROR;
               goto done;
             }
 
@@ -284,6 +290,7 @@ again:
             {
               printf("FAILED\n");
               status = RESP_WRITE_ERRIO;
+              retval = ERROR;
               goto done;
             }
           else
@@ -300,7 +307,7 @@ done:
   buf[0] = RESP_WRITE;
   buf[3] = status;
   frame_send(stdout, buf, 4);
-  return OK;
+  return retval;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -314,8 +321,9 @@ int update_doframe(struct updateapp_context_s *ctx, uint8_t *buf, int len)
     }
   if(buf[0] == INST_WRITE)
     {
-      update_write(ctx, buf, len);
+      return update_write(ctx, buf, len);
     }
+  /* Other frames are discarded */
   return OK;
 }
 
@@ -327,6 +335,7 @@ void update_serial(int mtdfd, int blocksize, int erasesize)
 
   struct updateapp_context_s ctx;
 
+  /* Allocate storage for header */
   ctx.header = malloc(256);
   if(ctx.header==0)
     {
@@ -334,20 +343,22 @@ void update_serial(int mtdfd, int blocksize, int erasesize)
       return;
     }
 
+  /* Allocate storage for flash page buffer */
   ctx.mtdfd = mtdfd;
   ctx.block_len = blocksize;
   ctx.block = malloc(256);
   if(ctx.block == 0)
     {
       fprintf(stderr, "alloc error!\n");
-      return;
+      goto retfree;
     }
 
+  /* Allocate storage for protocol */
   pktbuf = malloc(1+2+256+2); //with room for inst seqnum and CRC
   if(pktbuf == 0)
     {
       fprintf(stderr, "alloc error!\n");
-      return;
+      goto retfree;
     }
 
   printf("hn70ap serial update waiting...\n");
@@ -357,10 +368,20 @@ void update_serial(int mtdfd, int blocksize, int erasesize)
       ret = frame_receive(stdin, pktbuf, 1+2+256+2);
       if(ret == 0)
         {
-          return;
+          printf("Timeout/RX problem!\n");
+          goto retfree;
         }
-      update_doframe(&ctx, pktbuf, ret);
+      if(update_doframe(&ctx, pktbuf, ret) != OK)
+        {
+          printf("Transfer aborted!\n");
+          goto retfree;
+        }
     }
-  printf("update transfer complete\n");
+  printf("Transfer complete.\n");
+
+retfree:
+  free(pktbuf);
+  free(ctx.block);
+  free(ctx.header);
 }
 

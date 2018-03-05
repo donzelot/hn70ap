@@ -163,3 +163,17 @@ void board_initialize(void)
   (void)ret;
 }
 
+/****************************************************************************
+ * Name: board_app_initialize
+ *
+ * Description: required to enable other boardctl() features,
+ * but does nothing. Called by NSH startup only, but nsh is not always
+ * our main app.
+ *
+ ****************************************************************************/
+int board_app_initialize(uintptr_t arg)
+{
+  syslog(LOG_INFO, "board_app_initialize()\n");
+  return 0;
+}
+

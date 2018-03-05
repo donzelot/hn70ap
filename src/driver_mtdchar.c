@@ -389,7 +389,7 @@ static int mtdchar_ioctl(FAR struct file *filep, int cmd, unsigned long arg)
       case MTDCHAR_ERASE:  ret = MTD_ERASE (mtdchardev->mtd, req->block, req->count); break;
       case MTDCHAR_BREAD:  ret = MTD_BREAD (mtdchardev->mtd, req->block, req->count, req->buf); break;
       case MTDCHAR_BWRITE: ret = MTD_BWRITE(mtdchardev->mtd, req->block, req->count, req->buf); break;
-      default:             ret = MTD_IOCTL(mtdchardev->mtd, cmd, arg);
+      default:             ret = MTD_IOCTL (mtdchardev->mtd, cmd, arg);
     }
 
   mtdchar_semgive(mtdchardev);
