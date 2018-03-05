@@ -1,5 +1,5 @@
 /****************************************************************************
- * hn70ap/apps/update/update_internal.h
+ * hn70ap/apps/export/update.h
  *
  *   Copyright (C) 2018 Sebastien Lorquet. All rights reserved.
  *   Author: Sebastien Lorquet <sebastien@lorquet.fr>
@@ -37,9 +37,16 @@
  * Included Files
  ****************************************************************************/
 
-#ifndef UPDATE_INTERNAL_H
-#define UPDATE_INTERNAL_H
+#ifndef UPDATE_H
+#define UPDATE_H
 
-void update_serial(int mtdfd, int blocksize, int erasesize);
+struct update_header_s
+{
+  uint32_t size;
+  uint32_t crc;
+  uint8_t  sha[32];
+};
+
+int update_parseheader(struct update_header_s *hdr, uint8_t *buf, int len);
 
 #endif

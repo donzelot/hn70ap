@@ -46,10 +46,9 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 
-#include <hn70ap/tlv.h>
 #include <hn70ap/hdlc.h>
-#include <hn70ap/memio.h>
 #include <hn70ap/mtdchar.h>
+#include <hn70ap/update.h>
 
 /* Load an update image via a serial port. Protocol:
  * update is sent as a sequence of HDLC framed packets (RFC1662) containing the
@@ -78,10 +77,10 @@
 #define INST_WRITE 0 /*Write buffer to external flash*/
 #define RESP_WRITE 1 /*Write confirmation*/
 
-struct update_context_s
+struct updateapp_context_s
 {
   int      mtdfd; /* FD for MTD device */
-  uint8_t *header; /*storage for header block*/
+  uint8_t *header; /*storage for header block (written last)*/
   uint8_t *block; /*storage for flash block*/
   uint32_t header_len; /*number of bytes of header received so far */
   uint32_t block_len; /*flash block size*/
@@ -89,70 +88,19 @@ struct update_context_s
   uint32_t total_received; /* total number of UPDATE bytes received so far */
   uint16_t seq; /* packet sequence number */
   uint32_t block_id; /*flash page sequence number */
-  //parsed from header
-  uint32_t update_size;
-  uint32_t update_crc;
-  uint8_t  update_sha[32];
+
+  struct update_header_s update;
 
   bool done; //completion marker
 };
-
-#define TAG_UPSIZE 0xC0
-#define TAG_UPCRC  0xC3
-#define TAG_UPSHA  0xC4
 
 #define RESP_WRITE_OK 0
 #define RESP_WRITE_ERRPARAMS 1
 #define RESP_WRITE_ERRIO 2
 #define RESP_WRITE_COMPLETE 3
-/*----------------------------------------------------------------------------*/
-int update_parseheader(struct update_context_s *ctx)
-{
-  uint8_t *ptr;
-  uint32_t len;
-  /* Check CRC of header */
-
-  /* Find important tags */
-  ptr = tlv_find(ctx->header+4, 252, TAG_UPSIZE, &len, 0);
-  if(ptr==NULL || len != 4)
-    {
-      fprintf(stderr, "TAG_UPSIZE not found/correct\n");
-      return ERROR;
-    }
-  ctx->update_size = PEEK_U32BE(ptr);
-  printf("Update size : %u bytes\n", ctx->update_size);
-  ctx->update_size += 16384; //add size of bootloader, not encoded in field.
-
-  ptr = tlv_find(ctx->header+4, 252, TAG_UPCRC, &len, 0);
-  if(ptr==NULL || len != 4)
-    {
-      fprintf(stderr, "TAG_UPCRC not found/correct\n");
-    }
-  else
-    {
-    ctx->update_crc = PEEK_U32BE(ptr);
-    printf("Update CRC : %08X\n", ctx->update_crc);
-    }
-
-  ptr = tlv_find(ctx->header+4, 252, TAG_UPSHA, &len, 0);
-  if(ptr==NULL || len != 32)
-    {
-      fprintf(stderr, "TAG_UPSHA not found/correct\n");
-    }
-  else
-    {
-    int i;
-    memcpy(ctx->update_sha, ptr, 32);
-    printf("Update SHA : ");
-    for(i=0;i<32;i++) printf("%02X",*ptr++);
-    printf("\n");
-    }
-
-  return OK;
-}
 
 /*----------------------------------------------------------------------------*/
-int update_write(struct update_context_s *ctx, uint8_t *buf, int len)
+int update_write(struct updateapp_context_s *ctx, uint8_t *buf, int len)
 {
   uint8_t status = RESP_WRITE_OK;
   int need;
@@ -191,7 +139,6 @@ int update_write(struct update_context_s *ctx, uint8_t *buf, int len)
       ctx->header_len = 0;
       ctx->block_received = 0;
       ctx->total_received = 0;
-      ctx->update_size = 0;
       ctx->block_id = 1; //Start flash write right after header block
       //printf("header reset\n");
     }
@@ -236,7 +183,7 @@ again:
         {
           //printf("HEADER\n");
           memcpy(ctx->header, ctx->block, 256);
-          if(update_parseheader(ctx) != OK)
+          if(update_parseheader(&ctx->update, ctx->header, 256) != OK)
             {
               status = RESP_WRITE_ERRPARAMS; //failed
               goto done;
@@ -282,10 +229,10 @@ again:
       goto again;
     }
 
-  if(ctx->update_size > 0)
+  if(ctx->header_len > 0) //Means we have parsed the header and know the total size.
     {
       //printf("managed %u of %u\n", ctx->total_received, ctx->update_size);
-      if(ctx->total_received >= ctx->update_size)
+      if(ctx->total_received >= ctx->update.size)
         {
           //printf("Update complete.\n");
           /* Write last partial page */
@@ -337,7 +284,7 @@ done:
 }
 
 /*----------------------------------------------------------------------------*/
-int update_doframe(struct update_context_s *ctx, uint8_t *buf, int len)
+int update_doframe(struct updateapp_context_s *ctx, uint8_t *buf, int len)
 {
   //printf("got frame, %d bytes\n", len);
   if(len<1)
@@ -358,7 +305,7 @@ void update_serial(int mtdfd, int blocksize, int erasesize)
   int ret;
   uint8_t *pktbuf;
 
-  struct update_context_s ctx;
+  struct updateapp_context_s ctx;
 
   ctx.header = malloc(256);
   if(ctx.header==0)

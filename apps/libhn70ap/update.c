@@ -1,5 +1,5 @@
 /****************************************************************************
- * hn70ap/apps/update/update_internal.h
+ * hn70ap/apps/export/update.h
  *
  *   Copyright (C) 2018 Sebastien Lorquet. All rights reserved.
  *   Author: Sebastien Lorquet <sebastien@lorquet.fr>
@@ -37,9 +37,67 @@
  * Included Files
  ****************************************************************************/
 
-#ifndef UPDATE_INTERNAL_H
-#define UPDATE_INTERNAL_H
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
 
-void update_serial(int mtdfd, int blocksize, int erasesize);
+#include <hn70ap/tlv.h>
+#include <hn70ap/memio.h>
+#include <hn70ap/update.h>
 
-#endif
+#define TAG_UPSIZE 0xC0
+#define TAG_UPCRC  0xC3
+#define TAG_UPSHA  0xC4
+
+/*----------------------------------------------------------------------------*/
+int update_parseheader(struct update_header_s *hdr, uint8_t *buf, int buflen)
+{
+  uint8_t *ptr;
+  uint32_t len;
+  /* Check CRC of header */
+
+  /* Skip CRC */
+  buf    += 4;
+  buflen -= 4;
+
+  /* Find important tags */
+  ptr = tlv_find(buf, buflen, TAG_UPSIZE, &len, 0);
+  if(ptr==NULL || len != 4)
+    {
+      fprintf(stderr, "TAG_UPSIZE not found/correct\n");
+      return ERROR;
+    }
+  hdr->size = PEEK_U32BE(ptr);
+  printf("Update size : %u bytes\n", hdr->size);
+  hdr->size += 16384; //add size of bootloader, not encoded in field.
+
+  ptr = tlv_find(buf, buflen, TAG_UPCRC, &len, 0);
+  if(ptr==NULL || len != 4)
+    {
+      fprintf(stderr, "TAG_UPCRC not found/correct\n");
+    }
+  else
+    {
+    hdr->crc = PEEK_U32BE(ptr);
+    printf("Update CRC : %08X\n", hdr->crc);
+    }
+
+  ptr = tlv_find(buf, buflen, TAG_UPSHA, &len, 0);
+  if(ptr==NULL || len != 32)
+    {
+      fprintf(stderr, "TAG_UPSHA not found/correct\n");
+    }
+  else
+    {
+    int i;
+    memcpy(hdr->sha, ptr, 32);
+    printf("Update SHA : ");
+    for(i=0;i<32;i++) printf("%02X",*ptr++);
+    printf("\n");
+    }
+
+  return OK;
+}
+
+
