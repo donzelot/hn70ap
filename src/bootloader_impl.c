@@ -140,6 +140,9 @@ BOOTCODE bool bootloader_check(void)
   uint32_t crc;
   uint8_t  check;
   int i;
+  uint8_t *ptr;
+  uint32_t len;
+  uint32_t size;
 
   /* Preparations. */
   bootloader_crc_init();
@@ -194,6 +197,10 @@ BOOTCODE bool bootloader_check(void)
   bootloader_uart_write_string(4, STR_OK);
 
   /* Get update parameters */
+  ptr = bootloader_tlv_find(pgbuf+4, 252, 0xC0, &len, 0);
+  if(!ptr || len != 4)
+    {
+    }
 
   /* Compute the CRC/SHA-256 of the image */
 
