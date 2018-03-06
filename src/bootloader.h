@@ -65,6 +65,7 @@
 
 #define putreg32(addr, val) *((volatile uint32_t*)(addr)) = (val)
 #define getreg32(addr)     (*((volatile uint32_t*)(addr)))
+#define getreg16(addr)     (*((volatile uint16_t*)(addr)))
 
 #define modreg32(addr, set, clr) putreg32(addr, (getreg32(addr) & ~(clr)) | (set))
 

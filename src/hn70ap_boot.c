@@ -51,6 +51,7 @@
 #include "up_arch.h"
 #include "hn70ap.h"
 #include "stm32_ccm.h"
+#include "grxversion.h"
 
 /*******************************************************************************
  * Pre-processor Definitions
@@ -74,6 +75,8 @@
 
 void stm32_boardinitialize(void)
 {
+  syslog(LOG_INFO, "\n***** hn70ap " GRXVERSION" *****\n");
+ 
 #if defined(CONFIG_HN70AP_HWDEBUG_BLINK)
   /* Configuration is just a hardware debug helper for blinking the leds.
      We wont go farther than this loop. */

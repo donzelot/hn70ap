@@ -39,7 +39,7 @@
 
 ASRCS =
 CSRCS  = bootloader.c bootloader_impl.c
-CSRCS += bootloader_gpio.c bootloader_uart.c bootloader_spi.c
+CSRCS += bootloader_gpio.c bootloader_uart.c bootloader_spi.c bootloader_intflash.c
 CSRCS += bootloader_crc.c bootloader_tlv.c bootloader_spiflash.c
 CSRCS += hn70ap_boot.c hn70ap_spi.c hn70ap_leds.c
 
@@ -77,7 +77,7 @@ hn70ap_boot.c: grxversion.h
 
 .PHONY: hn70ap_boot.c grxversion.h
 grxversion.h:
-	$(shell echo "#define GRXVERSION \"$(shell git describe --always --dirty)\"" > $@)
+	$(shell echo "#define GRXVERSION \"$(shell git describe --abbrev=40 --always --dirty)\"" > $@)
 
 include $(TOPDIR)/configs/Board.mk
 

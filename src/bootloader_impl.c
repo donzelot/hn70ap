@@ -44,6 +44,7 @@
 #include "bootloader_crc.h"
 #include "bootloader_spiflash.h"
 #include "bootloader_tlv.h"
+#include "grxversion.h"
 
 struct bootloader_update_header_s
 {
@@ -58,7 +59,7 @@ struct bootloader_update_header_s
  * String messages must be declared as char arrays, NOT pointers.
  */
 static const char hex[]          BOOTRODATA = "0123456789ABCDEF";
-static const char STR_WELCOME[]  BOOTRODATA = "\r\n\r\n***** hn70ap bootloader *****\r\n";
+static const char STR_WELCOME[]  BOOTRODATA = "\r\n\r\n***** hn70ap_boot " GRXVERSION " *****\r\n";
 static const char STR_NOFLASH[]  BOOTRODATA = "Flash not detected.\r\n";
 static const char STR_BOOT[]     BOOTRODATA = "Starting OS.\r\n";
 static const char STR_DOWNLOAD[] BOOTRODATA = "Download mode.\r\n";
@@ -280,14 +281,13 @@ BOOTCODE void bootloader_apply(void)
 
   /* Verify the contents of the internal flash */
 
-  /* We can now erase the update header in the external flash. */
-
 }
 
 /* -------------------------------------------------------------------------- */
 BOOTCODE void bootloader_cleanup(void)
 {
   bootloader_uart_write_string(4, "TODO: CLEANUP\r\n");
+  /* We can now erase the update header in the external flash. */
 }
 
 /* -------------------------------------------------------------------------- */
