@@ -41,6 +41,8 @@
 
 void bootloader_spiflash_readjedec(int spidev, uint8_t *id);
 void bootloader_spiflash_readpage(int spidev, uint32_t pageid, uint8_t *pagebuf);
+void bootloader_spiflash_writeenable(uint32_t spidev)
+void bootloader_spiflash_erasesector(int spidev, uint32_t sectorid)
 
 #endif /* BOOTLOADER_SPIFLASH_H */
 

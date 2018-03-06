@@ -52,6 +52,7 @@ struct bootloader_update_header_s
   uint32_t size;
   uint32_t crc;
   uint8_t  sha[32];
+  uint32_t sectorsize; /* Not really in the update header, but used to remember the ext flash sector size */
 };
 
 /* All text messages should be defined here instead of directly as parameters to
@@ -78,6 +79,8 @@ static const char STR_CLEANUP[]  BOOTRODATA = "Cleanup:";
 
 static uint8_t pgbuf[256] BOOTBSS;
 static struct bootloader_update_header_s header BOOTBSS;
+
+extern uint32_t _stext; /* Linker defined symbol that points to the start of the user software */
 
 /* -------------------------------------------------------------------------- */
 BOOTCODE void bootloader_memcpy(void *dest, void *src, uint32_t len)
@@ -171,7 +174,6 @@ BOOTCODE bool bootloader_buttonpressed(void)
 BOOTCODE bool bootloader_check(void)
 {
   bool     success    = false;
-  uint32_t sectorsize = 0; //external flash erase block size
   uint32_t crc;
   uint8_t  check;
   int i;
@@ -188,8 +190,8 @@ BOOTCODE bool bootloader_check(void)
   
   if(pgbuf[0] == 0xBF && pgbuf[1] == 0x26 && pgbuf[2] == 0x43)
     {
-      success    = true;
-      sectorsize = 4096;
+      success           = true;
+      header.sectorsize = 4096;
     }
 
   /* If the hardware is upgraded to support more flash devices, detect these
@@ -277,8 +279,6 @@ BOOTCODE bool bootloader_check(void)
   return false;
 }
 
-extern uint32_t _stext;
-extern uint8_t bootloader_sectors_kb[];
 
 /* -------------------------------------------------------------------------- */
 /* Copy the firmware (supposed valid) from the external flash to the
@@ -359,6 +359,16 @@ BOOTCODE void bootloader_apply(void)
 BOOTCODE void bootloader_cleanup(void)
 {
   bootloader_uart_write_string(4, STR_CLEANUP);
+  uint32_t sect = 0;
+  uint32_t todo = header.size;
+
+  while(todo > 0)
+    {
+      bootloader_spiflash_erasesector(2, sect);
+      sect += 1;
+      todo -= (todo > header.sectorsize) ? header.sectorsize : todo;
+    }
+
   bootloader_uart_write_string(4, STR_OK);
   /* We can now erase the update header in the external flash. */
 }
