@@ -43,6 +43,14 @@
 #include "bootloader_spi.h"
 #include "bootloader_crc.h"
 #include "bootloader_spiflash.h"
+#include "bootloader_tlv.h"
+
+struct bootloader_update_header_s
+{
+  uint32_t size;
+  uint32_t crc;
+  uint8_t  sha[32];
+};
 
 /* All text messages should be defined here instead of directly as parameters to
  * functions, because there is absolutely NO WAY to control which rodata section
@@ -56,9 +64,25 @@ static const char STR_BOOT[]     BOOTRODATA = "Starting OS.\r\n";
 static const char STR_DOWNLOAD[] BOOTRODATA = "Download mode.\r\n";
 static const char STR_NOUPDATE[] BOOTRODATA = "No update.\r\n";
 static const char STR_BADHCRC[]  BOOTRODATA = "Bad Header CRC!\r\n";
-static const char STR_OK[]       BOOTRODATA = "Update OK.\r\n";
+static const char STR_DETECTED[] BOOTRODATA = "Update Detected...\r\n";
+static const char STR_UPDATEOK[] BOOTRODATA = "Update OK.\r\n";
 
 static uint8_t pgbuf[256] BOOTBSS;
+static struct bootloader_update_header_s header BOOTBSS;
+
+/* -------------------------------------------------------------------------- */
+BOOTCODE void bootloader_memcpy(void *dest, void *src, uint32_t len)
+{
+  uint8_t *cdest = (uint8_t*)dest;
+  uint8_t *csrc  = (uint8_t*)src;
+  while(len > 0)
+    {
+      *cdest = *csrc;
+      cdest++;
+      csrc++;
+      len--;
+    }
+}
 
 /* -------------------------------------------------------------------------- */
 /* Initialize all hardware needed by the bootloader */
@@ -74,7 +98,7 @@ BOOTCODE void bootloader_inithardware(void)
   bootloader_gpio_init(SPI2_MISO);
   bootloader_gpio_init(SPI2_MOSI);
   bootloader_gpio_init(SPI2_SCLK);
-  bootloader_spi_init(2, SPI_MSBFIRST | SPI_MODE_0 | SPI_BAUDDIV_64);
+  bootloader_spi_init(2, SPI_MSBFIRST | SPI_MODE_0 | SPI_BAUDDIV_4); //Fastest speed OK without IRQs
 
   /* Initialize external flash */
   bootloader_gpio_init(FLASH_CS);
@@ -142,7 +166,8 @@ BOOTCODE bool bootloader_check(void)
   int i;
   uint8_t *ptr;
   uint32_t len;
-  uint32_t size;
+  uint32_t page;
+  uint32_t todo;
 
   /* Preparations. */
   bootloader_crc_init();
@@ -172,7 +197,7 @@ BOOTCODE bool bootloader_check(void)
   check = 0xFF;
   for(i=0;i<256;i++)
     {
-      puthb(4, pgbuf[i]);
+      //puthb(4, pgbuf[i]);
       check &= pgbuf[i];
     }
   if(check == 0xFF)
@@ -194,15 +219,49 @@ BOOTCODE bool bootloader_check(void)
     }
 
   /* CRC is correct, means we're very likely to have an update */
-  bootloader_uart_write_string(4, STR_OK);
+  bootloader_uart_write_string(4, STR_DETECTED);
 
   /* Get update parameters */
   ptr = bootloader_tlv_find(pgbuf+4, 252, 0xC0, &len, 0);
   if(!ptr || len != 4)
     {
+      bootloader_uart_write_string(4, STR_NOUPDATE);
+      return false;
+    }
+  header.size = PEEK_U32BE(ptr);
+
+  ptr = bootloader_tlv_find(pgbuf+4, 252, 0xC3, &len, 0);
+  if(!ptr || len != 4)
+    {
+      bootloader_uart_write_string(4, STR_NOUPDATE);
+      return false;
+    }
+  header.crc = PEEK_U32BE(ptr);
+
+  ptr = bootloader_tlv_find(pgbuf+4, 252, 0xC3, &len, 0);
+  if(ptr && len==32)
+    {
+      bootloader_memcpy(header.sha, ptr, 32);
     }
 
   /* Compute the CRC/SHA-256 of the image */
+  page = 64;
+  todo = header.size;
+  crc  = CRC32_INIT;
+  while(todo > 0)
+    {
+      bootloader_spiflash_readpage(2, page, pgbuf);
+      crc = bootloader_crc_do(crc, pgbuf, (todo>256)?256:todo);
+      todo -= (todo>256)?256:todo;
+      page += 1;
+    }
+  crc ^= CRC32_MASK;
+
+  if(crc == header.crc)
+    {
+      bootloader_uart_write_string(4, STR_UPDATEOK);
+      return true;
+    }
 
   return false;
 }
@@ -214,6 +273,7 @@ BOOTCODE bool bootloader_check(void)
  */
 BOOTCODE void bootloader_apply(void)
 {
+  bootloader_uart_write_string(4, "TODO: APPLY\r\n");
   /* Erase the internal flash */
 
   /* Copy the update from spi flash to internal flash */
@@ -224,8 +284,10 @@ BOOTCODE void bootloader_apply(void)
 
 }
 
+/* -------------------------------------------------------------------------- */
 BOOTCODE void bootloader_cleanup(void)
 {
+  bootloader_uart_write_string(4, "TODO: CLEANUP\r\n");
 }
 
 /* -------------------------------------------------------------------------- */
