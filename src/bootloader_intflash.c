@@ -39,7 +39,7 @@
 
 /* Even for 2MB parts we dont use the dual bank feature */
 
-static const uint8_t bootloader_sectors_kb[] BOOTRODATA = {
+const uint8_t bootloader_sectors_kb[] BOOTRODATA = {
   /* 512 K */
 
   16,  /*  0 */
@@ -194,7 +194,7 @@ BOOTCODE int bootloader_intflash_write(uint32_t destaddr, uint8_t *sourcedata, u
 
   for(offset = 0; offset < len; offset += blocksize)
     {
-      modreg32(FLASH_CR, FLASH_CR_PG, ~FLASH_CR_SER);
+      modreg32(FLASH_CR, FLASH_CR_PG, FLASH_CR_SER);
 
       switch(blocksize)
         {

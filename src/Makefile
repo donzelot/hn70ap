@@ -74,8 +74,9 @@ endif
 
 
 hn70ap_boot.c: grxversion.h
+bootloader_impl.c: grxversion.h
 
-.PHONY: hn70ap_boot.c grxversion.h
+.PHONY: hn70ap_boot.c bootloader_impl.c grxversion.h
 grxversion.h:
 	$(shell echo "#define GRXVERSION \"$(shell git describe --abbrev=40 --always --dirty)\"" > $@)
 

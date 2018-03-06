@@ -41,8 +41,9 @@
 #include "bootloader_gpio.h"
 #include "bootloader_uart.h"
 #include "bootloader_spi.h"
-#include "bootloader_crc.h"
+#include "bootloader_intflash.h"
 #include "bootloader_spiflash.h"
+#include "bootloader_crc.h"
 #include "bootloader_tlv.h"
 #include "grxversion.h"
 
@@ -59,6 +60,7 @@ struct bootloader_update_header_s
  * String messages must be declared as char arrays, NOT pointers.
  */
 static const char hex[]          BOOTRODATA = "0123456789ABCDEF";
+static const char CRLF[]         BOOTRODATA = "\r\n";
 static const char STR_WELCOME[]  BOOTRODATA = "\r\n\r\n***** hn70ap_boot " GRXVERSION " *****\r\n";
 static const char STR_NOFLASH[]  BOOTRODATA = "Flash not detected.\r\n";
 static const char STR_BOOT[]     BOOTRODATA = "Starting OS.\r\n";
@@ -66,7 +68,13 @@ static const char STR_DOWNLOAD[] BOOTRODATA = "Download mode.\r\n";
 static const char STR_NOUPDATE[] BOOTRODATA = "No update.\r\n";
 static const char STR_BADHCRC[]  BOOTRODATA = "Bad Header CRC!\r\n";
 static const char STR_DETECTED[] BOOTRODATA = "Update Detected...\r\n";
-static const char STR_UPDATEOK[] BOOTRODATA = "Update OK.\r\n";
+static const char STR_UPDATEOK[] BOOTRODATA = "Update Verified.\r\n";
+static const char STR_ERASE[]    BOOTRODATA = "Erase:";
+static const char STR_WRITE[]    BOOTRODATA = "Write:";
+static const char STR_CHECK[]    BOOTRODATA = "Check:";
+static const char STR_OK[]       BOOTRODATA = "OK\r\n";
+static const char STR_FAIL[]     BOOTRODATA = "FAIL\r\n";
+static const char STR_CLEANUP[]  BOOTRODATA = "Cleanup:";
 
 static uint8_t pgbuf[256] BOOTBSS;
 static struct bootloader_update_header_s header BOOTBSS;
@@ -115,6 +123,8 @@ BOOTCODE void bootloader_inithardware(void)
 
   /* Initialize Button */
   bootloader_gpio_init(BUTTON);
+
+  bootloader_intflash_init(FLASH_BLOCK_32);
 
   bootloader_uart_write_string(4, STR_WELCOME);
 }
@@ -267,6 +277,9 @@ BOOTCODE bool bootloader_check(void)
   return false;
 }
 
+extern uint32_t _stext;
+extern uint8_t bootloader_sectors_kb[];
+
 /* -------------------------------------------------------------------------- */
 /* Copy the firmware (supposed valid) from the external flash to the
  * internal stm32 flash. If we are interrupted anywhere in this proces, the
@@ -274,19 +287,79 @@ BOOTCODE bool bootloader_check(void)
  */
 BOOTCODE void bootloader_apply(void)
 {
-  bootloader_uart_write_string(4, "TODO: APPLY\r\n");
+  uint32_t check;
+  uint32_t todo;
+  uint32_t page;
+  volatile uint32_t *ptr;
+
+  //return;
+
   /* Erase the internal flash */
+  bootloader_uart_write_string(4, STR_ERASE);
+  todo = (uint32_t)&_stext;
+  check = 1;
+  while(todo < ((uint32_t)&_stext + header.size) )
+    {
+      todo += bootloader_intflash_erase(todo);
+    }
+
+  /* Blank check, word per word to save time */
+  check = 0xFFFFFFFFL;
+  ptr = &_stext;
+  todo = header.size;
+  todo = (todo+0x03) & ~0x03; //align on 4-byte boundary
+
+  while(todo > 0)
+    {
+      check &= *ptr;
+      ptr++;
+      todo -= 4;
+    }
+  if(check != 0xFFFFFFFFL)
+    {
+      bootloader_uart_write_string(4, STR_FAIL);
+      return;
+    }
+  bootloader_uart_write_string(4, STR_OK);
 
   /* Copy the update from spi flash to internal flash */
+  bootloader_uart_write_string(4, STR_WRITE);
+  ptr = &_stext;
+  page = 64;
+  todo = header.size;
+  while(todo > 0)
+    {
+      int ret;
+      bootloader_spiflash_readpage(2, page, pgbuf);
+      ret = bootloader_intflash_write((uint32_t)ptr, pgbuf, 256); //may write a bit of garbage at the end of flash
+      if(ret != 0)
+        {
+          bootloader_uart_write_string(4, STR_FAIL);
+          return;
+        }
+      todo -= (todo>256)?256:todo;
+      page += 1;
+      ptr += 256>>2;
+    }
+  bootloader_uart_write_string(4, STR_OK);
 
   /* Verify the contents of the internal flash */
-
+  bootloader_uart_write_string(4, STR_CHECK);
+  check = bootloader_crc_do(CRC32_INIT, (uint8_t*)&_stext, header.size);
+  check ^= CRC32_MASK;
+  if(check != header.crc)
+    {
+      bootloader_uart_write_string(4, STR_FAIL);
+      return;
+    }
+  bootloader_uart_write_string(4, STR_OK);
 }
 
 /* -------------------------------------------------------------------------- */
 BOOTCODE void bootloader_cleanup(void)
 {
-  bootloader_uart_write_string(4, "TODO: CLEANUP\r\n");
+  bootloader_uart_write_string(4, STR_CLEANUP);
+  bootloader_uart_write_string(4, STR_OK);
   /* We can now erase the update header in the external flash. */
 }
 

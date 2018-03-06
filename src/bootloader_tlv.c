@@ -40,9 +40,10 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#include <bootloader_tlv.h>
+#include "bootloader.h"
+#include "bootloader_tlv.h"
 
-static uint32_t bootloader_tlv_parse(uint8_t *buf, uint32_t buflen, uint32_t *foundtag, uint32_t *foundlen)
+BOOTCODE static uint32_t bootloader_tlv_parse(uint8_t *buf, uint32_t buflen, uint32_t *foundtag, uint32_t *foundlen)
     {
     uint32_t off=0;
     uint32_t tag,len;
@@ -128,7 +129,7 @@ static uint32_t bootloader_tlv_parse(uint8_t *buf, uint32_t buflen, uint32_t *fo
 /*
 Description: - return length and pointer to required tag, or null if not found
 */
-uint8_t *bootloader_tlv_find(uint8_t *buf, uint32_t buflen, uint32_t searchtag, uint32_t *foundlen, int recurse)
+BOOTCODE uint8_t *bootloader_tlv_find(uint8_t *buf, uint32_t buflen, uint32_t searchtag, uint32_t *foundlen, int recurse)
     {
     uint32_t off;
     uint32_t tmptag, tmplen;

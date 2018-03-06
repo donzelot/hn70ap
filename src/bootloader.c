@@ -62,7 +62,6 @@ extern void __boot_exception_common(void);
  * and start of text */
 
 extern const uint32_t _ebss;
-extern const uint32_t _stext;
 extern const uint32_t _bootstack;
 
 /* The v7m vector table consists of an array of function pointers, with the first
