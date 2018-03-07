@@ -76,6 +76,7 @@ static const char STR_CHECK[]    BOOTRODATA = "Check:";
 static const char STR_OK[]       BOOTRODATA = "OK\r\n";
 static const char STR_FAIL[]     BOOTRODATA = "FAIL\r\n";
 static const char STR_CLEANUP[]  BOOTRODATA = "Cleanup:";
+static const char STR_STEP[]     BOOTRODATA = ".";
 
 static uint8_t pgbuf[256] BOOTBSS;
 static struct bootloader_update_header_s header BOOTBSS;
@@ -115,6 +116,10 @@ BOOTCODE void bootloader_inithardware(void)
   /* Initialize external flash */
   bootloader_gpio_init(FLASH_CS);
   bootloader_gpio_write(FLASH_CS, 1);
+  bootloader_spiflash_reset(2);
+  bootloader_spiflash_writeenable(2,true);
+  bootloader_spiflash_globalunlock(2);
+  bootloader_spiflash_writeenable(2,false);
 
   /* Initialize LEDs */
   bootloader_gpio_init(LED_HEARTBEAT);
@@ -147,6 +152,9 @@ BOOTCODE void bootloader_stophardware(void)
 {
   /* Stop internal LEDs, signalling starting of OS */
   bootloader_gpio_write(LED_RED      , 1);
+
+  /* Reset the flash chip */
+  bootloader_spiflash_reset(2);
 
   /* Disable SPI2, else NuttX wont properly initialize the SPI block */
   bootloader_spi_fini(2);
@@ -300,6 +308,7 @@ BOOTCODE void bootloader_apply(void)
   check = 1;
   while(todo < ((uint32_t)&_stext + header.size) )
     {
+      bootloader_uart_write_string(4, STR_STEP);
       todo += bootloader_intflash_erase(todo);
     }
 
@@ -330,6 +339,7 @@ BOOTCODE void bootloader_apply(void)
   while(todo > 0)
     {
       int ret;
+      bootloader_uart_write_string(4, STR_STEP);
       bootloader_spiflash_readpage(2, page, pgbuf);
       ret = bootloader_intflash_write((uint32_t)ptr, pgbuf, 256); //may write a bit of garbage at the end of flash
       if(ret != 0)
@@ -360,14 +370,17 @@ BOOTCODE void bootloader_cleanup(void)
 {
   bootloader_uart_write_string(4, STR_CLEANUP);
   uint32_t sect = 0;
-  uint32_t todo = header.size;
+  uint32_t todo = header.size + 16384;
 
+  bootloader_spiflash_writeenable(2, true);
   while(todo > 0)
     {
-      bootloader_spiflash_erasesector(2, sect);
+      bootloader_uart_write_string(4, STR_STEP);
+      bootloader_spiflash_erase4ksector(2, sect);
       sect += 1;
       todo -= (todo > header.sectorsize) ? header.sectorsize : todo;
     }
+  bootloader_spiflash_writeenable(2, false);
 
   bootloader_uart_write_string(4, STR_OK);
   /* We can now erase the update header in the external flash. */

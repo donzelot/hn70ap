@@ -1,5 +1,5 @@
 /****************************************************************************
- * configs/hn70ap/src/bootloader.h
+ * configs/hn70ap/src/bootloader_spiflash.h
  *
  *   Copyright (C) 2018 Sebastien Lorquet. All rights reserved.
  *   Author: Sebastien Lorquet <sebastien@lorquet.fr>
@@ -39,10 +39,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+void bootloader_spiflash_reset(uint32_t spidev);
 void bootloader_spiflash_readjedec(int spidev, uint8_t *id);
 void bootloader_spiflash_readpage(int spidev, uint32_t pageid, uint8_t *pagebuf);
-void bootloader_spiflash_writeenable(uint32_t spidev);
-void bootloader_spiflash_erasesector(int spidev, uint32_t sectorid);
+void bootloader_spiflash_writeenable(uint32_t spidev, bool state);
+void bootloader_spiflash_globalunlock(uint32_t spidev);
+void bootloader_spiflash_erase4ksector(int spidev, uint32_t sectorid);
 
 #endif /* BOOTLOADER_SPIFLASH_H */
 

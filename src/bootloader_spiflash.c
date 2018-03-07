@@ -40,6 +40,27 @@
 #include "bootloader_spi.h"
 
 /* -------------------------------------------------------------------------- */
+BOOTCODE void bootloader_spiflash_reset(uint32_t spidev)
+{
+  uint8_t cmd[1];
+  volatile int i;
+
+  cmd[0] = 0x66; //RESET ENABLE
+
+  bootloader_gpio_write(FLASH_CS, 0);
+  bootloader_spi_transac8(spidev, 1, cmd, NULL);
+  bootloader_gpio_write(FLASH_CS, 1);
+
+  for(i=0;i<1000;i++) {}  // Small delay
+
+  cmd[0] = 0x99; //RESET
+
+  bootloader_gpio_write(FLASH_CS, 0);
+  bootloader_spi_transac8(spidev, 1, cmd, NULL);
+  bootloader_gpio_write(FLASH_CS, 1);
+}
+
+/* -------------------------------------------------------------------------- */
 /* Read the JEDEC ID from the SPI flash */
 BOOTCODE void bootloader_spiflash_readjedec(uint32_t spidev, uint8_t *id)
 {
@@ -68,10 +89,28 @@ BOOTCODE void bootloader_spiflash_readpage(int spidev, uint32_t pageid, uint8_t 
 }
 
 /* -------------------------------------------------------------------------- */
-BOOTCODE void bootloader_spiflash_writeenable(uint32_t spidev)
+BOOTCODE void bootloader_spiflash_globalunlock(uint32_t spidev)
 {
   uint8_t cmd[1];
-  cmd[0] = 0x06; //WRITE ENABLE
+  cmd[0] = 0x98; //GLOBAL UNLOCK
+
+  bootloader_gpio_write(FLASH_CS, 0);
+  bootloader_spi_transac8(spidev, 1, cmd, NULL);
+  bootloader_gpio_write(FLASH_CS, 1);
+}
+
+/* -------------------------------------------------------------------------- */
+BOOTCODE void bootloader_spiflash_writeenable(uint32_t spidev, bool state)
+{
+  uint8_t cmd[1];
+  if(state)
+    {
+    cmd[0] = 0x06; //WRITE ENABLE
+    }
+  else
+    {
+    cmd[0] = 0x04; //WRITE DISABLE
+    }
 
   bootloader_gpio_write(FLASH_CS, 0);
   bootloader_spi_transac8(spidev, 1, cmd, NULL);
@@ -95,20 +134,28 @@ BOOTCODE static void bootloader_spiflash_waitcomplete(uint32_t spidev)
 }
 
 /* -------------------------------------------------------------------------- */
-/* Erase a 4k sector */
-BOOTCODE void bootloader_spiflash_erasesector(int spidev, uint32_t sectorid)
+/* Erase memory at given address */
+BOOTCODE void bootloader_spiflash_eraseat(int spidev, uint32_t address, uint8_t type)
 {
-  //sector s -> byte ssssssss_ssss0000_00000000
   uint8_t buf[4];
-  buf[0] = 0x20; //SECTOR ERASE
-  buf[1] =  sectorid >> 4;
-  buf[2] = (sectorid&0x0F) << 4;
-  buf[3] = 0x00;
+  buf[0] = type;
+  buf[1] = address >> 16;
+  buf[2] = address >> 8;
+  buf[3] = address;
+
   bootloader_gpio_write(FLASH_CS, 0);
   bootloader_spi_transac8(spidev, 4, buf, NULL);
   bootloader_gpio_write(FLASH_CS, 1);
 
   /* Now wait for completion */
   bootloader_spiflash_waitcomplete(spidev);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Erase a 4k sector */
+BOOTCODE void bootloader_spiflash_erase4ksector(int spidev, uint32_t sectorid)
+{
+  //sector s -> byte ssssssss_ssss0000_00000000
+  bootloader_spiflash_eraseat(spidev, sectorid << 12, 0x20);//4K SECTOR ERASE
 }
 
