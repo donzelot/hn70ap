@@ -43,9 +43,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <termios.h>
 #include <sys/ioctl.h>
 #include <fcntl.h>
 
+#include <hn70ap/memio.h>
 #include <hn70ap/crc.h>
 #include <hn70ap/hdlc.h>
 #include <hn70ap/mtdchar.h>
@@ -77,6 +79,8 @@
 
 #define INST_WRITE 0 /*Write buffer to external flash*/
 #define RESP_WRITE 1 /*Write confirmation*/
+#define INST_SETSPEED 2 /*Set UART speed to 921600 bauds */
+#define RESP_SETSPEED 3 /*Confirmation of high speed mode at next command */
 
 struct updateapp_context_s
 {
@@ -96,15 +100,50 @@ struct updateapp_context_s
   bool done; //completion marker
 };
 
-#define RESP_WRITE_OK 0
-#define RESP_WRITE_ERRPARAMS 1
-#define RESP_WRITE_ERRIO 2
-#define RESP_WRITE_COMPLETE 3
+#define RESP_STATUS_OK 0
+#define RESP_STATUS_ERRPARAMS 1
+#define RESP_STATUS_ERRIO 2
+#define RESP_STATUS_COMPLETE 3
+
+/*----------------------------------------------------------------------------*/
+int update_setspeed(struct updateapp_context_s *ctx, uint8_t *buf, int len)
+{
+  uint8_t status = RESP_STATUS_OK;
+  int     retval = OK;
+  uint32_t speed;
+  struct termios term;  
+
+  len -= 1; //subtract instruction
+  if(len < 4)
+    {
+      fprintf(stderr, "no speed\n");
+      status = RESP_STATUS_ERRPARAMS;
+      goto done;
+    }
+
+  speed = PEEK_U32BE(buf+1);
+  printf("Set speed to %u bauds\n", speed); fflush(stdout);
+
+done:
+  buf[0] = RESP_SETSPEED;
+  buf[1] = status;
+  frame_send(stdout, buf, 2);
+
+  /* Now apply change */
+  if(status == RESP_STATUS_OK)
+    {
+      tcgetattr(fileno(stdout), &term);
+      cfsetspeed(&term, speed);
+      tcsetattr(fileno(stdout), TCSADRAIN, &term);
+    }
+
+  return retval;
+}
 
 /*----------------------------------------------------------------------------*/
 int update_write(struct updateapp_context_s *ctx, uint8_t *buf, int len)
 {
-  uint8_t status = RESP_WRITE_OK;
+  uint8_t status = RESP_STATUS_OK;
   int retval = OK; //default will proceed with next packet after this one.
   int need;
   int off;
@@ -116,7 +155,7 @@ int update_write(struct updateapp_context_s *ctx, uint8_t *buf, int len)
   if(len < 2)
     {
       fprintf(stderr, "no sequence\n");
-      status = RESP_WRITE_ERRPARAMS;
+      status = RESP_STATUS_ERRPARAMS;
       goto done;
     }
 
@@ -130,7 +169,7 @@ int update_write(struct updateapp_context_s *ctx, uint8_t *buf, int len)
   if(len < 1)
     {
       fprintf(stderr, "no data\n");
-      status = RESP_WRITE_ERRPARAMS;
+      status = RESP_STATUS_ERRPARAMS;
       goto done;
     }
 
@@ -152,7 +191,7 @@ int update_write(struct updateapp_context_s *ctx, uint8_t *buf, int len)
       if(seq != (ctx->seq + 1) )
         {
           fprintf(stderr, "bad seq!\n");
-          status = RESP_WRITE_ERRPARAMS;
+          status = RESP_STATUS_ERRPARAMS;
           goto done;
         }
       ctx->seq = seq;
@@ -189,7 +228,7 @@ again:
           memcpy(ctx->header, ctx->block, 256);
           if(update_parseheader(&ctx->update, ctx->header, 256) != OK)
             {
-              status = RESP_WRITE_ERRPARAMS; //failed
+              status = RESP_STATUS_ERRPARAMS; //failed
               goto done;
             }
           ctx->header_len = ctx->block_len;
@@ -198,7 +237,7 @@ again:
           if(ret < 0)
             {
               printf("FAILED\n");
-              status = RESP_WRITE_ERRIO;
+              status = RESP_STATUS_ERRIO;
               retval = ERROR;
               goto done;
             }
@@ -222,7 +261,7 @@ again:
           if(ret < 0)
             {
               printf("FAILED\n");
-              status = RESP_WRITE_ERRIO;
+              status = RESP_STATUS_ERRIO;
               retval = ERROR;
               goto done;
             }
@@ -261,7 +300,7 @@ again:
               if(ret < 0)
                 {
                   printf("FAILED\n");
-                  status = RESP_WRITE_ERRIO;
+                  status = RESP_STATUS_ERRIO;
                   retval = ERROR;
                   goto done;
                 }
@@ -275,7 +314,7 @@ again:
           if(ctx->datacrc != ctx->update.crc)
             {
               fprintf(stderr, "Data integrity error\n");
-              status = RESP_WRITE_ERRPARAMS;
+              status = RESP_STATUS_ERRPARAMS;
               retval = ERROR;
               goto done;
             }
@@ -289,7 +328,7 @@ again:
           if(ret < 0)
             {
               printf("FAILED\n");
-              status = RESP_WRITE_ERRIO;
+              status = RESP_STATUS_ERRIO;
               retval = ERROR;
               goto done;
             }
@@ -298,7 +337,7 @@ again:
               printf("OK\n");
             }
           ctx->done = true;
-          status = RESP_WRITE_COMPLETE;
+          status = RESP_STATUS_COMPLETE;
         }
     }
 
@@ -322,6 +361,10 @@ int update_doframe(struct updateapp_context_s *ctx, uint8_t *buf, int len)
   if(buf[0] == INST_WRITE)
     {
       return update_write(ctx, buf, len);
+    }
+  else if(buf[0] == INST_SETSPEED)
+    {
+      return update_setspeed(ctx, buf, len);
     }
   /* Other frames are discarded */
   return OK;

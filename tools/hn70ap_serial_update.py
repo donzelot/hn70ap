@@ -21,9 +21,10 @@
 # Note that this tool is not a part of NuttX and has a different licence than
 # the NuttX RTOS.
 
-import sys, serial, os
+import sys, serial, os, time
 
 INST_WRITE = (0x00).to_bytes(1, byteorder='big')
+INST_SPEED = (0x02).to_bytes(1, byteorder='big')
 
 FDELIMB  = 0x7E
 FDELIM   = FDELIMB.to_bytes(1, byteorder='big')
@@ -155,6 +156,23 @@ while not done:
 
 uplen = os.fstat(up.fileno()).st_size
 print("upload start")
+
+speed = 230400
+
+frame_send(port, INST_SPEED+speed.to_bytes(length=4, byteorder='big'))
+rx = frame_receive(port,1+4)
+print("change speed status: ",rx[1], " - packet: ", rx.hex());
+
+if rx[1] == 0:
+  print("Using new speed")
+  d = port.get_settings()
+  d['baudrate'] = speed
+  port.apply_settings(d);
+  time.sleep(1)
+  print("ready at new speed")
+
+port.reset_input_buffer()
+port.reset_output_buffer()
 
 BLOCKSIZE = 256
 
