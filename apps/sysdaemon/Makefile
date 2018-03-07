@@ -49,8 +49,8 @@ STACKSIZE = $(CONFIG_HN70AP_SYSDAEMON_STACKSIZE)
 # Hello, World! Example
 
 ASRCS =
-CSRCS =
-MAINSRC = sysdaemon_main.c sysdaemon_netmonitor.c
+CSRCS = sysdaemon_netmonitor.c
+MAINSRC = sysdaemon_main.c
 
 CONFIG_HN70AP_SYSDAEMON_PROGNAME ?= sysdaemon$(EXEEXT)
 PROGNAME = $(CONFIG_HN70AP_SYSDAEMON_PROGNAME)

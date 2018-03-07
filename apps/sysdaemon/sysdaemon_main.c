@@ -66,12 +66,13 @@ int sysdaemon_main(int argc, char *argv[])
   hn70ap_netmonitor_init();
 
   printf("TODO start screen management\n");
+
 #if defined(CONFIG_EXAMPLES_NSH)
   printf("*** Launching nsh\n");
   nsh_main(argc, argv);
-#else
-  while(1) sleep(1);
 #endif
+
+  printf("Back from nsh, now sleeping forever.\n");
   return 0;
 }
 

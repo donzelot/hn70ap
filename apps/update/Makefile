@@ -49,8 +49,8 @@ STACKSIZE = $(CONFIG_HN70AP_UPDATE_STACKSIZE)
 # hn70ap update tool
 
 ASRCS =
-CSRCS =
-MAINSRC = update_main.c update_serial.c update_status.c update_cancel.c
+CSRCS = update_serial.c update_status.c update_cancel.c
+MAINSRC = update_main.c
 
 CONFIG_HN70AP_UPDATE_PROGNAME ?= update$(EXEEXT)
 PROGNAME = $(CONFIG_HN70AP_UPDATE_PROGNAME)

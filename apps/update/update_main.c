@@ -55,7 +55,7 @@
  * Public Functions
  ****************************************************************************/
 
-int usage(void)
+int update_usage(void)
 {
   printf("update serial - Receive update from console\n"
          "update status - Show info about current firmware update\n"
@@ -79,7 +79,7 @@ int update_main(int argc, char *argv[])
 
   if(argc<2)
     {
-      return usage();
+      return update_usage();
     }
 
   fd = open("/dev/firmware", O_RDWR);
@@ -119,7 +119,7 @@ int update_main(int argc, char *argv[])
     }
   else
     {
-      return usage();
+      return update_usage();
     } 
  close(fd);
 

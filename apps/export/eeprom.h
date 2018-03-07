@@ -2,11 +2,16 @@
 #define HN70AP_EEPROM_H
 
 /* EEPROM configuration
- * Address length Desciption
- * 0       1      Config validation marker. If FF, EEPROM is virgin, default config is loaded
- * 0       1      Network options bits 0..7
- *                Bit 0x01: DHCP Client Enable - board will request an IPv4 address via DHCP
- * 1-127          Reserved for future use
+ * Address length Default Name Type Desciption
+ * 0       1                        Config validation marker. If FF, EEPROM is virgin, and default config is loaded
+ * 1       1                        Network options bits 0..7
+ *                1       dhcp bool Bit 0x01: DHCP Client Enable - board will request an IPv4 address via DHCP
+ * 2-3                              Reserved for future use
+ * 4-7                    ip   ip   Static IP address to use if DHCP is not enabled
+ * 8-11                   mask ip   Static IP mask to use if DHCP is not enabled
+ * 12-15                  gw   ip   IP address of default gateway
+ * 16-19                  dns  ip   IP address of DNS server (will be used if set even if DHCP is enabled)
+ * 20-127          
  */
 
 #define HN70AP_EECONFIG_VALID               0x00
