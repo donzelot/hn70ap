@@ -73,6 +73,7 @@ static void dhcp_negociate(void)
 {
   void *handle;
   uint8_t mac[IFHWADDRLEN];
+  int ret;
 
   netlib_getmacaddr(NET_DEVNAME, mac);
   handle = dhcpc_open(NET_DEVNAME, &mac, IFHWADDRLEN);
@@ -84,8 +85,13 @@ static void dhcp_negociate(void)
       }
 
   syslog(LOG_INFO, "Starting DHCP request\n");
-  dhcpc_request(handle, &g_dhcp_state);
-  syslog(LOG_INFO, "DHCP request done\n");
+  ret = dhcpc_request(handle, &g_dhcp_state);
+
+  if(ret != 0)
+    {
+      syslog(LOG_INFO, "DHCP request failed\n");
+      goto close;
+    }
 
   /* Apply the result */
   syslog(LOG_INFO, "IP addr: %d.%d.%d.%d\n",
@@ -112,6 +118,7 @@ static void dhcp_negociate(void)
     }
 #endif
 
+close:
   dhcpc_close(handle);
 }
 
