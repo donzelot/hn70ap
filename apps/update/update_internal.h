@@ -40,7 +40,7 @@
 #ifndef UPDATE_INTERNAL_H
 #define UPDATE_INTERNAL_H
 
-void update_serial(int mtdfd, int blocksize, int erasesize);
+void update_serial(int mtdfd, int blocksize, int erasesize, int nblocks);
 int update_status(int mtdfd);
 int update_cancel(int mtdfd);
 

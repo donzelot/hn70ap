@@ -372,15 +372,14 @@ BOOTCODE void bootloader_cleanup(void)
   uint32_t sect = 0;
   uint32_t todo = header.size + 16384;
 
-  bootloader_spiflash_writeenable(2, true);
   while(todo > 0)
     {
       bootloader_uart_write_string(4, STR_STEP);
+      puthb(4,sect>>8);puthb(4,sect);
       bootloader_spiflash_erase4ksector(2, sect);
       sect += 1;
       todo -= (todo > header.sectorsize) ? header.sectorsize : todo;
     }
-  bootloader_spiflash_writeenable(2, false);
 
   bootloader_uart_write_string(4, STR_OK);
   /* We can now erase the update header in the external flash. */

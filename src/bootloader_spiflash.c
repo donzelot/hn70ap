@@ -129,7 +129,7 @@ BOOTCODE static void bootloader_spiflash_waitcomplete(uint32_t spidev)
     {
       bootloader_spi_transac8(spidev, 1, NULL, cmd);
     }
-  while(cmd[1] & 0x01);
+  while(cmd[0] & 0x01);
   bootloader_gpio_write(FLASH_CS, 1);
 }
 
@@ -138,6 +138,9 @@ BOOTCODE static void bootloader_spiflash_waitcomplete(uint32_t spidev)
 BOOTCODE void bootloader_spiflash_eraseat(int spidev, uint32_t address, uint8_t type)
 {
   uint8_t buf[4];
+
+  bootloader_spiflash_writeenable(spidev, true);
+
   buf[0] = type;
   buf[1] = address >> 16;
   buf[2] = address >> 8;

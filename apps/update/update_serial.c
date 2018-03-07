@@ -89,6 +89,7 @@ struct updateapp_context_s
   uint8_t *block; /*storage for flash block*/
   uint32_t header_len; /*number of bytes of header received so far */
   uint32_t block_len; /*flash block size*/
+  uint32_t block_count; /* Number of blocks in the partition */
   uint32_t block_received; /* number of bytes of current block received so far */
   uint32_t total_received; /* total number of UPDATE bytes received so far */
   uint32_t datacrc; /* Computed image CRC */
@@ -104,8 +105,6 @@ struct updateapp_context_s
 #define RESP_STATUS_ERRPARAMS 1
 #define RESP_STATUS_ERRIO 2
 #define RESP_STATUS_COMPLETE 3
-
-static uint32_t g_originalspeed;
 
 /*----------------------------------------------------------------------------*/
 int update_setspeed(struct updateapp_context_s *ctx, uint8_t *buf, int len)
@@ -226,6 +225,9 @@ again:
     {
       if(ctx->header_len == 0)
         {
+          int i,j;
+          uint8_t check, check2;
+
           //printf("HEADER\n");
           memcpy(ctx->header, ctx->block, 256);
           if(update_parseheader(&ctx->update, ctx->header, 256) != OK)
@@ -234,19 +236,47 @@ again:
               goto done;
             }
           ctx->header_len = ctx->block_len;
-          printf("ERASE:"); fflush(stdout);
-          ret = ioctl(ctx->mtdfd, MTDIOC_BULKERASE, 0);
-          if(ret < 0)
+
+          printf("BLANK CHECK:"); fflush(stdout);
+          check = 0xFF;
+          for(i = 0; i < ctx->block_count; i++)
             {
-              printf("FAILED\n");
-              status = RESP_STATUS_ERRIO;
-              retval = ERROR;
-              goto done;
+              req.block = i;
+              req.count = 1;
+              req.buf   = ctx->block;
+              ret = ioctl(ctx->mtdfd, MTDCHAR_BREAD, (unsigned long)&req);
+              if(ret < 0)
+                {
+                  printf("FAILED\n");
+                  status = RESP_STATUS_ERRIO;
+                  retval = ERROR;
+                  goto done;
+                }
+              check2 = 0xFF;
+              for(j = 0; j < 256; j++)
+                {
+                  check2 &= ctx->block[j];
+                }
+             if(check2 != 0xFF) {printf("[%d] ",i); fflush(stdout);}
+             check &= check2;
             }
-          else
+
+          if(check != 0xFF)
             {
-              printf("OK\n");
-            }
+              printf("NOT BLANK. ERASE:"); fflush(stdout);
+              ret = ioctl(ctx->mtdfd, MTDIOC_BULKERASE, 0);
+              if(ret < 0)
+                {
+                  printf("FAILED\n");
+                  status = RESP_STATUS_ERRIO;
+                  retval = ERROR;
+                  goto done;
+                }
+              else
+                {
+                  printf("OK\n");
+                }
+            } //was not blank
         }
       else
         {
@@ -373,7 +403,7 @@ int update_doframe(struct updateapp_context_s *ctx, uint8_t *buf, int len)
 }
 
 /*----------------------------------------------------------------------------*/
-void update_serial(int mtdfd, int blocksize, int erasesize)
+void update_serial(int mtdfd, int blocksize, int erasesize, int nblocks)
 {
   int ret;
   uint8_t *pktbuf;
@@ -394,6 +424,7 @@ void update_serial(int mtdfd, int blocksize, int erasesize)
   /* Allocate storage for flash page buffer */
   ctx.mtdfd = mtdfd;
   ctx.block_len = blocksize;
+  ctx.block_count = nblocks;
   ctx.block = malloc(256);
   if(ctx.block == 0)
     {
