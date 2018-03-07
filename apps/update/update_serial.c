@@ -105,6 +105,8 @@ struct updateapp_context_s
 #define RESP_STATUS_ERRIO 2
 #define RESP_STATUS_COMPLETE 3
 
+static uint32_t g_originalspeed;
+
 /*----------------------------------------------------------------------------*/
 int update_setspeed(struct updateapp_context_s *ctx, uint8_t *buf, int len)
 {
@@ -375,8 +377,11 @@ void update_serial(int mtdfd, int blocksize, int erasesize)
 {
   int ret;
   uint8_t *pktbuf;
-
+  struct termios term;  
   struct updateapp_context_s ctx;
+
+  /* Save the original UART config */
+  tcgetattr(fileno(stdout), &term);
 
   /* Allocate storage for header */
   ctx.header = malloc(256);
@@ -423,6 +428,9 @@ void update_serial(int mtdfd, int blocksize, int erasesize)
   printf("Transfer complete.\n");
 
 retfree:
+  /* Restore the original UART config */
+  tcsetattr(fileno(stdout), TCSADRAIN, &term);
+
   free(pktbuf);
   free(ctx.block);
   free(ctx.header);
