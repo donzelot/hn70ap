@@ -1,8 +1,6 @@
 /****************************************************************************
- * hn70ap/apps/sysdaemon/sysdaemon_main.c
+ * hn70ap/apps/sysdaemon/sysdaemon_internal.h
  *
- *   Copyright (C) 2008, 2011-2012 Gregory Nutt. All rights reserved.
- *   Author: Gregory Nutt <gnutt@nuttx.org>
  *   Copyright (C) 2018 Sebastien Lorquet. All rights reserved.
  *   Author: Sebastien Lorquet <sebastien@lorquet.fr>
  *
@@ -35,43 +33,9 @@
  *
  ****************************************************************************/
 
-/****************************************************************************
- * Included Files
- ****************************************************************************/
+#ifndef SYSDAEMON_H
+#define SYSDAEMON_H
 
-#include <nuttx/config.h>
-#include <stdio.h>
+int hn70ap_netmonitor_init(void);
 
-#include <hn70ap/eeprom.h>
-
-#include "sysdaemon_internal.h"
-
-/****************************************************************************
- * Public Functions
- ****************************************************************************/
-
-/****************************************************************************
- * status_main
- ****************************************************************************/
-
-#ifdef CONFIG_BUILD_KERNEL
-int main(int argc, FAR char *argv[])
-#else
-int sysdaemon_main(int argc, char *argv[])
 #endif
-{
-  printf("\nhn70ap system daemon starting\n");
-  hn70ap_eeconfig_init();
-
-  hn70ap_netmonitor_init();
-
-  printf("TODO start screen management\n");
-#if defined(CONFIG_EXAMPLES_NSH)
-  printf("*** Launching nsh\n");
-  nsh_main(argc, argv);
-#else
-  while(1) sleep(1);
-#endif
-  return 0;
-}
-
