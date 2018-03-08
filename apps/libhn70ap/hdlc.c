@@ -183,7 +183,7 @@ done:
     }
   if(crc != CRC16_GOOD)
     {
-      printf("bad frame\n");
+      printf("bad crc (len %d)\n", frame_len);
       return 0;
     }
 

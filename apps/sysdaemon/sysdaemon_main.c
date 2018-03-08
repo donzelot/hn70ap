@@ -42,6 +42,8 @@
 #include <nuttx/config.h>
 #include <stdio.h>
 
+#include <sys/mount.h>
+
 #include <hn70ap/eeprom.h>
 
 #include "sysdaemon_internal.h"
@@ -49,6 +51,23 @@
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
+
+void hn70ap_mount_storage(void)
+{
+  int ret;
+
+#ifdef CONFIG_FS_SMARTFS
+  ret = mount("/dev/smart0p1", "/data", "smartfs", 0, NULL);
+  if (ret < 0)
+    {
+      fprintf(stderr, "Storage could not be mounted\n");
+    }
+  else
+    {
+      printf("Mass Storage mounted at /data\n");
+    }
+#endif
+}
 
 /****************************************************************************
  * status_main
@@ -68,6 +87,8 @@ int sysdaemon_main(int argc, char *argv[])
     {
       printf("WARNING: Default config values loaded in EEPROM\n");
     }
+
+  hn70ap_mount_storage();
 
   hn70ap_netmonitor_init();
 
