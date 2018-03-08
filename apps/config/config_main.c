@@ -72,8 +72,14 @@ int config_main(int argc, char *argv[])
 #endif
 {
   int ret;
+  bool defaults;
 
-  hn70ap_eeconfig_init();
+  hn70ap_eeconfig_init(&defaults);
+
+  if(defaults)
+    {
+      printf("WARNING: Default config values loaded in EEPROM\n");
+    }
 
   if(argc < 2)
     {

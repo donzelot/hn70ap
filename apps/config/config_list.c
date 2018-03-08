@@ -41,6 +41,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include <arpa/inet.h>
+
 #include <hn70ap/eeprom.h>
 
 #include "config_internal.h"
@@ -61,7 +63,30 @@ int config_list(void)
       ret = hn70ap_eeconfig_describe(i, name, sizeof(name), &type);
       if(ret == OK)
         {
-          printf("name:%s type:%d\n", name, type);
+          printf("name:%s type:%d value:", name, type);
+          if(type == EECONFIG_TYPE_BOOL)
+            {
+              bool val;
+              ret = hn70ap_eeconfig_getbool(name, &val);
+              if(ret == OK)
+                {
+                  printf("%s\n", val?"true":"false");
+                }
+            }
+          else if(type == EECONFIG_TYPE_IP)
+            {
+              struct in_addr val;
+              ret = hn70ap_eeconfig_getip(name, &val);
+              if(ret == OK)
+                {
+                  printf("%s\n", inet_ntoa(val));
+                }
+            }
+          if(ret != OK)
+            {
+              printf("<unreadable>\n");
+              ret = OK;
+            }
         }
       i++;
     }

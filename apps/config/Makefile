@@ -47,7 +47,7 @@ PRIORITY = $(CONFIG_HN70AP_CONFIG_PRIORITY)
 STACKSIZE = $(CONFIG_HN70AP_CONFIG_STACKSIZE)
 
 ASRCS =
-CSRCS = config_list.c config_set.c config_data.c
+CSRCS = config_list.c config_set.c
 MAINSRC = config_main.c
 
 CONFIG_HN70AP_CONFIG_PROGNAME ?= config$(EXEEXT)

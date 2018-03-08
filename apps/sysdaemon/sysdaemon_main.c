@@ -60,8 +60,14 @@ int main(int argc, FAR char *argv[])
 int sysdaemon_main(int argc, char *argv[])
 #endif
 {
+  bool defaults;
+
   printf("\nhn70ap system daemon starting\n");
-  hn70ap_eeconfig_init();
+  hn70ap_eeconfig_init(&defaults);
+  if(defaults)
+    {
+      printf("WARNING: Default config values loaded in EEPROM\n");
+    }
 
   hn70ap_netmonitor_init();
 
