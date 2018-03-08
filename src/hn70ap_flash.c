@@ -50,6 +50,7 @@
 #include <nuttx/kmalloc.h>
 
 #include <nuttx/mtd/mtd.h>
+#include <nuttx/mtd/smart.h>
 
 #include "stm32.h"
 #include "hn70ap.h"
@@ -72,14 +73,13 @@ struct mtd_partition_info_s
 {
   const char *name;
   size_t      blocks;  //number of blocks (for sst26 this is 256 bytes)
-  bool        smartfs; //Enable SmartFS on this partition
 };
 
 /* Total space is 64 Mbit, 8 MB, 2048 sectors, 32768 blocks */
 static const struct mtd_partition_info_s parts[] =
 {
-  {"firmware",   8192, false}, // 2MB
-  {"storage" , 24576, false}   // 6MB
+  {"firmware",  8192}, // 2MB
+  {"storage" , 24576}  // 6MB
 };
 
 #define PARTCOUNT (sizeof(parts)/sizeof(parts[0]))
@@ -149,13 +149,6 @@ int hn70ap_flash_initialize(void)
        * to the MTD device.
        */
 
-#if defined(CONFIG_MTD_SMART) && defined(CONFIG_FS_SMARTFS)
-      if(parts[partno].is_smart)
-        {
-          sprintf(partref, "p%d", partno);
-          smart_initialize(0, mtdpart[partno], partref);
-        }
-#endif
 
 #if defined(CONFIG_MTD_PARTITION_NAMES)
       mtd_setpartitionname(mtdparts[partno], part[parno].name);
@@ -168,6 +161,9 @@ int hn70ap_flash_initialize(void)
   mtdchar_register(mtdparts[0], "/dev/firmware");
   _info("Registered /dev/firmware\n");
 
+#if defined(CONFIG_MTD_SMART) && defined(CONFIG_FS_SMARTFS)
+  smart_initialize(0, mtdparts[1], "p1");
+#endif
   return OK;
 }
 
