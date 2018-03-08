@@ -51,21 +51,58 @@
 #include "stm32.h"
 #include "hn70ap.h"
 
+static const uint32_t g_leds[BOARD_NLEDS] = 
+{
+  GPIO_LED_1A       ,
+  GPIO_LED_1B       ,
+  GPIO_LED_RED      ,
+  GPIO_LED_ORANGE   ,
+  GPIO_LED_GREEN    ,
+  GPIO_LED_HEARTBEAT,
+  GPIO_LED_MACLINK
+};
+
+/*----------------------------------------------------------------------------*/
 void hn70ap_leds_initialize(void)
-  {
-    stm32_configgpio(GPIO_LED_1A       );
-    stm32_configgpio(GPIO_LED_1B       );
-    stm32_configgpio(GPIO_LED_RED      );
-    stm32_configgpio(GPIO_LED_ORANGE   );
-    stm32_configgpio(GPIO_LED_GREEN    );
-    stm32_configgpio(GPIO_LED_HEARTBEAT);
-    stm32_configgpio(GPIO_LED_CPUACT   );
-    stm32_configgpio(GPIO_LED_MACLINK  );
+{
+  stm32_configgpio(GPIO_LED_CPUACT);
 
-    stm32_gpiowrite(GPIO_LED_HEARTBEAT, 1);
-    stm32_gpiowrite(GPIO_LED_CPUACT, 1);
-    stm32_gpiowrite(GPIO_LED_GREEN, 0);
+  stm32_gpiowrite(GPIO_LED_CPUACT, 1);
+}
 
-  }
+/* USEFUL definitions for the LEDs lower half */
 
+/*----------------------------------------------------------------------------*/
+void board_userled_initialize(void)
+{
+  int i;
+
+  for(i=0; i<sizeof(g_leds)/sizeof(g_leds[0]); i++)
+    {
+      stm32_configgpio(g_leds[i]);
+    }
+
+  stm32_gpiowrite(GPIO_LED_HEARTBEAT, 1);
+  stm32_gpiowrite(GPIO_LED_GREEN, 0);
+}
+
+/*----------------------------------------------------------------------------*/
+void board_userled(int led, bool ledon)
+{
+  if(led < 0) return;
+
+  if(led < BOARD_NLEDS)
+    {
+      stm32_gpiowrite(g_leds[led], !ledon); //ledon requires pulling the line to gnd
+    }
+}
+
+/*----------------------------------------------------------------------------*/
+void board_userled_all(uint8_t ledset)
+{
+}
+
+/* Fake definitions for the unused autoleds features of nuttx */
+void board_autoled_on(int led) {}
+void board_autoled_off(int led) {}
 

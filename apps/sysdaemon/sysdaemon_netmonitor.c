@@ -54,6 +54,7 @@
 #include <netinet/in.h>
 #include <nuttx/net/mii.h>
 #include <nuttx/net/ioctl.h>
+#include <nuttx/leds/userled.h>
 
 #include "netutils/netlib.h"
 #include "netutils/dhcpc.h"
@@ -103,17 +104,32 @@ static void dhcp_negociate(void)
 
   if (g_dhcp_state.netmask.s_addr != 0)
     {
+      syslog(LOG_INFO, "Net mask: %d.%d.%d.%d\n",
+           g_dhcp_state.netmask.s_addr        & 0xff,
+          (g_dhcp_state.netmask.s_addr >>  8) & 0xff,
+          (g_dhcp_state.netmask.s_addr >> 16) & 0xff,
+           g_dhcp_state.netmask.s_addr >> 24);
       netlib_set_ipv4netmask(NET_DEVNAME, &g_dhcp_state.netmask);
     }
 
   if (g_dhcp_state.default_router.s_addr != 0)
     {
+      syslog(LOG_INFO, "Default router: %d.%d.%d.%d\n",
+           g_dhcp_state.default_router.s_addr        & 0xff,
+          (g_dhcp_state.default_router.s_addr >>  8) & 0xff,
+          (g_dhcp_state.default_router.s_addr >> 16) & 0xff,
+           g_dhcp_state.default_router.s_addr >> 24);
       netlib_set_dripv4addr(NET_DEVNAME, &g_dhcp_state.default_router);
     }
 
 #if defined(CONFIG_NET_IPv4) && defined(CONFIG_NETDB_DNSCLIENT)
   if (g_dhcp_state.dnsaddr.s_addr != 0)
     {
+      syslog(LOG_INFO, "DNS: %d.%d.%d.%d\n",
+           g_dhcp_state.dnsaddr.s_addr        & 0xff,
+          (g_dhcp_state.dnsaddr.s_addr >>  8) & 0xff,
+          (g_dhcp_state.dnsaddr.s_addr >> 16) & 0xff,
+           g_dhcp_state.dnsaddr.s_addr >> 24);
       netlib_set_ipv4dnsaddr(&g_dhcp_state.dnsaddr);
     }
 #endif
@@ -125,20 +141,38 @@ close:
 /*----------------------------------------------------------------------------*/
 static void netmonitor_ifup(void* arg)
 {
+  int fd;
+  struct userled_s led;
+
   syslog(LOG_INFO, "Interface is going UP\n");
 
   /* Enable the link LED */
+  led.ul_led = 6;
+  led.ul_on = true;
+
+  fd = open("/dev/leds", O_WRONLY);
+  ioctl(fd, ULEDIOC_SETLED, (unsigned long)&led);
+  close(fd);
 
   dhcp_negociate();
 }
 
 /*----------------------------------------------------------------------------*/
 static void netmonitor_ifdown(void)
-    {
-    syslog(LOG_INFO, "Interface is going DOWN\n");
+{
+  int fd;
+  struct userled_s led;
 
-    /* Disable the link LED */
-    }
+  syslog(LOG_INFO, "Interface is going DOWN\n");
+
+  /* Disable the link LED */
+  led.ul_led = 6;
+  led.ul_on = false;
+
+  fd = open("/dev/leds", O_WRONLY);
+  ioctl(fd, ULEDIOC_SETLED, (unsigned long)&led);
+  close(fd);
+}
 
 /*----------------------------------------------------------------------------*/
 /*

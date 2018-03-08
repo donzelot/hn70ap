@@ -48,6 +48,8 @@
 #include <nuttx/video/fb.h>
 #endif
 
+#include <nuttx/leds/userled.h>
+
 #include "up_arch.h"
 #include "hn70ap.h"
 #include "stm32_ccm.h"
@@ -97,6 +99,7 @@ void stm32_boardinitialize(void)
 
   /* Configure hardware */
   hn70ap_spi_initialize();
+
   hn70ap_leds_initialize();
 
 #ifdef HAVE_CCM_HEAP
@@ -128,6 +131,12 @@ void stm32_boardinitialize(void)
 void board_initialize(void)
 {
   int ret;
+
+  ret = userled_lower_initialize("/dev/leds");
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "ERROR: user leds init failed: %d\n", ret);
+    }
 
 #if defined(CONFIG_HN70AP_SPIFLASH)
   ret = hn70ap_flash_initialize();

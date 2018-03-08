@@ -7,6 +7,10 @@ if ARCH_BOARD_CUSTOM
 
 comment "----- hn70ap board features -----"
 
+config ARCH_HAVE_LEDS
+	bool
+	default y
+
 config HN70AP_HWDEBUG_BLINK
 	bool "Just Blink leds instead of starting NuttX"
 

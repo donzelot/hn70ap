@@ -194,6 +194,21 @@
 #define GPIO_ETH_RMII_TXD1  GPIO_ETH_RMII_TXD1_1 /* PB13 */
 #define GPIO_ETH_RMII_TX_EN GPIO_ETH_RMII_TX_EN_1 /* PB11 */
 
+/* LEDs stuff */
+
+#define BOARD_NLEDS 7
+
+/* Unused definitions required to build the led driver */
+
+#define LED_STARTED      0
+#define LED_HEAPALLOCATE 0
+#define LED_IRQSENABLED  0
+#define LED_STACKCREATED 0
+#define LED_INIRQ        0
+#define LED_SIGNAL       0
+#define LED_ASSERTION    0
+#define LED_PANIC        0
+
 /************************************************************************************
  * Public Data
  ************************************************************************************/
