@@ -1,6 +1,8 @@
 # hn70ap
 Development board for modern packet radio on UHF
 
+![device under construction](images/hn70ap-latest.jpg "picture of device assembly")
+
 This repository contains sources for a few kicad projects and a NuttX board
 support package for the board.
 
