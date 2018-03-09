@@ -82,32 +82,20 @@
 #define INST_SETSPEED 2 /*Set UART speed to 921600 bauds */
 #define RESP_SETSPEED 3 /*Confirmation of high speed mode at next command */
 
-struct updateapp_context_s
-{
-  int      mtdfd; /* FD for MTD device */
-  uint8_t *header; /*storage for header block (written last)*/
-  uint8_t *block; /*storage for flash block*/
-  uint32_t header_len; /*number of bytes of header received so far */
-  uint32_t block_len; /*flash block size*/
-  uint32_t block_count; /* Number of blocks in the partition */
-  uint32_t block_received; /* number of bytes of current block received so far */
-  uint32_t total_received; /* total number of UPDATE bytes received so far */
-  uint32_t datacrc; /* Computed image CRC */
-  uint16_t seq; /* packet sequence number */
-  uint32_t block_id; /*flash page sequence number */
-
-  struct update_header_s update;
-
-  bool done; //completion marker
-};
-
 #define RESP_STATUS_OK 0
 #define RESP_STATUS_ERRPARAMS 1
 #define RESP_STATUS_ERRIO 2
 #define RESP_STATUS_COMPLETE 3
 
+struct update_serialcontext_s
+{
+  struct update_context_s *update;
+  uint16_t seq; /* packet sequence number */
+  uint8_t *pktbuf;
+};
+
 /*----------------------------------------------------------------------------*/
-int update_setspeed(struct updateapp_context_s *ctx, uint8_t *buf, int len)
+int update_serial_setspeed(struct update_serialcontext_s *ctx, uint8_t *buf, int len)
 {
   uint8_t status = RESP_STATUS_OK;
   int     retval = OK;
@@ -142,13 +130,10 @@ done:
 }
 
 /*----------------------------------------------------------------------------*/
-int update_write(struct updateapp_context_s *ctx, uint8_t *buf, int len)
+int update_serial_write(struct update_serialcontext_s *sctx, uint8_t *buf, int len)
 {
   uint8_t status = RESP_STATUS_OK;
-  int retval = OK; //default will proceed with next packet after this one.
-  int need;
-  int off;
-  int ret; /* ioctl return values */
+  int ret = OK;
   uint16_t seq; //received packet sequence number
   struct mtdchar_req_s req;
 
@@ -177,212 +162,47 @@ int update_write(struct updateapp_context_s *ctx, uint8_t *buf, int len)
   /* Manage data block */
   if(seq == 0)
     {
-      /* First block: reset context */
-      ctx->seq = 0;
-      ctx->header_len = 0;
-      ctx->block_received = 0;
-      ctx->total_received = 0;
-      ctx->block_id = 1; //Start flash write right after header block
-      ctx->datacrc = CRC32_INIT;
-      //printf("header reset\n");
+      sctx->seq = 0;
+      ret = update_write_start(ctx);
+      if(ret != OK)
+        {
+          fprintf(stderr, "bad write init!\n");
+          status = RESP_STATUS_ERRPARAMS;
+          goto done;
+        }
     }
   else
     {
       /* Next blocks: sequence number must be incremented */
-      if(seq != (ctx->seq + 1) )
+      if(seq != (sctx->seq + 1) )
         {
           fprintf(stderr, "bad seq!\n");
           status = RESP_STATUS_ERRPARAMS;
           goto done;
         }
-      ctx->seq = seq;
+      sctx->seq = seq;
     }
 
   /* Process received data fragments */
+  ret = update_write(ctx->update, buf, len);
 
-  off = 0;
-again:
-  //printf("curpagelen=%d rxlen=%d \n", ctx->block_received, len);
-  need = ctx->block_len - ctx->block_received; /* compute length needed to fill current page*/
-  if(len <= need)
+  if(ret == OK)
     {
-      need = len;
-      //printf("all block goes into page (rxoff %d)\n", off);
+      status = RESP_STATUS_OK;
     }
   else
     {
-      /* We have more data than what is needed to finish a page*/
-      //printf("partial block (%d bytes, rxoff %d) goes into page\n", need, off);
+      sttaus = RESP_STATUS_ERRIO;
     }
 
-  memcpy(ctx->block + ctx->block_received, buf+off, need);
-  ctx->block_received += need;
-  ctx->total_received += need;
-  len -= need;
-  off += need;
-
-  if(ctx->block_received == ctx->block_len)
-    {
-      if(ctx->header_len == 0)
-        {
-          int i,j;
-          uint8_t check, check2;
-
-          //printf("HEADER\n");
-          memcpy(ctx->header, ctx->block, 256);
-          if(update_parseheader(&ctx->update, ctx->header, 256) != OK)
-            {
-              status = RESP_STATUS_ERRPARAMS; //failed
-              goto done;
-            }
-          ctx->header_len = ctx->block_len;
-
-          printf("BLANK CHECK:"); fflush(stdout);
-          check = 0xFF;
-          for(i = 0; i < ctx->block_count; i++)
-            {
-              req.block = i;
-              req.count = 1;
-              req.buf   = ctx->block;
-              ret = ioctl(ctx->mtdfd, MTDCHAR_BREAD, (unsigned long)&req);
-              if(ret < 0)
-                {
-                  printf("FAILED\n");
-                  status = RESP_STATUS_ERRIO;
-                  retval = ERROR;
-                  goto done;
-                }
-              check2 = 0xFF;
-              for(j = 0; j < 256; j++)
-                {
-                  check2 &= ctx->block[j];
-                }
-             if(check2 != 0xFF) {printf("[%d] ",i); fflush(stdout);}
-             check &= check2;
-            }
-
-          if(check != 0xFF)
-            {
-              printf("NOT BLANK. ERASE:"); fflush(stdout);
-              ret = ioctl(ctx->mtdfd, MTDIOC_BULKERASE, 0);
-              if(ret < 0)
-                {
-                  printf("FAILED\n");
-                  status = RESP_STATUS_ERRIO;
-                  retval = ERROR;
-                  goto done;
-                }
-              else
-                {
-                  printf("OK\n");
-                }
-            } //was not blank
-        }
-      else
-        {
-          printf("WRITE [%u]:",ctx->block_id);
-          /* Only data past 16k enters the CRC */
-          if(ctx->block_id > 63)
-            {
-              ctx->datacrc = crc32_do(ctx->datacrc, ctx->block, 256);
-            }
-          req.block = ctx->block_id;
-          req.buf   = ctx->block;
-          req.count = 1;
-          ret = ioctl(ctx->mtdfd, MTDCHAR_BWRITE, (unsigned long)&req);
-          if(ret < 0)
-            {
-              printf("FAILED\n");
-              status = RESP_STATUS_ERRIO;
-              retval = ERROR;
-              goto done;
-            }
-          else
-            {
-              printf("OK\n");
-            }
-            ctx->block_id += 1;
-        }
-      ctx->block_received = 0;
-    }
-
-  if(len > 0)
-    {
-      goto again;
-    }
-
-  if(ctx->header_len > 0) //Means we have parsed the header and know the total size.
-    {
-      //printf("managed %u of %u\n", ctx->total_received, ctx->update_size);
-      if(ctx->total_received >= ctx->update.size)
-        {
-          //printf("Update complete.\n");
-          /* Write last partial page */
-          if(ctx->block_received>0)
-            {
-              printf("WRITE LAST [%u]:",ctx->block_id);
-              if(ctx->block_id > 63)
-                {
-                  ctx->datacrc = crc32_do(ctx->datacrc, ctx->block, ctx->block_received);
-                }
-              req.block = ctx->block_id;
-              req.buf   = ctx->block;
-              req.count = 1;
-              ret = ioctl(ctx->mtdfd, MTDCHAR_BWRITE, (unsigned long)&req);
-              if(ret < 0)
-                {
-                  printf("FAILED\n");
-                  status = RESP_STATUS_ERRIO;
-                  retval = ERROR;
-                  goto done;
-                }
-              else
-                {
-                  printf("OK\n");
-                }
-            }
-          ctx->datacrc ^= CRC32_MASK;
-          /* Check data CRC against info in header */
-          if(ctx->datacrc != ctx->update.crc)
-            {
-              fprintf(stderr, "Data integrity error\n");
-              status = RESP_STATUS_ERRPARAMS;
-              retval = ERROR;
-              goto done;
-            }
-
-          /* Copy header into first block of flash */
-          printf("WRITE HEADER:");
-          req.block = 0;
-          req.buf   = ctx->header;
-          req.count = 1;
-          ret = ioctl(ctx->mtdfd, MTDCHAR_BWRITE, (unsigned long)&req);
-          if(ret < 0)
-            {
-              printf("FAILED\n");
-              status = RESP_STATUS_ERRIO;
-              retval = ERROR;
-              goto done;
-            }
-          else
-            {
-              printf("OK\n");
-            }
-          ctx->done = true;
-          status = RESP_STATUS_COMPLETE;
-        }
-    }
-
-  /* No more data in rx buffer */
-done:
   buf[0] = RESP_WRITE;
   buf[3] = status;
   frame_send(stdout, buf, 4);
-  return retval;
+  return ret;
 }
 
 /*----------------------------------------------------------------------------*/
-int update_doframe(struct updateapp_context_s *ctx, uint8_t *buf, int len)
+int update_serial_doframe(struct update_serialcontext_s *sctx, uint8_t *buf, int len)
 {
   //printf("got frame, %d bytes\n", len);
   if(len < 1)
@@ -392,65 +212,48 @@ int update_doframe(struct updateapp_context_s *ctx, uint8_t *buf, int len)
     }
   if(buf[0] == INST_WRITE)
     {
-      return update_write(ctx, buf, len);
+      return update_serial_write(sctx, buf, len);
     }
   else if(buf[0] == INST_SETSPEED)
     {
-      return update_setspeed(ctx, buf, len);
+      return update_serial_setspeed(sctx, buf, len);
     }
   /* Other frames are discarded */
   return OK;
 }
 
 /*----------------------------------------------------------------------------*/
-void update_serial(int mtdfd, int blocksize, int erasesize, int nblocks)
+void update_serial(struct update_context_s *ctx)
 {
   int ret;
-  uint8_t *pktbuf;
   struct termios term;  
-  struct updateapp_context_s ctx;
+  struct update_serialcontext_s sctx;
+
+  sctx.update = ctx;
 
   /* Save the original UART config */
   tcgetattr(fileno(stdout), &term);
 
-  /* Allocate storage for header */
-  ctx.header = malloc(256);
-  if(ctx.header==0)
-    {
-      fprintf(stderr, "alloc error!\n");
-      return;
-    }
-
-  /* Allocate storage for flash page buffer */
-  ctx.mtdfd = mtdfd;
-  ctx.block_len = blocksize;
-  ctx.block_count = nblocks;
-  ctx.block = malloc(256);
-  if(ctx.block == 0)
-    {
-      fprintf(stderr, "alloc error!\n");
-      goto retfree;
-    }
-
   /* Allocate storage for protocol */
-  pktbuf = malloc(1+2+256+2); //with room for inst seqnum and CRC
-  if(pktbuf == 0)
+  sctx.pktbuf = malloc(1+2+256+2); //with room for inst seqnum and CRC
+  if(sctx.pktbuf == 0)
     {
       fprintf(stderr, "alloc error!\n");
       goto retfree;
     }
 
   printf("hn70ap serial update waiting...\n");
-  ctx.done = false;
-  while(!ctx.done)
+  ctx->done = false;
+  while(!ctx->done)
     {
-      ret = frame_receive(stdin, pktbuf, 1+2+256+2);
+      ret = frame_receive(stdin, sctx.pktbuf, 1+2+256+2);
       if(ret == 0)
         {
           printf("Timeout/RX problem!\n");
           goto retfree;
         }
-      if(update_doframe(&ctx, pktbuf, ret) != OK)
+      ret = update_serial_doframe(sctx, sctx.pktbuf, ret);
+      if( ret != OK)
         {
           printf("Transfer aborted!\n");
           goto retfree;
@@ -463,7 +266,5 @@ retfree:
   tcsetattr(fileno(stdout), TCSADRAIN, &term);
 
   free(pktbuf);
-  free(ctx.block);
-  free(ctx.header);
 }
 

@@ -1,5 +1,5 @@
 /****************************************************************************
- * hn70ap/apps/update/update_internal.h
+ * hn70ap/apps/update/update_tftp.c
  *
  *   Copyright (C) 2018 Sebastien Lorquet. All rights reserved.
  *   Author: Sebastien Lorquet <sebastien@lorquet.fr>
@@ -37,41 +37,47 @@
  * Included Files
  ****************************************************************************/
 
-#ifndef UPDATE_INTERNAL_H
-#define UPDATE_INTERNAL_H
-
 #include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
+
+#include <netutils/tftp.c>
+#include <hn70ap/memio.h>
+#include <hn70ap/crc.h>
 #include <hn70ap/update.h>
 
-struct update_context_s
+/*----------------------------------------------------------------------------*/
+int update_tftp(struct update_context_s *ctx)
 {
-  /* flash storage info */
-  int                    mtdfd; /* FD for MTD device */
-  uint32_t               block_len; /*flash block size*/
-  uint32_t               block_count; /* Number of blocks in the partition */
+  int ret;
+  uint8_t *pktbuf;
 
-  uint32_t               block_id; /*flash page sequence number */
+  /* Allocate storage for protocol */
+  pktbuf = malloc(1+2+256+2); //with room for inst seqnum and CRC
+  if(pktbuf == 0)
+    {
+      fprintf(stderr, "alloc error!\n");
+      goto retfree;
+    }
 
-  /* Buffers */
-  uint8_t               *header; /*storage for header block (written last)*/
-  uint8_t               *block; /*storage for flash block*/
+  printf("hn70ap tftp update waiting...\n");
+  ctx.done = false;
+  while(!ctx.done)
+    {
+      ret = frame_receive(stdin, pktbuf, 1+2+256+2);
+      if(ret == 0)
+        {
+          printf("Timeout/RX problem!\n");
+          goto retfree;
+        }
+      if(update_doframe(&ctx, pktbuf, ret) != OK)
+        {
+          printf("Transfer aborted!\n");
+          goto retfree;
+        }
+    }
+  printf("Transfer complete.\n");
 
-  /* Pending data */
-  uint32_t               block_received; /* number of bytes of current block received so far */
-  uint32_t               total_received; /* total number of UPDATE bytes received so far */
+  return OK;
+}
 
-  /* Update info */
-  bool                   header_received;
-  struct update_header_s update;
-  uint32_t               datacrc; /* Computed image CRC */
-  bool                   done; //completion marker
-};
-
-int update_tftp(int mtdfd, int blocksize, int erasesize, int nblocks);
-int update_serial(int mtdfd, int blocksize, int erasesize, int nblocks);
-int update_status(int mtdfd);
-int update_cancel(int mtdfd);
-
-int update_write(void *vctx, uint8_t *buf, uint32_t len);
-
-#endif

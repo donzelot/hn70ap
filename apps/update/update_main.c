@@ -76,6 +76,7 @@ int update_main(int argc, char *argv[])
   int fd;
   int ret;
   struct mtd_geometry_s geo;
+  struct update_context_s ctx;
 
   if(argc<2)
     {
@@ -94,7 +95,8 @@ int update_main(int argc, char *argv[])
   if(ret != 0)
     {
       fprintf(stderr, "Cannot get MTD geometry\n");
-      return ERROR;
+      ret = ERROR;
+      goto error_with_mtd;
     }
 
   fprintf(stderr, "neraseblocks=%d erasesize=%d blocksize=%d\n", geo.neraseblocks, geo.erasesize, geo.blocksize);
@@ -102,26 +104,56 @@ int update_main(int argc, char *argv[])
   if(geo.blocksize != 256)
     {
       fprintf(stderr, "Block size !=256 not supported!\n");
-      return ERROR;
+      ret = ERROR;
+      goto error_with_mtd;
+    }
+
+  ctx.mtdfd       = mtdfd;
+  ctx.block_len   = blocksize;
+  ctx.block_count = geo.neraseblocks * geo.erasesize / geo.blocksize;
+
+  /* Allocate storage for header */
+  ctx.header = malloc(256);
+  if(ctx.header==0)
+    {
+      fprintf(stderr, "alloc error!\n");
+      goto error_with_mtd;
+    }
+
+  /* Allocate storage for flash page buffer */
+  ctx.block = malloc(256);
+  if(ctx.block == 0)
+    {
+      fprintf(stderr, "alloc error!\n");
+      goto error_with_header;
     }
 
   if(!strcmp(argv[1], "serial"))
     {
-      update_serial(fd, geo.blocksize, geo.erasesize, geo.neraseblocks * geo.erasesize / geo.blocksize);
+      ret = update_serial(&ctx);
+    }
+  else if(!strcmp(argv[1], "tftp"))
+    {
+      ret = update_tftp(&ctx);
     }
   else if(!strcmp(argv[1], "status"))
     {
-      update_status(fd);
+      ret = update_status(fd);
     }
   else if(!strcmp(argv[1], "cancel"))
     {
-      update_cancel(fd);
+      ret = update_cancel(fd);
     }
   else
     {
-      return update_usage();
+      ret = update_usage();
     } 
+
+  free(ctx.block);
+error_with_header:
+  free(ctx.header);
+error_with_mtd:
  close(fd);
 
- return 0;
+ return ret;
 }
