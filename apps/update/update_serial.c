@@ -53,6 +53,8 @@
 #include <hn70ap/mtdchar.h>
 #include <hn70ap/update.h>
 
+#include "update_internal.h"
+
 /* Load an update image via a serial port. Protocol:
  * update is sent as a sequence of HDLC framed packets (RFC1662) containing the
  * following fields:
@@ -135,7 +137,6 @@ int update_serial_write(struct update_serialcontext_s *sctx, uint8_t *buf, int l
   uint8_t status = RESP_STATUS_OK;
   int ret = OK;
   uint16_t seq; //received packet sequence number
-  struct mtdchar_req_s req;
 
   len -= 1; //subtract instruction
   if(len < 2)
@@ -163,7 +164,7 @@ int update_serial_write(struct update_serialcontext_s *sctx, uint8_t *buf, int l
   if(seq == 0)
     {
       sctx->seq = 0;
-      ret = update_write_start(ctx);
+      ret = update_write_start(sctx->update);
       if(ret != OK)
         {
           fprintf(stderr, "bad write init!\n");
@@ -184,7 +185,7 @@ int update_serial_write(struct update_serialcontext_s *sctx, uint8_t *buf, int l
     }
 
   /* Process received data fragments */
-  ret = update_write(ctx->update, buf, len);
+  ret = update_write(sctx->update, buf, len);
 
   if(ret == OK)
     {
@@ -192,9 +193,10 @@ int update_serial_write(struct update_serialcontext_s *sctx, uint8_t *buf, int l
     }
   else
     {
-      sttaus = RESP_STATUS_ERRIO;
+      status = RESP_STATUS_ERRIO;
     }
 
+done:
   buf[0] = RESP_WRITE;
   buf[3] = status;
   frame_send(stdout, buf, 4);
@@ -223,7 +225,7 @@ int update_serial_doframe(struct update_serialcontext_s *sctx, uint8_t *buf, int
 }
 
 /*----------------------------------------------------------------------------*/
-void update_serial(struct update_context_s *ctx)
+int update_serial(struct update_context_s *ctx)
 {
   int ret;
   struct termios term;  
@@ -239,6 +241,7 @@ void update_serial(struct update_context_s *ctx)
   if(sctx.pktbuf == 0)
     {
       fprintf(stderr, "alloc error!\n");
+      ret = ERROR;
       goto retfree;
     }
 
@@ -250,9 +253,10 @@ void update_serial(struct update_context_s *ctx)
       if(ret == 0)
         {
           printf("Timeout/RX problem!\n");
+          ret = ERROR;
           goto retfree;
         }
-      ret = update_serial_doframe(sctx, sctx.pktbuf, ret);
+      ret = update_serial_doframe(&sctx, sctx.pktbuf, ret);
       if( ret != OK)
         {
           printf("Transfer aborted!\n");
@@ -265,6 +269,8 @@ retfree:
   /* Restore the original UART config */
   tcsetattr(fileno(stdout), TCSADRAIN, &term);
 
-  free(pktbuf);
+  free(sctx.pktbuf);
+
+  return ret;
 }
 

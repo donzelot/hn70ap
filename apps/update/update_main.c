@@ -41,6 +41,7 @@
 
 #include <nuttx/config.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <fcntl.h>
@@ -58,6 +59,7 @@
 int update_usage(void)
 {
   printf("update serial - Receive update from console\n"
+         "update tftp host port - Receive update from TFTP server\n"
          "update status - Show info about current firmware update\n"
          "update cancel - Erase the firmware update partition\n");
   return ERROR;
@@ -108,8 +110,8 @@ int update_main(int argc, char *argv[])
       goto error_with_mtd;
     }
 
-  ctx.mtdfd       = mtdfd;
-  ctx.block_len   = blocksize;
+  ctx.mtdfd       = fd;
+  ctx.block_len   = geo.blocksize;
   ctx.block_count = geo.neraseblocks * geo.erasesize / geo.blocksize;
 
   /* Allocate storage for header */
@@ -134,7 +136,14 @@ int update_main(int argc, char *argv[])
     }
   else if(!strcmp(argv[1], "tftp"))
     {
-      ret = update_tftp(&ctx);
+      if(argc != 4)
+        {
+          ret = update_usage();
+        }
+      else
+        {
+          ret = update_tftp(&ctx, argv[2], argv[3]);
+        }
     }
   else if(!strcmp(argv[1], "status"))
     {

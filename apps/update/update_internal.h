@@ -67,11 +67,12 @@ struct update_context_s
   bool                   done; //completion marker
 };
 
-int update_tftp(int mtdfd, int blocksize, int erasesize, int nblocks);
-int update_serial(int mtdfd, int blocksize, int erasesize, int nblocks);
+int update_serial(struct update_context_s *ctx);
+int update_tftp(struct update_context_s *ctx, const char *server, const char *remote_filename);
 int update_status(int mtdfd);
 int update_cancel(int mtdfd);
 
-int update_write(void *vctx, uint8_t *buf, uint32_t len);
+int update_write_start(struct update_context_s *ctx);
+int update_write(struct update_context_s *ctx, uint8_t *buf, uint32_t len);
 
 #endif

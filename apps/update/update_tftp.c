@@ -40,44 +40,58 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-#include <netutils/tftp.c>
-#include <hn70ap/memio.h>
-#include <hn70ap/crc.h>
+#include <errno.h>
+
+#include <netutils/tftp.h>
+#include <netutils/netlib.h>
+
+//#include <hn70ap/memio.h>
+//#include <hn70ap/crc.h>
 #include <hn70ap/update.h>
 
+#include "update_internal.h"
+
+/* Load an update image via TFTP */
+
 /*----------------------------------------------------------------------------*/
-int update_tftp(struct update_context_s *ctx)
+ssize_t update_tftpwrite(FAR void *ctx, uint32_t offset, uint8_t *buf, size_t len)
+{
+  //printf("tftp_write len=%d", len); fflush(stdout);
+
+  update_write((struct update_context_s *)ctx, buf, len);
+
+  return len;
+}
+
+/*----------------------------------------------------------------------------*/
+int update_tftp(struct update_context_s *ctx, const char *server, const char *remote_filename)
 {
   int ret;
-  uint8_t *pktbuf;
+  in_addr_t host;
 
-  /* Allocate storage for protocol */
-  pktbuf = malloc(1+2+256+2); //with room for inst seqnum and CRC
-  if(pktbuf == 0)
+  if (!netlib_ipv4addrconv(server, (FAR unsigned char*)&host))
     {
-      fprintf(stderr, "alloc error!\n");
-      goto retfree;
+      fprintf(stderr, "Incorrect IP address!\n");
+      return ERROR;
     }
 
-  printf("hn70ap tftp update waiting...\n");
-  ctx.done = false;
-  while(!ctx.done)
-    {
-      ret = frame_receive(stdin, pktbuf, 1+2+256+2);
-      if(ret == 0)
-        {
-          printf("Timeout/RX problem!\n");
-          goto retfree;
-        }
-      if(update_doframe(&ctx, pktbuf, ret) != OK)
-        {
-          printf("Transfer aborted!\n");
-          goto retfree;
-        }
-    }
-  printf("Transfer complete.\n");
+  printf("hn70ap tftp update from %d.%d.%d.%d:%s\n", host&0xFF, (host>>8)&0xFF, (host>>16)&0xFF, (host>>24)&0xFF, remote_filename);
 
-  return OK;
+  update_write_start(ctx);
+
+  ret = tftpget_cb(remote_filename, host, true, update_tftpwrite, ctx);
+  
+  if(ret != OK)
+    {
+      printf("Transfer failed! (errno %d)\n", errno);
+    }
+  else
+    {
+      printf("Transfer complete.\n");
+    }
+
+  return ret;
 }
 

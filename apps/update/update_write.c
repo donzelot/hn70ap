@@ -51,21 +51,22 @@
 #include <hn70ap/mtdchar.h>
 #include <hn70ap/update.h>
 
+#include "update_internal.h"
+
 int update_write_start(struct update_context_s *ctx)
 {
-  ctx->header_len = 0;
-  ctx->block_received = 0;
-  ctx->total_received = 0;
-  ctx->block_id = 1; //Start flash write right after header block
-  ctx->datacrc= CRC32_INIT;
+  ctx->header_received = false;
+  ctx->block_received  = 0;
+  ctx->total_received  = 0;
+  ctx->block_id        = 1; //Start flash write right after header block
+  ctx->datacrc         = CRC32_INIT;
 
   return OK;
 }
 
 /*----------------------------------------------------------------------------*/
-int update_write(void *vctx, uint8_t *buf, uint32_t len)
+int update_write(struct update_context_s *ctx, uint8_t *buf, uint32_t len)
 {
-  struct update_context_s *ctx = vctx;
   int retval = OK; //default will proceed with next packet after this one.
   int room;
   int off = 0;
@@ -136,19 +137,26 @@ again:
               if(ret < 0)
                 {
                   printf("FAILED\n");
-                  status = RESP_STATUS_ERRIO;
-                  retval = ERROR;
-                  goto done;
+                  return ERROR;
                 }
               else
                 {
                   printf("OK\n");
                 }
             } //was not blank
+          else
+            {
+              printf("OK\n");
+            }
         }
       else
         {
-          printf("WRITE [%u]:",ctx->block_id);
+          //printf("WRITE [%u]:",ctx->block_id);
+          if(ctx->block_id == 1)
+            {
+              printf("WRITE:"); fflush(stdout);
+            }
+          printf("#"); fflush(stdout);
           /* Only data past 16k enters the CRC */
           if(ctx->block_id > 63)
             {
@@ -160,14 +168,8 @@ again:
           ret = ioctl(ctx->mtdfd, MTDCHAR_BWRITE, (unsigned long)&req);
           if(ret < 0)
             {
-              printf("FAILED\n");
-              status = RESP_STATUS_ERRIO;
-              retval = ERROR;
-              goto done;
-            }
-          else
-            {
-              printf("OK\n");
+              printf("FAILED BLOCK %d\n");
+              return ERROR;
             }
             ctx->block_id += 1;
         }
@@ -231,7 +233,7 @@ again:
               printf("OK\n");
             }
           ctx->done = true;
-          status = RESP_STATUS_COMPLETE;
+          return OK;
         }
     }
 
