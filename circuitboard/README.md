@@ -15,7 +15,9 @@ Enclosure
 =========
 Any enclosure that can host a 80x100mm PCBs with connectors on both 100mm
 sides is usable, for example a slotted extrusion box. I am using a
-Multicomp MCREBS80 box from Farnell.
+Multicomp MCREBS80 box from Farnell, which is in fact a Box Enclosures B2-080.
+https://www.boxenclosures.com/product-category/bex-series-anodized-extruded-aluminum-enclosures/bex-series-2/
+
 
 Power supply
 ============
