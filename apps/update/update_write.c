@@ -190,7 +190,7 @@ again:
           /* Write last partial page */
           if(ctx->block_received>0)
             {
-              printf("WRITE LAST [%u]:",ctx->block_id);
+              printf("\nWRITE LAST [%u]:",ctx->block_id);
               if(ctx->block_id > 63)
                 {
                   ctx->datacrc = crc32_do(ctx->datacrc, ctx->block, ctx->block_received);
