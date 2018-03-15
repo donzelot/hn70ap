@@ -1,5 +1,5 @@
 ############################################################################
-# hn70ap/apps/config/Make.defs
+# hn70ap/apps/rxt/Make.defs
 # Adds selected applications to apps/ build
 #
 #   Copyright (C) 20158 Sebastien Lorquet. All rights reserved.

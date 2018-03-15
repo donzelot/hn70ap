@@ -1,9 +1,8 @@
 ############################################################################
-# hn70ap/apps/rxt/Makefile
+# hn70ap/apps/txt/Make.defs
+# Adds selected applications to apps/ build
 #
-#   Copyright (C) 2008, 2010-2013 Gregory Nutt. All rights reserved.
-#   Author: Gregory Nutt <gnutt@nuttx.org>
-#   Copyright (C) 2018 Sebastien Lorquet. All rights reserved.
+#   Copyright (C) 20158 Sebastien Lorquet. All rights reserved.
 #   Author: Sebastien Lorquet <sebastien@lorquet.fr>
 #
 # Redistribution and use in source and binary forms, with or without
@@ -35,23 +34,6 @@
 #
 ############################################################################
 
--include $(TOPDIR)/Make.defs
-
-# RX test built-in application info
-
-CONFIG_HN70AP_RXT_PRIORITY ?= SCHED_PRIORITY_DEFAULT
-CONFIG_HN70AP_RXT_STACKSIZE ?= 2048
-
-APPNAME = rxt
-PRIORITY = $(CONFIG_HN70AP_RXT_PRIORITY)
-STACKSIZE = $(CONFIG_HN70AP_RXT_STACKSIZE)
-
-ASRCS =
-CSRCS = 
-MAINSRC = rxt_main.c
-
-CONFIG_HN70AP_RXT_PROGNAME ?= $(APPNAME)$(EXEEXT)
-PROGNAME = $(CONFIG_HN70AP_RXT_PROGNAME)
-
-include $(APPDIR)/Application.mk
-
+ifeq ($(CONFIG_HN70AP_TXT),y)
+CONFIGURED_APPS += hn70ap/txt
+endif

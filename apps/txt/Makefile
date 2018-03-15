@@ -1,5 +1,5 @@
 ############################################################################
-# hn70ap/apps/rxt/Makefile
+# hn70ap/apps/txt/Makefile
 #
 #   Copyright (C) 2008, 2010-2013 Gregory Nutt. All rights reserved.
 #   Author: Gregory Nutt <gnutt@nuttx.org>
@@ -39,19 +39,19 @@
 
 # RX test built-in application info
 
-CONFIG_HN70AP_RXT_PRIORITY ?= SCHED_PRIORITY_DEFAULT
-CONFIG_HN70AP_RXT_STACKSIZE ?= 2048
+CONFIG_HN70AP_TXT_PRIORITY ?= SCHED_PRIORITY_DEFAULT
+CONFIG_HN70AP_TXT_STACKSIZE ?= 2048
 
-APPNAME = rxt
-PRIORITY = $(CONFIG_HN70AP_RXT_PRIORITY)
-STACKSIZE = $(CONFIG_HN70AP_RXT_STACKSIZE)
+APPNAME = txt
+PRIORITY = $(CONFIG_HN70AP_TXT_PRIORITY)
+STACKSIZE = $(CONFIG_HN70AP_TXT_STACKSIZE)
 
 ASRCS =
 CSRCS = 
-MAINSRC = rxt_main.c
+MAINSRC = txt_main.c
 
-CONFIG_HN70AP_RXT_PROGNAME ?= $(APPNAME)$(EXEEXT)
-PROGNAME = $(CONFIG_HN70AP_RXT_PROGNAME)
+CONFIG_HN70AP_TXT_PROGNAME ?= $(APPNAME)$(EXEEXT)
+PROGNAME = $(CONFIG_HN70AP_TXT_PROGNAME)
 
 include $(APPDIR)/Application.mk
 
