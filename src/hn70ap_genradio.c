@@ -139,7 +139,7 @@ int hn70ap_genradio_initialize(void)
   spi4 = stm32_spibus_initialize(4);
   if (!spi4)
     {
-      spierr("ERROR: FAILED to initialize SPI port 4\n");
+      _err("ERROR: FAILED to initialize SPI port 4\n");
       return -EIO;
     }
 
