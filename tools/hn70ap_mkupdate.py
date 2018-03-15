@@ -97,9 +97,17 @@ class elfreader:
 
 #default value is main nuttx binary
 source = "nuttx"
+dest   = "output_image"
+boot   = "output_bootloader"
 
-if len(sys.argv) == 2:
+if len(sys.argv) > 1:
   source = sys.argv[1]
+
+if len(sys.argv) > 2:
+  dest = sys.argv[2]
+
+if len(sys.argv) > 3:
+  boot = sys.argv[3]
 
 print("hn70ap_mkupdate starting, source=", source)
 elf = elfreader()
@@ -168,14 +176,14 @@ header[1] = (crc >> 16) &0xFF
 header[2] = (crc >>  8) &0xFF
 header[3] =  crc        &0xFF
 
-with open('output_image', 'wb') as out:
+with open(dest, 'wb') as out:
   out.write(header)
   out.write(usersoftwr)
-print("Wrote output_image")
+print("Wrote", dest)
 
-with open('output_bootloader','wb') as out:
+with open(boot,'wb') as out:
   out.write(bootloader)
-print("Wrote output_bootloader")
+print("Wrote", boot)
 
 print("all done.")
 
