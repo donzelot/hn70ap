@@ -1,0 +1,30 @@
+#
+# For a description of the syntax of this configuration file,
+# see the file kconfig-language.txt in the NuttX tools repository.
+#
+
+config HN70AP_RXT
+	bool "hn70ap RX test"
+	default y
+	---help---
+		Test Radio Reception.
+
+if HN70AP_RXT
+
+config HN70AP_RXT_PROGNAME
+	string "Program name"
+	default "config"
+	depends on BUILD_KERNEL
+	---help---
+		This is the name of the program that will be use when the NSH ELF
+		program is installed.
+
+config HN70AP_RXT_PRIORITY
+	int "hn70ap config task priority"
+	default 100
+
+config HN70AP_RXT_STACKSIZE
+	int "hn70ap config stack size"
+	default 2048
+
+endif
