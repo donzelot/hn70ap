@@ -4,7 +4,7 @@
 #
 
 config HN70AP_RXT
-	bool "hn70ap RX test"
+	bool "RX test"
 	default y
 	---help---
 		Test Radio Reception.
@@ -20,11 +20,11 @@ config HN70AP_RXT_PROGNAME
 		program is installed.
 
 config HN70AP_RXT_PRIORITY
-	int "hn70ap rxt task priority"
+	int "rxt task priority"
 	default 100
 
 config HN70AP_RXT_STACKSIZE
-	int "hn70ap rxt stack size"
+	int "rxt stack size"
 	default 2048
 
 endif

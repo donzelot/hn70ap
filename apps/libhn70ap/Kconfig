@@ -4,5 +4,5 @@
 #
 
 config LIBHN70AP
-	bool "hn70ap common Library"
+	bool "Common Library"
 	default y

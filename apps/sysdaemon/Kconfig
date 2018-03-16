@@ -4,7 +4,7 @@
 #
 
 config HN70AP_SYSDAEMON
-	bool "hn70ap system daemon"
+	bool "system daemon"
 	default y
 	---help---
 		The system daemon manages the ethernet link status, the oled screen, then starts nsh.
@@ -20,11 +20,11 @@ config HN70AP_SYSDAEMON_PROGNAME
 		program is installed.
 
 config HN70AP_SYSDAEMON_PRIORITY
-	int "hn70ap sysdaemon task priority"
+	int "sysdaemon task priority"
 	default 100
 
 config HN70AP_SYSDAEMON_STACKSIZE
-	int "hn70ap sysdaemon stack size"
+	int "sysdaemon stack size"
 	default 2048
 
 endif

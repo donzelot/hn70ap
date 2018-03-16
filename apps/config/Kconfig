@@ -4,7 +4,7 @@
 #
 
 config HN70AP_CONFIG
-	bool "hn70ap system configuration app"
+	bool "system configuration app"
 	default y
 	---help---
 		The config app manages the system settings.
@@ -20,11 +20,11 @@ config HN70AP_CONFIG_PROGNAME
 		program is installed.
 
 config HN70AP_CONFIG_PRIORITY
-	int "hn70ap config task priority"
+	int "config task priority"
 	default 100
 
 config HN70AP_CONFIG_STACKSIZE
-	int "hn70ap config stack size"
+	int "config stack size"
 	default 2048
 
 endif

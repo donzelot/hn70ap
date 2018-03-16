@@ -1,6 +1,8 @@
 /****************************************************************************
- * hn70ap/apps/config/config_list.c
+ * hn70ap/apps/beacon/beacon_main.c
  *
+ *   Copyright (C) 2008, 2011-2012 Gregory Nutt. All rights reserved.
+ *   Author: Gregory Nutt <gnutt@nuttx.org>
  *   Copyright (C) 2018 Sebastien Lorquet. All rights reserved.
  *   Author: Sebastien Lorquet <sebastien@lorquet.fr>
  *
@@ -37,79 +39,113 @@
  * Included Files
  ****************************************************************************/
 
-#include <nuttx/config.h>
-#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-#include <arpa/inet.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include <hn70ap/eeprom.h>
-
-#include "config_internal.h"
 
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
 
-int config_list(void)
+int beacon_usage(void)
 {
-  int i = 0;
-  int ret = OK;
-  char name[16];
-  uint32_t type;
+  printf(
+    "beacon [device] <ascii payload>\n"
+  );
+  return ERROR;
+}
 
-  while(ret == OK)
+/****************************************************************************
+ * status_main
+ ****************************************************************************/
+
+#ifdef CONFIG_BUILD_KERNEL
+int main(int argc, FAR char *argv[])
+#else
+int beacon_main(int argc, char *argv[])
+#endif
+{
+  char *devname = "/dev/raux";
+  char *data;
+  int ret = OK;
+  int fd;
+  int buflen = 1024;
+  uint32_t seqnum = 0;
+  char call[9];
+  uint8_t ssid;
+
+  uint8_t *buf;
+
+  if(argc == 3)
     {
-      ret = hn70ap_eeconfig_describe(i, name, sizeof(name), &type);
-      if(ret == OK)
-        {
-          printf("%8s = ", name, type);
-          if(type == EECONFIG_TYPE_BOOL)
-            {
-              bool val;
-              ret = hn70ap_eeconfig_getbool(name, &val);
-              if(ret == OK)
-                {
-                  printf("%s\n", val?"true":"false");
-                }
-            }
-          else if(type == EECONFIG_TYPE_IP)
-            {
-              struct in_addr val;
-              ret = hn70ap_eeconfig_getip(name, &val);
-              if(ret == OK)
-                {
-                  printf("%s\n", inet_ntoa(val));
-                }
-            }
-          else if(type == EECONFIG_TYPE_BYTE)
-            {
-              uint8_t val;
-              ret = hn70ap_eeconfig_getbyte(name, &val);
-              if(ret == OK)
-                {
-                  printf("%d (0x%02X)\n", val, val);
-                }
-            }
-          else if(type == EECONFIG_TYPE_CALL)
-            {
-              char val[9];
-              memset(val, 0, sizeof(val));
-              ret = hn70ap_eeconfig_getcall(name, val);
-              if(ret == OK)
-                {
-                  printf("%s\n", val);
-                }
-            }
-          if(ret != OK)
-            {
-              printf("<unreadable>\n");
-              ret = OK;
-            }
-        }
-      i++;
+      devname = argv[1];
+      data    = argv[2];
     }
-  return OK;
+  else if(argc == 2)
+    {
+      data = argv[1];
+    }
+  else
+    {
+      return beacon_usage();
+    }
+
+  buf = malloc(buflen);
+  if(!buf)
+    {
+      fprintf(stderr, "malloc failed!\n");
+      ret = ERROR;
+      goto done;
+    }
+
+
+  fd = open(devname, O_RDWR);
+  if(fd<0)
+    {
+      fprintf(stderr, "open failed!\n");
+      ret = ERROR;
+      goto retfree;
+    }
+
+  printf("\nTX beacon using %s\n", devname);
+
+  /* Define payload */
+  hn70ap_eeconfig_getcall("call", call);
+  call[8] = 0;
+  hn70ap_eeconfig_getbyte("ssid", &ssid);
+
+  if(strlen(call)==0)
+    {
+      fprintf(stderr, "call sign not defined, see config app\n");
+      ret = ERROR;
+      goto retclose;
+    }
+
+  while(1)
+    {
+      sprintf(buf, "de %s/%d, seq=%u, hn70ap beacon: %s\n", call, ssid, seqnum, data);
+      printf("%s", buf);
+      ret = write(fd, buf, strlen(buf));
+      if(ret < 0)
+        {
+          printf("write failed, errno=%d\n", errno);
+          break;
+        }
+      seqnum += 1;
+    }
+
+retclose:
+  close(fd);
+retfree:
+  free(buf);
+done:
+  return ret;
 }
 
