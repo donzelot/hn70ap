@@ -41,6 +41,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <arpa/inet.h>
+
 #include <hn70ap/eeprom.h>
 
 #include "config_internal.h"
@@ -60,7 +62,7 @@ int config_set(char *key, char *value)
 
   if(ret != OK)
     {
-      fprintf(stderr, "Config entry not found\n");
+      fprintf(stderr, "Config entry '%s' not found\n", key);
       return ERROR;
     }
 
@@ -81,7 +83,7 @@ int config_set(char *key, char *value)
         {
         val = true;
         }
-      else if(!strcmp(val, "false") ||
+      else if(!strcmp(value, "false") ||
          !strcmp(value, "False") ||
          !strcmp(value, "FALSE") ||
          !strcmp(value, "no") ||
@@ -96,7 +98,7 @@ int config_set(char *key, char *value)
         }
       else
         {
-          printf("Unrecognized boolean value: %s\n",val);
+          printf("Unrecognized boolean value: %s\n",value);
           return ERROR;
         }
       ret = hn70ap_eeconfig_setbool(name, val);
@@ -105,7 +107,12 @@ int config_set(char *key, char *value)
     {
       in_addr_t val;
       printf("Entry type is IPv4\n");
-      val = inet_aton(value);
+      ret = inet_pton(AF_INET, value, &val);
+      if(ret != 1)
+        {
+          printf("Invalid IPv4 address: %s\n", value);
+          return ERROR;
+        }
       ret = hn70ap_eeconfig_setip(name, val);
     }
   else if(type == EECONFIG_TYPE_CALL)
@@ -118,7 +125,7 @@ int config_set(char *key, char *value)
     }
   else
     {
-      fprintf(stderr, "Config entry not found\n");
+      fprintf(stderr, "Unknown entry type!\n");
       return ERROR;
     }
 
