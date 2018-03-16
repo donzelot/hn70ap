@@ -67,13 +67,15 @@ struct param_s
 
 const struct param_s eeconfig_params[] = 
 {
-  {"dhcp", EECONFIG_TYPE_BOOL, 1, 0x01}, /* 0x01 - 0x01 DHCP Client Enable */
-                                        /* 0x02 - 0x03 RFU for more network options */
-  {"ip"  , EECONFIG_TYPE_IP  , 4,    0}, /* 0x04 - 0x07 Static IP address to use if DHCP is not enabled */
-  {"mask", EECONFIG_TYPE_IP  , 8,    0}, /* 0x08 - 0x0B Static IP mask to use if DHCP is not enabled */
-  {"gw"  , EECONFIG_TYPE_IP  , 12,   0}, /* 0x0C - 0x0F IP address of default gateway */
-  {"dns" , EECONFIG_TYPE_IP  , 16,   0}, /* 0x10 - 0x13 IP address of DNS server (independent of DHCP enable)*/
-                                         /* 0x14 - 0x7F RFU for more network options */
+  {"dhcp", EECONFIG_TYPE_BOOL, 0x01, 0x01}, /* 0x01 - 0x01 DHCP Client Enable */
+                                            /* 0x02 - 0x03 RFU for more network options */
+  {"ip"  , EECONFIG_TYPE_IP  , 0x04,   0},  /* 0x04 - 0x07 Static IP address to use if DHCP is not enabled */
+  {"mask", EECONFIG_TYPE_IP  , 0x08,   0},  /* 0x08 - 0x0B Static IP mask to use if DHCP is not enabled */
+  {"gw"  , EECONFIG_TYPE_IP  , 0x0C,   0},  /* 0x0C - 0x0F IP address of default gateway */
+  {"dns" , EECONFIG_TYPE_IP  , 0x10,   0},  /* 0x10 - 0x13 IP address of DNS server (independent of DHCP enable)*/
+  {"call", EECONFIG_TYPE_CALL, 0x14,   0},  /* 0x14 - 0x1B HAM callsign, zero padded */
+  {"ssid", EECONFIG_TYPE_BYTE, 0x1C,   0},  /* 0x1C - 0x1C HAM Station ID */
+                                            /* 0x1D - 0x7F RFU for more options */
 };
 
 #define EECONFIG_PARAMS_COUNT (sizeof(eeconfig_params) / sizeof(eeconfig_params[0]))
@@ -98,6 +100,8 @@ int hn70ap_eeconfig_init(bool *default_set)
   if( buf != HN70AP_CONFIG_INSTALLED)
     {
     *default_set = true;
+    /* Set network address mode to DHCP */
+    /* Clean network address and mask */
     buf = HN70AP_CONFIG_INSTALLED;
     hn70ap_eeprom_write(0, &buf, 1);
     }
@@ -172,7 +176,7 @@ int hn70ap_eeconfig_describe(int index, char *namebuf, int namebuflen, uint32_t 
 }
 
 /*----------------------------------------------------------------------------*/
-static int hn70ap_eeconfig_find(char *name)
+int hn70ap_eeconfig_find(char *name)
 {
   int i;
   for(i = 0; i < EECONFIG_PARAMS_COUNT; i++)
@@ -211,7 +215,7 @@ int hn70ap_eeconfig_getbool(char *name, bool *value)
 }
 
 /*----------------------------------------------------------------------------*/
-int hn70ap_eeconfig_getip(char *name, struct in_addr *value)
+int hn70ap_eeconfig_getip(char *name, in_addr_t *value)
 {
   int index = hn70ap_eeconfig_find(name);
   int ret;
@@ -230,6 +234,152 @@ int hn70ap_eeconfig_getip(char *name, struct in_addr *value)
       return ERROR;
     }
 
+  return OK;
+}
+
+/*----------------------------------------------------------------------------*/
+int hn70ap_eeconfig_getbyte(char *name, uint8_t *value)
+{
+  int index = hn70ap_eeconfig_find(name);
+  int ret;
+  if(index < 0)
+    {
+      return ERROR;
+    }
+  if(eeconfig_params[index].type != EECONFIG_TYPE_BYTE)
+    {
+      return ERROR;
+    }
+  ret = hn70ap_eeprom_read(eeconfig_params[index].addr, value, 1);
+  if(ret != OK)
+    {
+      return ERROR;
+    }
+
+  return OK;
+}
+
+/*----------------------------------------------------------------------------*/
+int hn70ap_eeconfig_getcall(char *name, char *value)
+{
+  int index = hn70ap_eeconfig_find(name);
+  int ret;
+  if(index < 0)
+    {
+      return ERROR;
+    }
+  if(eeconfig_params[index].type != EECONFIG_TYPE_CALL)
+    {
+      return ERROR;
+    }
+  ret = hn70ap_eeprom_read(eeconfig_params[index].addr, (uint8_t*)value, 8);
+  if(ret != OK)
+    {
+      return ERROR;
+    }
+
+  return OK;
+}
+
+/*----------------------------------------------------------------------------*/
+int hn70ap_eeconfig_setbool(char *name, bool value)
+{
+  int index = hn70ap_eeconfig_find(name);
+  int ret;
+  uint8_t buf;
+
+  if(index < 0)
+    {
+      return ERROR;
+    }
+  if(eeconfig_params[index].type != EECONFIG_TYPE_BOOL)
+    {
+      return ERROR;
+    }
+  ret = hn70ap_eeprom_read(eeconfig_params[index].addr, &buf, 1);
+  if(ret != OK)
+    {
+      return ERROR;
+    }
+
+  if(value)
+    {
+      buf |= eeconfig_params[index].mask;
+    }
+  else
+    {
+      buf &= ~eeconfig_params[index].mask;
+    }
+
+  ret = hn70ap_eeprom_write(eeconfig_params[index].addr, &buf, 1);
+  if(ret != OK)
+    {
+      return ERROR;
+    }
+
+  return OK;
+}
+
+/*----------------------------------------------------------------------------*/
+int hn70ap_eeconfig_setip(char *name, in_addr_t value)
+{
+  int index = hn70ap_eeconfig_find(name);
+  int ret;
+  if(index < 0)
+    {
+      return ERROR;
+    }
+  if(eeconfig_params[index].type != EECONFIG_TYPE_IP)
+    {
+      return ERROR;
+    }
+  ret = hn70ap_eeprom_write(eeconfig_params[index].addr, (uint8_t*)&value, 4);
+  if(ret != OK)
+    {
+      return ERROR;
+    }
+  return OK;
+}
+
+/*----------------------------------------------------------------------------*/
+int hn70ap_eeconfig_setbyte(char *name, uint8_t value)
+{
+  int index = hn70ap_eeconfig_find(name);
+  int ret;
+  if(index < 0)
+    {
+      return ERROR;
+    }
+  if(eeconfig_params[index].type != EECONFIG_TYPE_BYTE)
+    {
+      return ERROR;
+    }
+  ret = hn70ap_eeprom_write(eeconfig_params[index].addr, &value, 1);
+  if(ret != OK)
+    {
+      return ERROR;
+    }
+  return OK;
+}
+
+/*----------------------------------------------------------------------------*/
+int hn70ap_eeconfig_setcall(char *name, char *value)
+{
+  int index = hn70ap_eeconfig_find(name);
+  int ret;
+  if(index < 0)
+    {
+      return ERROR;
+    }
+  if(eeconfig_params[index].type != EECONFIG_TYPE_CALL)
+    {
+      return ERROR;
+    }
+  ret = hn70ap_eeprom_write(eeconfig_params[index].addr, (uint8_t*)value, 8);
+  if(ret != OK)
+    {
+      return ERROR;
+    }
   return OK;
 }
 

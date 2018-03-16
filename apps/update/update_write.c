@@ -67,7 +67,6 @@ int update_write_start(struct update_context_s *ctx)
 /*----------------------------------------------------------------------------*/
 int update_write(struct update_context_s *ctx, uint8_t *buf, uint32_t len)
 {
-  int retval = OK; //default will proceed with next packet after this one.
   int room;
   int off = 0;
   int ret; /* ioctl return values */

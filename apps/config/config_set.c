@@ -39,6 +39,7 @@
 
 #include <nuttx/config.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <hn70ap/eeprom.h>
 
@@ -48,8 +49,79 @@
  * Public Functions
  ****************************************************************************/
 
-int config_set(char *key, char *val)
+int config_set(char *key, char *value)
 {
-  return ERROR;
+  char name[16];
+  uint32_t type;
+  int ret;
+
+  /* Get config entry */
+  ret = hn70ap_eeconfig_describe(hn70ap_eeconfig_find(name), name, sizeof(name), &type);
+
+  if(ret != OK)
+    {
+      fprintf(stderr, "Config entry not found\n");
+      return ERROR;
+    }
+
+  if(type == EECONFIG_TYPE_BOOL)
+    {
+      bool val;
+      printf("Entry type is bool\n");
+      if(!strcmp(value, "true") ||
+         !strcmp(value, "True") ||
+         !strcmp(value, "TRUE") ||
+         !strcmp(value, "yes") ||
+         !strcmp(value, "Yes") ||
+         !strcmp(value, "YES") ||
+         !strcmp(value, "y") ||
+         !strcmp(value, "Y") ||
+         !strcmp(value, "1")
+      )
+        {
+        val = true;
+        }
+      else if(!strcmp(val, "false") ||
+         !strcmp(value, "False") ||
+         !strcmp(value, "FALSE") ||
+         !strcmp(value, "no") ||
+         !strcmp(value, "No") ||
+         !strcmp(value, "NO") ||
+         !strcmp(value, "n") ||
+         !strcmp(value, "N") ||
+         !strcmp(value, "0")
+      )
+        {
+        val = false;
+        }
+      else
+        {
+          printf("Unrecognized boolean value: %s\n",val);
+          return ERROR;
+        }
+      ret = hn70ap_eeconfig_setbool(name, val);
+    }
+  else if(type == EECONFIG_TYPE_IP)
+    {
+      in_addr_t val;
+      printf("Entry type is IPv4\n");
+      val = inet_aton(value);
+      ret = hn70ap_eeconfig_setip(name, val);
+    }
+  else if(type == EECONFIG_TYPE_CALL)
+    {
+      printf("Entry type is call\n");
+    }
+  else if(type == EECONFIG_TYPE_BYTE)
+    {
+      printf("Entry type is byte\n");
+    }
+  else
+    {
+      fprintf(stderr, "Config entry not found\n");
+      return ERROR;
+    }
+
+  return ret;
 }
 

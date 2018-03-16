@@ -38,8 +38,9 @@
  ****************************************************************************/
 
 #include <nuttx/config.h>
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
 
 #include <arpa/inet.h>
 
@@ -80,6 +81,25 @@ int config_list(void)
               if(ret == OK)
                 {
                   printf("%s\n", inet_ntoa(val));
+                }
+            }
+          else if(type == EECONFIG_TYPE_BYTE)
+            {
+              uint8_t val;
+              ret = hn70ap_eeconfig_getbyte(name, &val);
+              if(ret == OK)
+                {
+                  printf("%d (0x%02X)\n", val, val);
+                }
+            }
+          else if(type == EECONFIG_TYPE_CALL)
+            {
+              char val[9];
+              memset(val, 0, sizeof(val));
+              ret = hn70ap_eeconfig_getcall(name, val);
+              if(ret == OK)
+                {
+                  printf("%s\n", val);
                 }
             }
           if(ret != OK)
