@@ -99,9 +99,11 @@ int hn70ap_eeconfig_init(bool *default_set)
   /* Not set? Set defaults */
   if( buf != HN70AP_CONFIG_INSTALLED)
     {
+    /* Everything is set to FFFFh */
     *default_set = true;
-    /* Set network address mode to DHCP */
-    /* Clean network address and mask */
+    /* Clean ham call */
+    hn70ap_eeconfig_setcall("call", "");
+
     buf = HN70AP_CONFIG_INSTALLED;
     hn70ap_eeprom_write(0, &buf, 1);
     }
@@ -115,24 +117,26 @@ int hn70ap_eeconfig_init(bool *default_set)
 int hn70ap_eeprom_read(uint32_t addr, uint8_t *buf, uint32_t len)
 {
   int fd;
+  int ret = OK;
 
   fd = open(HN70AP_EECONFIG_DEVICE, O_RDONLY);
   if(fd < 0)
     {
       return ERROR;
     }
-  if(lseek(fd, addr, SEEK_SET) != OK)
+  if(lseek(fd, addr, SEEK_SET) != addr)
     {
-      close(fd);
-      return ERROR;
+      ret = ERROR;
+      goto done;
     }
   if(read(fd, buf, len) != len)
     {
-      close(fd);
-      return ERROR;
+      ret = ERROR;
+      goto done;
     }
+done:
   close(fd);
-  return OK;
+  return ret;
 }
 
 /*----------------------------------------------------------------------------*/
@@ -145,7 +149,7 @@ int hn70ap_eeprom_write(uint32_t addr, uint8_t *buf, uint32_t len)
     {
       return ERROR;
     }
-  if(lseek(fd, addr, SEEK_SET) != OK)
+  if(lseek(fd, addr, SEEK_SET) != addr)
     {
       close(fd);
       return ERROR;
@@ -192,9 +196,10 @@ int hn70ap_eeconfig_find(char *name)
 /*----------------------------------------------------------------------------*/
 int hn70ap_eeconfig_getbool(char *name, bool *value)
 {
-  int index = hn70ap_eeconfig_find(name);
   int ret;
   uint8_t buf;
+  int index = hn70ap_eeconfig_find(name);
+
   if(index < 0)
     {
       return ERROR;
@@ -217,8 +222,9 @@ int hn70ap_eeconfig_getbool(char *name, bool *value)
 /*----------------------------------------------------------------------------*/
 int hn70ap_eeconfig_getip(char *name, in_addr_t *value)
 {
-  int index = hn70ap_eeconfig_find(name);
   int ret;
+  int index = hn70ap_eeconfig_find(name);
+
   if(index < 0)
     {
       return ERROR;
@@ -240,8 +246,9 @@ int hn70ap_eeconfig_getip(char *name, in_addr_t *value)
 /*----------------------------------------------------------------------------*/
 int hn70ap_eeconfig_getbyte(char *name, uint8_t *value)
 {
-  int index = hn70ap_eeconfig_find(name);
   int ret;
+  int index = hn70ap_eeconfig_find(name);
+
   if(index < 0)
     {
       return ERROR;
@@ -262,8 +269,9 @@ int hn70ap_eeconfig_getbyte(char *name, uint8_t *value)
 /*----------------------------------------------------------------------------*/
 int hn70ap_eeconfig_getcall(char *name, char *value)
 {
-  int index = hn70ap_eeconfig_find(name);
   int ret;
+  int index = hn70ap_eeconfig_find(name);
+
   if(index < 0)
     {
       return ERROR;
@@ -284,9 +292,9 @@ int hn70ap_eeconfig_getcall(char *name, char *value)
 /*----------------------------------------------------------------------------*/
 int hn70ap_eeconfig_setbool(char *name, bool value)
 {
-  int index = hn70ap_eeconfig_find(name);
   int ret;
   uint8_t buf;
+  int index = hn70ap_eeconfig_find(name);
 
   if(index < 0)
     {
@@ -323,8 +331,9 @@ int hn70ap_eeconfig_setbool(char *name, bool value)
 /*----------------------------------------------------------------------------*/
 int hn70ap_eeconfig_setip(char *name, in_addr_t value)
 {
-  int index = hn70ap_eeconfig_find(name);
   int ret;
+  int index = hn70ap_eeconfig_find(name);
+
   if(index < 0)
     {
       return ERROR;
@@ -344,8 +353,9 @@ int hn70ap_eeconfig_setip(char *name, in_addr_t value)
 /*----------------------------------------------------------------------------*/
 int hn70ap_eeconfig_setbyte(char *name, uint8_t value)
 {
-  int index = hn70ap_eeconfig_find(name);
   int ret;
+  int index = hn70ap_eeconfig_find(name);
+
   if(index < 0)
     {
       return ERROR;
@@ -365,8 +375,12 @@ int hn70ap_eeconfig_setbyte(char *name, uint8_t value)
 /*----------------------------------------------------------------------------*/
 int hn70ap_eeconfig_setcall(char *name, char *value)
 {
-  int index = hn70ap_eeconfig_find(name);
   int ret;
+  int i;
+  int len;
+  char call[8];
+  int index = hn70ap_eeconfig_find(name);
+
   if(index < 0)
     {
       return ERROR;
@@ -375,7 +389,38 @@ int hn70ap_eeconfig_setcall(char *name, char *value)
     {
       return ERROR;
     }
-  ret = hn70ap_eeprom_write(eeconfig_params[index].addr, (uint8_t*)value, 8);
+
+  /* Format callsign: only allow letters and numbers, turn into uppercase */
+  len = strlen(value);
+  if(len > 8)
+    {
+      len = 8;
+    }
+  for(i=0;i<len;i++)
+    {
+      if(value[i] >= 'a' && value[i] <= 'z')
+        {
+          call[i] = value[i] - 'a' + 'A';
+        }
+      else if(value[i] >= 'A' && value[i] <= 'Z')
+        {
+          call[i] = value[i];
+        }
+      else if(value[i] >= '0' && value[i] <= '9')
+        {
+          call[i] = value[i];
+        }
+      else
+        {
+          return ERROR;
+        }
+    }
+  for(;i<8;i++)
+    {
+      call[i] = 0; /* Padding */
+    }
+
+  ret = hn70ap_eeprom_write(eeconfig_params[index].addr, (uint8_t*)call, 8);
   if(ret != OK)
     {
       return ERROR;

@@ -39,6 +39,7 @@
 
 #include <nuttx/config.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <arpa/inet.h>
@@ -56,13 +57,21 @@ int config_set(char *key, char *value)
   char name[16];
   uint32_t type;
   int ret;
+  int index;
 
-  /* Get config entry */
-  ret = hn70ap_eeconfig_describe(hn70ap_eeconfig_find(name), name, sizeof(name), &type);
+ /* Get config entry */
+  index = hn70ap_eeconfig_find(key);
+  if(index<0)
+    {
+      fprintf(stderr, "Config entry '%s' not found\n", key);
+      return ERROR;
+    }
+
+  ret = hn70ap_eeconfig_describe(index, name, sizeof(name), &type);
 
   if(ret != OK)
     {
-      fprintf(stderr, "Config entry '%s' not found\n", key);
+      fprintf(stderr, "Config entry '%s' not usable\n", key);
       return ERROR;
     }
 
@@ -118,10 +127,22 @@ int config_set(char *key, char *value)
   else if(type == EECONFIG_TYPE_CALL)
     {
       printf("Entry type is call\n");
+      ret = hn70ap_eeconfig_setcall(name, value);
     }
   else if(type == EECONFIG_TYPE_BYTE)
     {
+      unsigned long int val;
       printf("Entry type is byte\n");
+      val = strtoul(value,NULL,0);
+      if(val > 0xFF)
+        {
+          printf("Invalid byte: %s\n", value);
+          return ERROR;
+        }
+      else
+        {
+          ret = hn70ap_eeconfig_setbyte(name, val);
+        }
     }
   else
     {

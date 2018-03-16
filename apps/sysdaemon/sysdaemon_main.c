@@ -80,12 +80,19 @@ int sysdaemon_main(int argc, char *argv[])
 #endif
 {
   bool defaults;
+  char call[9];
 
   printf("\nhn70ap system daemon starting\n");
   hn70ap_eeconfig_init(&defaults);
   if(defaults)
     {
       printf("WARNING: Default config values loaded in EEPROM\n");
+    }
+  else
+    {
+      hn70ap_eeconfig_getcall("call", call);
+      call[8] = 0;
+      printf("Hello %s, best 73's\n", call);
     }
 
   hn70ap_mount_storage();

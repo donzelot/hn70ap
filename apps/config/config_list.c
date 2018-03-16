@@ -64,7 +64,7 @@ int config_list(void)
       ret = hn70ap_eeconfig_describe(i, name, sizeof(name), &type);
       if(ret == OK)
         {
-          printf("name:%s type:%d value:", name, type);
+          printf("name:%s (%d) value:", name, type);
           if(type == EECONFIG_TYPE_BOOL)
             {
               bool val;
