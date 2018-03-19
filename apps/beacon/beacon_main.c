@@ -130,7 +130,7 @@ int beacon_main(int argc, char *argv[])
 
   while(1)
     {
-      sprintf(buf, "de %s/%d, seq=%u, hn70ap beacon: %s\n", call, ssid, seqnum, data);
+      sprintf(buf, "DE %s/%d HN70AP TEST BEACON SEQ %u: %s\n", call, ssid, seqnum, data);
       printf("%s", buf);
       ret = write(fd, buf, strlen(buf));
       if(ret < 0)
@@ -138,6 +138,7 @@ int beacon_main(int argc, char *argv[])
           printf("write failed, errno=%d\n", errno);
           break;
         }
+      sleep(1);
       seqnum += 1;
     }
 
