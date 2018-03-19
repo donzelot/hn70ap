@@ -92,6 +92,10 @@ int beacon_main(int argc, char *argv[])
     {
       data = argv[1];
     }
+  else if(argc == 1)
+    {
+      data = "HELLO 73";
+    }
   else
     {
       return beacon_usage();
@@ -138,7 +142,7 @@ int beacon_main(int argc, char *argv[])
           printf("write failed, errno=%d\n", errno);
           break;
         }
-      sleep(1);
+      sleep(2);
       seqnum += 1;
     }
 
