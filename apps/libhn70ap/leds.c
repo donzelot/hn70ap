@@ -36,16 +36,45 @@
 #include <nuttx/config.h>
 
 #include <stdint.h>
-#include "timer.h"
+#include <stdbool.h>
+#include <stdio.h>
+
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
+
+#include <nuttx/leds/userled.h>
+
+#include <hn70ap/timer.h>
 
 int leds_init(void)
 {
 }
 
-int leds_state(int led, int state)
+int leds_state(int lednum, bool state)
 {
   struct userled_s led;
   int fd;
+  int ret;
+
+  fd = open("/dev/userleds", O_RDWR);
+  if(fd<0)
+    {
+      fprintf(stderr, "Failed to open LEDS device\n");
+      return -1;
+    }
+
+  led.ul_led = lednum;
+  led.ul_on  = state;
+
+  ret = ioctl(fd, ULEDIOC_SETLED, (unsigned long)&led);
+  if(ret<0)
+    {
+      fprintf(stderr, "Failed to change LED state\n");
+      return -1;
+    }
+  
+  close(fd);
 
   return 0;
 }

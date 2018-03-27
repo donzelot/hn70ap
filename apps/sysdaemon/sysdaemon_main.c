@@ -45,6 +45,8 @@
 #include <sys/mount.h>
 
 #include <hn70ap/eeprom.h>
+#include <hn70ap/timer.h>
+#include <hn70ap/leds.h>
 
 #include "sysdaemon_internal.h"
 
@@ -90,17 +92,17 @@ int sysdaemon_main(int argc, char *argv[])
   ret = timer_init();
   if(ret != 0)
     {
-      printf("Failed to initialize timers\n");
+      printf("FATAL: Failed to initialize timers\n");
       goto lfail;
     }
 
   /* Initialize the leds */
   /* Requires timer for blinking */
 
-  ret = led_init();
+  ret = leds_init();
   if(ret != 0)
     {
-      printf("Failed to initialize timers\n");
+      printf("FATAL: Failed to initialize Leds\n");
       goto lfail;
     }
 
@@ -143,5 +145,6 @@ lfail:
   /* Panic... something could not be initialized
    * Try to switch on the red LED
    */
+  return ERROR;
 }
 

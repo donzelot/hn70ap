@@ -36,7 +36,7 @@
 #ifndef HN70AP_TIMER
 #define HN70AP_TIMER
 
-int led_init(void);
+int leds_init(void);
 int leds_state(int led, int state);
 
 #endif //HN70AP_TIMER

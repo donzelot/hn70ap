@@ -36,7 +36,8 @@
 #include <nuttx/config.h>
 
 #include <stdint.h>
-#include "timer.h"
+
+#include <hn70ap/timer.h>
 
 int timer_init(void)
 {
