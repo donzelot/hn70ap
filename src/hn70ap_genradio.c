@@ -155,7 +155,7 @@ int hn70ap_genradio_initialize(void)
 #if defined(CONFIG_HN70AP_MAINRADIO)
   _info("Prepare main radio\n");
   si4463_priv_main.gpio_irq = GPIO_IRQ_RADIOMAIN;
-  radio = RFM26_init(spi4, 0, SI4463_IO0, SI4463_IO1, &si4463_lower_main);
+  radio = si4463_init(spi4, 0, 30000000, SI4463_IO1, SI4463_IO3, &si4463_lower_main);
   if(radio==NULL)
     {
       _err("Unable to initialize si4463\n");

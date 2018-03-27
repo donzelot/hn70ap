@@ -36,7 +36,7 @@
 -include $(TOPDIR)/Make.defs
 
 ASRCS  =
-CSRCS  = eeprom.c
+CSRCS  = eeprom.c leds.c timer.c
 CSRCS += tlv.c crc.c sha256.c hdlc.c
 CSRCS += update.c
 

@@ -63,50 +63,50 @@ static void  *g_phy_arg;
  ****************************************************************************/
 
 void hn70ap_net_initialize(void)
-    {
-    _info("Configuring PHY GPIOs\n");
-    stm32_configgpio(GPIO_IRQ_ETHERNET);
-    stm32_configgpio(GPIO_ETHERNET_RST);
-    g_phy_handler = NULL;
-    g_phy_arg     = NULL;
-    }
+{
+  _info("Configuring PHY GPIOs\n");
+  stm32_configgpio(GPIO_IRQ_ETHERNET);
+  stm32_configgpio(GPIO_ETHERNET_RST);
+  g_phy_handler = NULL;
+  g_phy_arg     = NULL;
+}
 
 /****************************************************************************
  * Name: stm32_phy_boardinitialize
  ****************************************************************************/
 
 int stm32_phy_boardinitialize(int intf)
-    {
-    _info("called (intf=%d)\n", intf);
+{
+  _info("called (intf=%d)\n", intf);
 
-    _info("PHY reset...\n");
-    stm32_gpiowrite(GPIO_ETHERNET_RST, 0);
-    up_mdelay(1);
-    _info("PHY reset done.\n");
-    stm32_gpiowrite(GPIO_ETHERNET_RST, 1);
-    up_mdelay(1);
+  _info("PHY reset...\n");
+  stm32_gpiowrite(GPIO_ETHERNET_RST, 0);
+  up_mdelay(1);
+  _info("PHY reset done.\n");
+  stm32_gpiowrite(GPIO_ETHERNET_RST, 1);
+  up_mdelay(1);
 
-    return 0;
-    }
+  return 0;
+}
 
 /****************************************************************************
  * Name: stm32_phy_enable
  ****************************************************************************/
 
 static void stm32_phy_enable(bool enable)
+{
+  //_info("PHY IRQ enable :%d\n", enable);
+  if (enable)
     {
-    //_info("PHY IRQ enable :%d\n", enable);
-    if (enable)
-        {
-        stm32_gpiosetevent(GPIO_IRQ_ETHERNET, /*rising*/ FALSE, /*falling*/ TRUE, TRUE,
-                           g_phy_handler, /*arg*/ g_phy_arg);
-        }
-    else
-        {
-        stm32_gpiosetevent(GPIO_IRQ_ETHERNET, /*rising*/ FALSE, /*falling*/ FALSE, FALSE,
-                           NULL, /*arg*/ NULL);
-        }
+      stm32_gpiosetevent(GPIO_IRQ_ETHERNET, /*rising*/ FALSE, /*falling*/ TRUE, TRUE,
+                         g_phy_handler, /*arg*/ g_phy_arg);
     }
+  else
+    {
+      stm32_gpiosetevent(GPIO_IRQ_ETHERNET, /*rising*/ FALSE, /*falling*/ FALSE, FALSE,
+                         NULL, /*arg*/ NULL);
+    }
+}
 
 /****************************************************************************
  * Name: arch_phy_irq
@@ -169,37 +169,38 @@ static void stm32_phy_enable(bool enable)
  *   failure.
  *
  ****************************************************************************/
-int arch_phy_irq(FAR const char *intf, xcpt_t handler, void *arg, phy_enable_t *enable)
-    {
-    irqstate_t flags;
+int arch_phy_irq(FAR const char *intf, xcpt_t handler, void *arg,
+                 FAR phy_enable_t *enable)
+{
+  irqstate_t flags;
 
-    /* Disable interrupts until we are done.  This guarantees that the
-     * following operations are atomic.
-     */
+  /* Disable interrupts until we are done.  This guarantees that the
+   * following operations are atomic.
+   */
 
-    flags = enter_critical_section();
+  flags = enter_critical_section();
   
-    /* Get the old interrupt handler and save the new one */
+  /* Get the old interrupt handler and save the new one */
 
-    g_phy_handler = handler;
-    g_phy_arg     = arg;
+  g_phy_handler = handler;
+  g_phy_arg     = arg;
     
-    if (handler)
-        {
-        _info("Attach PHY IRQ\n");
-        *enable = stm32_phy_enable;
-        }
-    else
-        {
-        _info("Detach PHY IRQ\n");
-        *enable = NULL;
-        }
-
-    /* Return with the interrupt disabled in either case */
-
-    stm32_phy_enable(FALSE);
-
-    leave_critical_section(flags);
-    return 0;
+  if (handler)
+    {
+      _info("Attach PHY IRQ\n");
+      *enable = stm32_phy_enable;
     }
+  else
+    {
+      _info("Detach PHY IRQ\n");
+      *enable = NULL;
+    }
+
+  /* Return with the interrupt disabled in either case */
+
+  stm32_phy_enable(FALSE);
+
+  leave_critical_section(flags);
+  return 0;
+}
 

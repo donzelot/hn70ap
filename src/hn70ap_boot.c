@@ -189,3 +189,9 @@ int board_app_initialize(uintptr_t arg)
   return 0;
 }
 
+#if !defined(CONFIG_HN70AP_ETHERNET)
+void up_netinitialize(void)
+{
+}
+#endif
+

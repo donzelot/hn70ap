@@ -79,10 +79,33 @@ int main(int argc, FAR char *argv[])
 int sysdaemon_main(int argc, char *argv[])
 #endif
 {
+  int  ret;
   bool defaults;
   char call[9];
 
   printf("\nhn70ap system daemon starting\n");
+
+  /* Initialize timer thread to help us schedule delays */
+
+  ret = timer_init();
+  if(ret != 0)
+    {
+      printf("Failed to initialize timers\n");
+      goto lfail;
+    }
+
+  /* Initialize the leds */
+  /* Requires timer for blinking */
+
+  ret = led_init();
+  if(ret != 0)
+    {
+      printf("Failed to initialize timers\n");
+      goto lfail;
+    }
+
+  /* Initialize the EEPROM */
+
   hn70ap_eeconfig_init(&defaults);
   if(defaults)
     {
@@ -91,8 +114,15 @@ int sysdaemon_main(int argc, char *argv[])
   else
     {
       hn70ap_eeconfig_getcall("call", call);
-      call[8] = 0;
-      printf("Hello %s, best 73's\n", call);
+      if(call[0] == 0)
+        {
+          printf("Callsign not defined yet, please use the config tool\n");
+        }
+      else
+        {
+          call[8] = 0;
+          printf("Hello %s, best 73's\n", call);
+        }
     }
 
   hn70ap_mount_storage();
@@ -108,5 +138,10 @@ int sysdaemon_main(int argc, char *argv[])
 
   printf("Back from nsh, now sleeping forever.\n");
   return 0;
+
+lfail:
+  /* Panic... something could not be initialized
+   * Try to switch on the red LED
+   */
 }
 
