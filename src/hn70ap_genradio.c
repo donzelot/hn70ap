@@ -147,7 +147,7 @@ int hn70ap_genradio_initialize(void)
   /* Strobe the SDN pin to reset both devices */
   stm32_configgpio(GPIO_RADIO_SDN);
   stm32_gpiowrite(GPIO_RADIO_SDN, 1);
-  up_mdelay(1);
+  up_mdelay(10);
   stm32_gpiowrite(GPIO_RADIO_SDN, 0);
 
   /* Initialize radio devices */
@@ -158,7 +158,7 @@ int hn70ap_genradio_initialize(void)
   radio = si4463_init(spi4, 0, 30000000, SI4463_IO1, SI4463_IO3, &si4463_lower_main);
   if(radio==NULL)
     {
-      _err("Unable to initialize si4463\n");
+      _err("Unable to initialize main si4463\n");
     }
   else
     {
@@ -178,7 +178,7 @@ int hn70ap_genradio_initialize(void)
   radio = RFM26_init(spi4, 1, SI4463_IO0, SI4463_IO1, &si4463_lower_aux);
   if(radio==NULL)
     {
-      _err("Unable to initialize si4463\n");
+      _err("Unable to initialize aux RFM26\n");
     }
   else
     {

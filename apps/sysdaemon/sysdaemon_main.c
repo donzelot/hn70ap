@@ -62,7 +62,8 @@ void hn70ap_mount_storage(void)
   ret = mount("/dev/smart0p1", "/data", "smartfs", 0, NULL);
   if (ret < 0)
     {
-      fprintf(stderr, "Storage could not be mounted\n");
+      fprintf(stderr, "WARNING Storage could not be mounted.\n"
+                      "Try running mksmartfs /dev/smart0p1\n");
     }
   else
     {
@@ -106,6 +107,8 @@ int sysdaemon_main(int argc, char *argv[])
       goto lfail;
     }
 
+  leds_state(LED_GREEN, LED_STATE_ON);
+
   /* Initialize the EEPROM */
 
   hn70ap_eeconfig_init(&defaults);
@@ -133,6 +136,8 @@ int sysdaemon_main(int argc, char *argv[])
 
   printf("TODO start screen management\n");
 
+  /* Try to open radio devices. */
+
 #if defined(CONFIG_EXAMPLES_NSH)
   printf("*** Launching nsh\n");
   nsh_main(argc, argv);
@@ -145,6 +150,7 @@ lfail:
   /* Panic... something could not be initialized
    * Try to switch on the red LED
    */
+  leds_state(LED_RED, LED_STATE_ON);
   return ERROR;
 }
 

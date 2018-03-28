@@ -33,8 +33,19 @@
  *
  ****************************************************************************/
 
-#ifndef HN70AP_TIMER
-#define HN70AP_TIMER
+#ifndef HN70AP_LEDS
+#define HN70AP_LEDS
+
+#define LED_STATE_OFF 0
+#define LED_STATE_ON  1
+
+#define LED_1A        0
+#define LED_1B        1
+#define LED_RED       2
+#define LED_ORANGE    3
+#define LED_GREEN     4
+#define LED_HEARTBEAT 5
+#define LED_MACLINK   6
 
 int leds_init(void);
 int leds_state(int led, int state);

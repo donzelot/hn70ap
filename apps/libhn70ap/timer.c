@@ -36,11 +36,57 @@
 #include <nuttx/config.h>
 
 #include <stdint.h>
+#include <stdbool.h>
+
+#include <semaphore.h>
+#include <time.h>
 
 #include <hn70ap/timer.h>
 
+struct timer_s
+{
+  struct timer_s *next; /* List link */
+  int             id; /* Timer identifier, for deletion */
+  struct timespec expiration; /* Expiration date, checked in timer thread */
+  uint32_t        repeat_delay; /* If zero, one shoot, else, reload delay */
+  void           *arg; /* Callback argument */
+  void           (*callback)(void *arg); /* Timer callback */
+};
+
+struct timer_s *g_timers_head;
+struct timer_s *g_timers_tail;
+
+void *timer_thread(void *arg)
+{
+  sem_t sem;
+  struct timespec tout;
+
+  sem_init(&sem, 0, 0);
+
+  printf("Starting timer thread\n");
+
+  while(true)
+    {
+      clock_gettime(CLOCK_REALTIME, &tout);
+      tout.tv_nsec += 100000000;
+      if(tout.tv_nsec > 1000000000)
+        {
+          tout.tv_nsec -= 1000000000;
+          tout.tv_sec  += 1;
+        }
+      sem_timedwait(&sem, &tout);
+      printf("tick\n");
+    }
+}
+
 int timer_init(void)
 {
+  g_timers_head = NULL;
+  g_timers_tail = NULL;
   return 0;
+}
+
+int timer_add(void (*callback)(void*arg), void *arg, uint32_t delay, bool repeat)
+{
 }
 

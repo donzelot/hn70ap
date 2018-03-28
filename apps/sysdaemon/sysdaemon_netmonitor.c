@@ -56,8 +56,10 @@
 #include <nuttx/net/ioctl.h>
 #include <nuttx/leds/userled.h>
 
-#include "netutils/netlib.h"
-#include "netutils/dhcpc.h"
+#include <netutils/netlib.h>
+#include <netutils/dhcpc.h>
+
+#include <hn70ap/leds.h>
 
 #define NET_DEVNAME "eth0"
 #define NETMONITOR_RETRYMSEC 1000
@@ -90,7 +92,7 @@ static void dhcp_negociate(void)
 
   if(ret != 0)
     {
-      syslog(LOG_INFO, "DHCP request failed\n");
+      syslog(LOG_INFO, "DHCP request failed: %d errno %d\n", ret, errno);
       goto close;
     }
 
@@ -141,18 +143,10 @@ close:
 /*----------------------------------------------------------------------------*/
 static void netmonitor_ifup(void* arg)
 {
-  int fd;
-  struct userled_s led;
-
   syslog(LOG_INFO, "Interface is going UP\n");
 
   /* Enable the link LED */
-  led.ul_led = 6;
-  led.ul_on = true;
-
-  fd = open("/dev/leds", O_WRONLY);
-  ioctl(fd, ULEDIOC_SETLED, (unsigned long)&led);
-  close(fd);
+  leds_state(LED_MACLINK, LED_STATE_ON);
 
   dhcp_negociate();
 }
@@ -160,18 +154,10 @@ static void netmonitor_ifup(void* arg)
 /*----------------------------------------------------------------------------*/
 static void netmonitor_ifdown(void)
 {
-  int fd;
-  struct userled_s led;
-
   syslog(LOG_INFO, "Interface is going DOWN\n");
 
   /* Disable the link LED */
-  led.ul_led = 6;
-  led.ul_on = false;
-
-  fd = open("/dev/leds", O_WRONLY);
-  ioctl(fd, ULEDIOC_SETLED, (unsigned long)&led);
-  close(fd);
+  leds_state(LED_MACLINK, LED_STATE_OFF);
 }
 
 /*----------------------------------------------------------------------------*/
@@ -459,6 +445,7 @@ int hn70ap_netmonitor_init(void)
   ret = netlib_setmacaddr(NET_DEVNAME, mac);
   if(ret)
     {
+      syslog(LOG_ERR, "Set MAC on ethernet interface FAILED\n");
       return ret;
     }
 
