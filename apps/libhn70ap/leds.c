@@ -50,6 +50,8 @@
 
 int leds_init(void)
 {
+  /* TODO open driver once and for all to speed up led update? */
+  return 0;
 }
 
 int leds_state(int lednum, int state)

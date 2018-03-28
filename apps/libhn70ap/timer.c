@@ -38,10 +38,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include <pthread.h>
+#include <syslog.h>
 #include <semaphore.h>
 #include <time.h>
 
 #include <hn70ap/timer.h>
+#include <hn70ap/leds.h>
 
 struct timer_s
 {
@@ -56,6 +59,9 @@ struct timer_s
 struct timer_s *g_timers_head;
 struct timer_s *g_timers_tail;
 
+static pthread_t g_timerthreadid;
+static int heartbeat;
+
 void *timer_thread(void *arg)
 {
   sem_t sem;
@@ -63,11 +69,12 @@ void *timer_thread(void *arg)
 
   sem_init(&sem, 0, 0);
 
-  printf("Starting timer thread\n");
+  syslog(LOG_INFO, "Starting timer thread\n");
+
+  clock_gettime(CLOCK_REALTIME, &tout);
 
   while(true)
     {
-      clock_gettime(CLOCK_REALTIME, &tout);
       tout.tv_nsec += 100000000;
       if(tout.tv_nsec > 1000000000)
         {
@@ -75,18 +82,32 @@ void *timer_thread(void *arg)
           tout.tv_sec  += 1;
         }
       sem_timedwait(&sem, &tout);
-      printf("tick\n");
+
+      /* Toggle the heartbeat LED */
+      leds_state(LED_HEARTBEAT, (heartbeat<9)?LED_STATE_OFF:LED_STATE_ON);
+      heartbeat += 1;
+      if(heartbeat == 10) heartbeat = 0;
+
+      /* Look at the next timer */
     }
+  return NULL;
 }
 
 int timer_init(void)
 {
+  int ret;
+
   g_timers_head = NULL;
   g_timers_tail = NULL;
-  return 0;
+  heartbeat = 0;
+
+  ret = pthread_create(&g_timerthreadid, NULL, timer_thread, NULL);
+
+  return ret;
 }
 
 int timer_add(void (*callback)(void*arg), void *arg, uint32_t delay, bool repeat)
 {
+  return -1;
 }
 
