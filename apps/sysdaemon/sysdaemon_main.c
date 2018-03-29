@@ -88,46 +88,12 @@ int sysdaemon_main(int argc, char *argv[])
 
   printf("\nhn70ap system daemon starting\n");
 
-  /* Initialize timer thread to help us schedule delays */
-
-  ret = timer_init();
-  if(ret != 0)
-    {
-      printf("FATAL: Failed to initialize timers\n");
-      goto lfail;
-    }
-
-  /* Initialize the leds */
-  /* Requires timer for blinking */
-
-  ret = leds_init();
-  if(ret != 0)
-    {
-      printf("FATAL: Failed to initialize Leds\n");
-      goto lfail;
-    }
+  ret = hn70ap_systeminit();
 
   leds_state(LED_GREEN, LED_STATE_ON);
-
-  /* Initialize the EEPROM */
-
-  hn70ap_eeconfig_init(&defaults);
-  if(defaults)
+  if(ret == 0)
     {
-      printf("WARNING: Default config values loaded in EEPROM\n");
-    }
-  else
-    {
-      hn70ap_eeconfig_getcall("call", call);
-      if(call[0] == 0)
-        {
-          printf("Callsign not defined yet, please use the config tool\n");
-        }
-      else
-        {
-          call[8] = 0;
-          printf("Hello %s, best 73's\n", call);
-        }
+      leds_state(LED_RED, LED_STATE_ON);
     }
 
   hn70ap_mount_storage();
