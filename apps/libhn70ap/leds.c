@@ -48,13 +48,13 @@
 #include <hn70ap/timer.h>
 #include <hn70ap/leds.h>
 
-int leds_init(void)
+int hn70ap_leds_init(void)
 {
   /* TODO open driver once and for all to speed up led update? */
   return 0;
 }
 
-int leds_state(int lednum, int state)
+int hn70ap_leds_state(int lednum, int state)
 {
   struct userled_s led;
   int fd;

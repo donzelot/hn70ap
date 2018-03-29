@@ -62,7 +62,7 @@ struct timer_s *g_timers_tail;
 static pthread_t g_timerthreadid;
 static int heartbeat;
 
-void *timer_thread(void *arg)
+static void *timer_thread(void *arg)
 {
   sem_t sem;
   struct timespec tout;
@@ -84,7 +84,7 @@ void *timer_thread(void *arg)
       sem_timedwait(&sem, &tout);
 
       /* Toggle the heartbeat LED */
-      leds_state(LED_HEARTBEAT, (heartbeat<9)?LED_STATE_OFF:LED_STATE_ON);
+      hn70ap_leds_state(LED_HEARTBEAT, (heartbeat<9)?LED_STATE_OFF:LED_STATE_ON);
       heartbeat += 1;
       if(heartbeat == 10) heartbeat = 0;
 
@@ -93,7 +93,7 @@ void *timer_thread(void *arg)
   return NULL;
 }
 
-int timer_init(void)
+int hn70ap_timer_init(void)
 {
   int ret;
 
@@ -106,7 +106,7 @@ int timer_init(void)
   return ret;
 }
 
-int timer_add(void (*callback)(void*arg), void *arg, uint32_t delay, bool repeat)
+int hn70ap_timer_add(void (*callback)(void*arg), void *arg, uint32_t delay, bool repeat)
 {
   return -1;
 }

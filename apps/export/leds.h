@@ -47,7 +47,7 @@
 #define LED_HEARTBEAT 5
 #define LED_MACLINK   6
 
-int leds_init(void);
-int leds_state(int led, int state);
+int hn70ap_leds_init(void);
+int hn70ap_leds_state(int led, int state);
 
 #endif //HN70AP_TIMER

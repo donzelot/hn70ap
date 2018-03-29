@@ -1,5 +1,5 @@
 /****************************************************************************
- * hn70ap/apps/libhn70ap/system.c
+ * hn70ap/apps/libhn70ap/radio.c
  *
  *   Copyright (C) 2018 Sebastien Lorquet. All rights reserved.
  *   Author: Sebastien Lorquet <sebastien@lorquet.fr>
@@ -38,67 +38,68 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include <fcntl.h>
 #include <syslog.h>
 
-#include <hn70ap/eeprom.h>
-#include <hn70ap/timer.h>
-#include <hn70ap/leds.h>
 #include <hn70ap/radio.h>
+#include <hn70ap/leds.h>
 
-static bool hn70ap_system_initialized = false;
+static int fd_main;
+static int fd_aux;
 
-int hn70ap_system_init(void)
+int hn70ap_radio_init(void)
 {
+  int ret = 0;
+
+#ifdef CONFIG_HN70AP_MAINRADIO
+  syslog(LOG_INFO, "Checking main radio\n");
+  fd_main = open("/dev/rmain", O_RDWR);
+  if(fd_main<0)
+    {
+      syslog(LOG_ERR, "Failed to access main radio!\n");
+    }
+#endif
+#ifdef CONFIG_HN70AP_AUXRADIO
+  syslog(LOG_INFO, "Checking aux radio\n");
+  fd_aux = open("/dev/raux", O_RDWR);
+  if(fd_aux<0)
+    {
+      syslog(LOG_ERR, "Failed to access aux radio!\n");
+    }
+#endif
+
+  return ret;
+}
+
+int hn70ap_radio_transmit(uint8_t device, uint8_t *buf, size_t len)
+{
+  int fd;
   int ret;
-  bool defaults;
 
-  if(hn70ap_system_initialized)
+  if(device == HN70AP_RADIO_MAIN)
     {
-      syslog(LOG_WARNING, "System already initialized\n");
-      return 0;
+      fd = fd_main;
     }
-
-  /* Initialize timer thread to help us schedule delays */
-
-  ret = hn70ap_timer_init();
-  if(ret != 0)
+  else if(device == HN70AP_RADIO_AUX)
     {
-      syslog(LOG_ERR, "FATAL: Failed to initialize timers\n");
+      fd = fd_aux;
+    }
+  else
+    {
       return ERROR;
     }
 
-  /* Initialize the leds */
-  /* Requires timer for blinking */
+  /* Turn on radio LED in transmit mode */
+  hn70ap_leds_state(LED_1A, LED_STATE_ON);
+  hn70ap_leds_state(LED_1B, LED_STATE_OFF);
 
-  ret = hn70ap_leds_init();
-  if(ret != 0)
-    {
-      syslog(LOG_ERR, "FATAL: Failed to initialize Leds\n");
-      return ERROR;
-    }
+  /* Transmit */
+  ret = write(fd, buf, len);
 
-  /* Initialize the EEPROM */
+  /* Turn off radio LED */
+  hn70ap_leds_state(LED_1A, LED_STATE_OFF);
+  hn70ap_leds_state(LED_1B, LED_STATE_OFF);
 
-  ret = hn70ap_eeconfig_init(&defaults);
-  if(ret != 0)
-    {
-      syslog(LOG_ERR, "FATAL: Failed to initialize EEPROM\n");
-      return ERROR;
-    }
-  if(defaults)
-    {
-      syslog(LOG_ERR, "WARNING: Default config values loaded in EEPROM\n");
-    }
-
-  ret = hn70ap_radio_init();
-  if(ret != 0)
-    {
-      syslog(LOG_ERR, "FATAL: Failed to initialize Radios\n");
-      return ERROR;
-    }
-
-  hn70ap_system_initialized = true;
-
-  return OK;
+  return ret;
 }
 

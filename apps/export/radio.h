@@ -1,5 +1,5 @@
 /****************************************************************************
- * hn70ap/apps/libhn70ap/system.c
+ * hn70ap/apps/export/radio.h
  *
  *   Copyright (C) 2018 Sebastien Lorquet. All rights reserved.
  *   Author: Sebastien Lorquet <sebastien@lorquet.fr>
@@ -33,72 +33,17 @@
  *
  ****************************************************************************/
 
-#include <nuttx/config.h>
+#ifndef HN70AP_RADIO_H
+#define HN70AP_RADIO_H
 
 #include <stdint.h>
 #include <stdbool.h>
 
-#include <syslog.h>
+#define HN70AP_RADIO_MAIN 1
+#define HN70AP_RADIO_AUX  2
 
-#include <hn70ap/eeprom.h>
-#include <hn70ap/timer.h>
-#include <hn70ap/leds.h>
-#include <hn70ap/radio.h>
+int hn70ap_radio_init(void);
+int hn70ap_radio_transmit(uint8_t device, uint8_t *buf, size_t len);
 
-static bool hn70ap_system_initialized = false;
-
-int hn70ap_system_init(void)
-{
-  int ret;
-  bool defaults;
-
-  if(hn70ap_system_initialized)
-    {
-      syslog(LOG_WARNING, "System already initialized\n");
-      return 0;
-    }
-
-  /* Initialize timer thread to help us schedule delays */
-
-  ret = hn70ap_timer_init();
-  if(ret != 0)
-    {
-      syslog(LOG_ERR, "FATAL: Failed to initialize timers\n");
-      return ERROR;
-    }
-
-  /* Initialize the leds */
-  /* Requires timer for blinking */
-
-  ret = hn70ap_leds_init();
-  if(ret != 0)
-    {
-      syslog(LOG_ERR, "FATAL: Failed to initialize Leds\n");
-      return ERROR;
-    }
-
-  /* Initialize the EEPROM */
-
-  ret = hn70ap_eeconfig_init(&defaults);
-  if(ret != 0)
-    {
-      syslog(LOG_ERR, "FATAL: Failed to initialize EEPROM\n");
-      return ERROR;
-    }
-  if(defaults)
-    {
-      syslog(LOG_ERR, "WARNING: Default config values loaded in EEPROM\n");
-    }
-
-  ret = hn70ap_radio_init();
-  if(ret != 0)
-    {
-      syslog(LOG_ERR, "FATAL: Failed to initialize Radios\n");
-      return ERROR;
-    }
-
-  hn70ap_system_initialized = true;
-
-  return OK;
-}
+#endif /* HN70AP_SYSTEM_H */
 

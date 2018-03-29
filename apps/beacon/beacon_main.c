@@ -48,7 +48,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <hn70ap/system.h>
 #include <hn70ap/eeprom.h>
+#include <hn70ap/radio.h>
 
 /****************************************************************************
  * Public Functions
@@ -72,10 +74,8 @@ int main(int argc, FAR char *argv[])
 int beacon_main(int argc, char *argv[])
 #endif
 {
-  char *devname = "/dev/raux";
   char *data;
   int ret = OK;
-  int fd;
   int buflen = 1024;
   uint32_t seqnum = 0;
   char call[9];
@@ -83,22 +83,20 @@ int beacon_main(int argc, char *argv[])
 
   uint8_t *buf;
 
-  if(argc == 3)
-    {
-      devname = argv[1];
-      data    = argv[2];
-    }
-  else if(argc == 2)
+  if(argc == 2)
     {
       data = argv[1];
     }
-  else if(argc == 1)
+  else
     {
       data = "HELLO 73";
     }
-  else
+
+  ret = hn70ap_system_init();
+  if(ret != 0)
     {
-      return beacon_usage();
+      fprintf(stderr, "hn70ap init failed!\n");
+      return ERROR;
     }
 
   buf = malloc(buflen);
@@ -110,15 +108,7 @@ int beacon_main(int argc, char *argv[])
     }
 
 
-  fd = open(devname, O_RDWR);
-  if(fd<0)
-    {
-      fprintf(stderr, "open failed!\n");
-      ret = ERROR;
-      goto retfree;
-    }
-
-  printf("\nTX beacon using %s\n", devname);
+  printf("\nTX beacon using aux radio\n");
 
   /* Define payload */
   hn70ap_eeconfig_getcall("call", call);
@@ -129,14 +119,14 @@ int beacon_main(int argc, char *argv[])
     {
       fprintf(stderr, "call sign not defined, see config app\n");
       ret = ERROR;
-      goto retclose;
+      goto retfree;
     }
 
   while(1)
     {
-      sprintf(buf, "DE %s/%d HN70AP TEST BEACON SEQ %u: %s\n", call, ssid, seqnum, data);
-      printf("%s", buf);
-      ret = write(fd, buf, strlen(buf));
+      sprintf((char*)buf, "DE %s/%d HN70AP TEST BEACON SEQ %u: %s\n", call, ssid, seqnum, data);
+      printf("%s", (char*)buf);
+      ret = hn70ap_radio_transmit(HN70AP_RADIO_AUX, buf, strlen((char*)buf));
       if(ret < 0)
         {
           printf("write failed, errno=%d\n", errno);
@@ -146,8 +136,6 @@ int beacon_main(int argc, char *argv[])
       seqnum += 1;
     }
 
-retclose:
-  close(fd);
 retfree:
   free(buf);
 done:

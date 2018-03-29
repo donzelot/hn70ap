@@ -36,6 +36,6 @@
 #ifndef HN70AP_TIMER
 #define HN70AP_TIMER
 
-int timer_init(void);
+int hn70ap_timer_init(void);
 
 #endif //HN70AP_TIMER

@@ -146,7 +146,7 @@ static void netmonitor_ifup(void* arg)
   syslog(LOG_INFO, "Interface is going UP\n");
 
   /* Enable the link LED */
-  leds_state(LED_MACLINK, LED_STATE_ON);
+  hn70ap_leds_state(LED_MACLINK, LED_STATE_ON);
 
   dhcp_negociate();
 }
@@ -157,7 +157,7 @@ static void netmonitor_ifdown(void)
   syslog(LOG_INFO, "Interface is going DOWN\n");
 
   /* Disable the link LED */
-  leds_state(LED_MACLINK, LED_STATE_OFF);
+  hn70ap_leds_state(LED_MACLINK, LED_STATE_OFF);
 }
 
 /*----------------------------------------------------------------------------*/

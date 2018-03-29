@@ -39,7 +39,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-int hn70ap_systeminit(void);
+int hn70ap_system_init(void);
 
 #endif /* HN70AP_SYSTEM_H */
 

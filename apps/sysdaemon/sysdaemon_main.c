@@ -44,11 +44,13 @@
 
 #include <sys/mount.h>
 
-#include <hn70ap/eeprom.h>
-#include <hn70ap/timer.h>
+#include <hn70ap/system.h>
 #include <hn70ap/leds.h>
+#include <hn70ap/eeprom.h>
 
 #include "sysdaemon_internal.h"
+
+int nsh_main(int argc, char **argv);
 
 /****************************************************************************
  * Public Functions
@@ -83,22 +85,30 @@ int sysdaemon_main(int argc, char *argv[])
 #endif
 {
   int  ret;
-  bool defaults;
   char call[9];
 
   printf("\nhn70ap system daemon starting\n");
 
-  ret = hn70ap_systeminit();
+  ret = hn70ap_system_init();
+  hn70ap_mount_storage();
+  hn70ap_netmonitor_init();
 
-  leds_state(LED_GREEN, LED_STATE_ON);
-  if(ret == 0)
+  hn70ap_leds_state(LED_GREEN, LED_STATE_ON);
+  if(ret == OK)
     {
-      leds_state(LED_RED, LED_STATE_ON);
+      hn70ap_leds_state(LED_RED, LED_STATE_ON);
     }
 
-  hn70ap_mount_storage();
-
-  hn70ap_netmonitor_init();
+  hn70ap_eeconfig_getcall("call", call);
+  if(call[0] == 0)
+    {
+      printf("Callsign not defined yet, please use the config tool\n");
+    }
+  else
+    {
+      call[8] = 0;
+      printf("Hello %s, best 73's\n", call);
+    }
 
   printf("TODO start screen management\n");
 
@@ -110,13 +120,8 @@ int sysdaemon_main(int argc, char *argv[])
 #endif
 
   printf("Back from nsh, now sleeping forever.\n");
+  hn70ap_leds_state(LED_GREEN, LED_STATE_OFF);
+  hn70ap_leds_state(LED_RED  , LED_STATE_ON);
   return 0;
-
-lfail:
-  /* Panic... something could not be initialized
-   * Try to switch on the red LED
-   */
-  leds_state(LED_RED, LED_STATE_ON);
-  return ERROR;
 }
 
