@@ -40,6 +40,7 @@
 
 #include <fcntl.h>
 #include <syslog.h>
+#include <unistd.h>
 
 #include <hn70ap/radio.h>
 #include <hn70ap/leds.h>
@@ -95,6 +96,38 @@ int hn70ap_radio_transmit(uint8_t device, uint8_t *buf, size_t len)
 
   /* Transmit */
   ret = write(fd, buf, len);
+
+  /* Turn off radio LED */
+  hn70ap_leds_state(LED_1A, LED_STATE_OFF);
+  hn70ap_leds_state(LED_1B, LED_STATE_OFF);
+
+  return ret;
+}
+
+int hn70ap_radio_receive(uint8_t device, uint8_t *buf, size_t len)
+{
+  int fd;
+  int ret;
+
+  if(device == HN70AP_RADIO_MAIN)
+    {
+      fd = fd_main;
+    }
+  else if(device == HN70AP_RADIO_AUX)
+    {
+      fd = fd_aux;
+    }
+  else
+    {
+      return ERROR;
+    }
+
+  /* Turn on radio LED in transmit mode */
+  hn70ap_leds_state(LED_1A, LED_STATE_OFF);
+  hn70ap_leds_state(LED_1B, LED_STATE_ON);
+
+  /* Transmit */
+  ret = read(fd, buf, len);
 
   /* Turn off radio LED */
   hn70ap_leds_state(LED_1A, LED_STATE_OFF);

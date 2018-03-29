@@ -44,6 +44,7 @@
 
 int hn70ap_radio_init(void);
 int hn70ap_radio_transmit(uint8_t device, uint8_t *buf, size_t len);
+int hn70ap_radio_receive (uint8_t device, uint8_t *buf, size_t len);
 
 #endif /* HN70AP_SYSTEM_H */
 

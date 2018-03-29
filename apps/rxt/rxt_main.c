@@ -48,6 +48,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <hn70ap/system.h>
+#include <hn70ap/radio.h>
+
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
@@ -62,7 +65,6 @@ int main(int argc, FAR char *argv[])
 int rxt_main(int argc, char *argv[])
 #endif
 {
-  char *devname = "/dev/raux";
   int ret = OK;
   int fd;
   int buflen = 1024;
@@ -70,32 +72,21 @@ int rxt_main(int argc, char *argv[])
 
   uint8_t *buf;
 
-  if(argc > 1)
-    {
-      devname = argv[1];
-    }
+  printf("RX test using aux radio\n");
 
-  printf("RX test using %s\n", devname);
-
-  fd = open(devname, O_RDWR);
-  if(fd<0)
-    {
-      fprintf(stderr, "open failed!\n");
-      ret = ERROR;
-      goto done;
-    }
+  hn70ap_system_init();
 
   buf = malloc(buflen);
   if(!buf)
     {
-      fprintf(stderr, "open failed!\n");
+      fprintf(stderr, "malloc failed!\n");
       ret = ERROR;
-      goto retclose;
+      goto done;
     }
 
   do
     {
-      ret = read(fd, buf, buflen);
+      ret = hn70ap_radio_receive(HN70AP_RADIO_AUX, buf, buflen);
       printf("read done, ret = %d, errno=%d\n", ret, errno);
       if(ret > 0)
         {
@@ -105,14 +96,17 @@ int rxt_main(int argc, char *argv[])
             }
           printf("\n");
         }
+      else if(ret < 0 && errno==ETIMEDOUT)
+        {
+          printf("RX timeout\n");
+          continue;
+        }
     }
   while(ret > 0);
 
   printf("Read sequence done.\n");
 
   free(buf);
-retclose:
-  close(fd);
 done:
   return ret;
 }

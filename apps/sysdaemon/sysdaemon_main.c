@@ -94,7 +94,7 @@ int sysdaemon_main(int argc, char *argv[])
   hn70ap_netmonitor_init();
 
   hn70ap_leds_state(LED_GREEN, LED_STATE_ON);
-  if(ret == OK)
+  if(ret != OK)
     {
       hn70ap_leds_state(LED_RED, LED_STATE_ON);
     }

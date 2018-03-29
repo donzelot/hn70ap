@@ -48,6 +48,9 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include <hn70ap/system.h>
+#include <hn70ap/radio.h>
+
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
@@ -55,7 +58,7 @@
 int txt_usage(void)
 {
   printf(
-    "txt [device] hexdata_nospaces\n"
+    "txt hexdata_nospaces\n"
   );
   return ERROR;
 }
@@ -114,21 +117,14 @@ int main(int argc, FAR char *argv[])
 int txt_main(int argc, char *argv[])
 #endif
 {
-  char *devname = "/dev/raux";
   char *data;
   int ret = OK;
-  int fd;
   int buflen = 1024;
   int len;
 
   uint8_t *buf;
 
-  if(argc == 3)
-    {
-      devname = argv[1];
-      data    = argv[2];
-    }
-  else if(argc == 2)
+  if(argc == 2)
     {
       data = argv[1];
     }
@@ -136,6 +132,8 @@ int txt_main(int argc, char *argv[])
     {
       return txt_usage();
     }
+
+  hn70ap_system_init();
 
   buf = malloc(buflen);
   if(!buf)
@@ -159,20 +157,10 @@ int txt_main(int argc, char *argv[])
       len += 1;
     }
 
-  printf("\nTX test using %s (%d bytes)\n", devname, len);
-
-  fd = open(devname, O_RDWR);
-  if(fd<0)
-    {
-      fprintf(stderr, "open failed!\n");
-      ret = ERROR;
-      goto retfree;
-    }
-
-  ret = write(fd, buf, len);
+  printf("\nTX test using aux radio(%d bytes)\n", len);
+  ret = hn70ap_radio_transmit(HN70AP_RADIO_AUX, buf, len);
   printf("write done, ret = %d, errno=%d\n", ret, errno);
 
-  close(fd);
 retfree:
   free(buf);
 done:
