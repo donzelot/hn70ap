@@ -87,19 +87,24 @@ int rxt_main(int argc, char *argv[])
   do
     {
       ret = hn70ap_radio_receive(HN70AP_RADIO_AUX, buf, buflen);
-      printf("read done, ret = %d, errno=%d\n", ret, errno);
+      //printf("read done, ret = %d, errno=%d\n", ret, errno);
       if(ret > 0)
         {
-          for(i=0; i<ret; i++)
+/*          for(i=0; i<ret; i++)
             {
               printf("%02X ", buf[i]);
             }
-          printf("\n");
+          printf("\n");*/
+          for(i=0; i<ret; i++)
+            {
+              printf("%c", (buf[i]<0x20 && buf[i]!=0x0a)?'.':buf[i]);
+            }
         }
       else if(ret < 0 && errno==ETIMEDOUT)
         {
           printf("RX timeout\n");
-          continue;
+//          ret = 1;
+//          continue;
         }
     }
   while(ret > 0);
