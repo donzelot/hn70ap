@@ -41,36 +41,37 @@
 #include <fcntl.h>
 #include <syslog.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include <hn70ap/radio.h>
 #include <hn70ap/leds.h>
 
-static int fd_main;
-static int fd_aux;
+static int g_hn70ap_fdmainradio;
+static int g_hn70ap_fdauxradio;
 
-int hn70ap_radio_init(void)
+static bool g_hn70ap_radioalive;
+static pthread_t g_hn70ap_txthreadid;
+
+/****************************************************************************
+ * hn70ap_radio_txthread
+ * This thread waits for radio transmit requests from other processes,
+ * and sends packets.
+ ****************************************************************************/
+
+void *hn70ap_radio_txthread(void *arg)
 {
-  int ret = 0;
-
-#ifdef CONFIG_HN70AP_MAINRADIO
-  syslog(LOG_INFO, "Checking main radio\n");
-  fd_main = open("/dev/rmain", O_RDWR);
-  if(fd_main<0)
+  syslog(LOG_INFO, "Started radio RX thread\n");
+  while(g_hn70ap_radioalive)
     {
-      syslog(LOG_ERR, "Failed to access main radio!\n");
+      //Wait for messages in transmit queue
+      //Transmit these messages
     }
-#endif
-#ifdef CONFIG_HN70AP_AUXRADIO
-  syslog(LOG_INFO, "Checking aux radio\n");
-  fd_aux = open("/dev/raux", O_RDWR);
-  if(fd_aux<0)
-    {
-      syslog(LOG_ERR, "Failed to access aux radio!\n");
-    }
-#endif
-
-  return ret;
+  syslog(LOG_INFO, "Stopped radio RX thread\n");
 }
+
+/****************************************************************************
+ * hn70ap_radio_transmit
+ ****************************************************************************/
 
 int hn70ap_radio_transmit(uint8_t device, uint8_t *buf, size_t len)
 {
@@ -79,11 +80,11 @@ int hn70ap_radio_transmit(uint8_t device, uint8_t *buf, size_t len)
 
   if(device == HN70AP_RADIO_MAIN)
     {
-      fd = fd_main;
+      fd = g_hn70ap_fdmainradio;
     }
   else if(device == HN70AP_RADIO_AUX)
     {
-      fd = fd_aux;
+      fd = g_hn70ap_fdauxradio;
     }
   else
     {
@@ -104,6 +105,10 @@ int hn70ap_radio_transmit(uint8_t device, uint8_t *buf, size_t len)
   return ret;
 }
 
+/****************************************************************************
+ * hn70ap_radio_receive
+ ****************************************************************************/
+
 int hn70ap_radio_receive(uint8_t device, uint8_t *buf, size_t len)
 {
   int fd;
@@ -111,11 +116,11 @@ int hn70ap_radio_receive(uint8_t device, uint8_t *buf, size_t len)
 
   if(device == HN70AP_RADIO_MAIN)
     {
-      fd = fd_main;
+      fd = g_hn70ap_fdmainradio;
     }
   else if(device == HN70AP_RADIO_AUX)
     {
-      fd = fd_aux;
+      fd = g_hn70ap_fdauxradio;
     }
   else
     {
@@ -133,6 +138,46 @@ int hn70ap_radio_receive(uint8_t device, uint8_t *buf, size_t len)
   hn70ap_leds_state(LED_1A, LED_STATE_OFF);
   hn70ap_leds_state(LED_1B, LED_STATE_OFF);
 
+  return ret;
+}
+
+/****************************************************************************
+ * hn70ap_radio_init
+ ****************************************************************************/
+
+int hn70ap_radio_init(void)
+{
+  int ret = 0;
+
+#ifdef CONFIG_HN70AP_MAINRADIO
+  syslog(LOG_INFO, "Checking main radio\n");
+  g_hn70ap_fdmainradio = open("/dev/rmain", O_RDWR);
+  if(g_hn70ap_fdmainradio<0)
+    {
+      syslog(LOG_ERR, "Failed to access main radio!\n");
+      ret = -1;
+      goto lret;
+    }
+#endif
+#ifdef CONFIG_HN70AP_AUXRADIO
+  syslog(LOG_INFO, "Checking aux radio\n");
+  g_hn70ap_fdauxradio = open("/dev/raux", O_RDWR);
+  if(g_hn70ap_fdauxradio<0)
+    {
+      syslog(LOG_ERR, "Failed to access aux radio!\n");
+      ret = -1;
+      goto lret;
+    }
+#endif
+
+  g_hn70ap_radioalive = true;
+
+  ret = pthread_create(&g_hn70ap_txthreadid, NULL, hn70ap_radio_txthread, NULL);
+  if(ret < 0)
+    {
+      syslog(LOG_ERR, "Failed to start the transmit thread\n");
+    }
+lret:
   return ret;
 }
 
