@@ -93,8 +93,13 @@ int hn70ap_system_init(void)
   ret = hn70ap_radio_init();
   if(ret != 0)
     {
-      syslog(LOG_ERR, "FATAL: Failed to initialize Radios\n");
-      return ERROR;
+      syslog(LOG_ERR, "WARNING: Failed to initialize Radios\n");
+    }
+
+  ret = hn70ap_lcd_init();
+  if(ret != OK)
+    {
+      syslog(LOG_ERR, "WARNING: Failed to initialize Screen\n");
     }
 
   hn70ap_system_initialized = true;

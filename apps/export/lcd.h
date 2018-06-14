@@ -37,7 +37,7 @@
 #define HN70AP_LCD_H
 
 int hn70ap_lcd_init(void);
-int hn70ap_lcd_drawchar(int row, int col, char *ch);
+int hn70ap_lcd_drawchar(int row, int col, char ch);
 int hn70ap_lcd_drawstr(int row, int col, char *ch);
 
 #endif

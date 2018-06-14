@@ -33,6 +33,19 @@
  *
  ****************************************************************************/
 
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <errno.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
+
+#include <nuttx/video/fb.h>
+#include <nuttx/nx/nxglib.h>
+
+#include <hn70ap/lcd.h>
 
 //Manage the 128x64 LCD
 //Using aligned character positions, we can write 8 lines of 16 chars
@@ -304,8 +317,87 @@ unsigned char font[2048] =
  * hn70ap_lcd_init
  ****************************************************************************/
 
+struct fb_state_s
+{
+  int fd;
+  struct fb_videoinfo_s vinfo;
+  struct fb_planeinfo_s pinfo;
+  FAR void *fbmem;
+};
+
+struct fb_state_s state;
+
 int hn70ap_lcd_init(void)
 {
+  int ret;
+  state.fd = open("/dev/fb0", O_RDWR);
+  if (state.fd < 0)
+    {
+      int errcode = errno;
+      fprintf(stderr, "ERROR: Failed to open /dev/fb0: %d\n", errcode);
+      return EXIT_FAILURE;
+    }
+
+  ret = ioctl(state.fd, FBIOGET_VIDEOINFO,
+              (unsigned long)((uintptr_t)&state.vinfo));
+  if (ret < 0)
+    {
+      int errcode = errno;
+      fprintf(stderr, "ERROR: ioctl(FBIOGET_VIDEOINFO) failed: %d\n",
+              errcode);
+      close(state.fd);
+      return EXIT_FAILURE;
+    }
+
+  ret = ioctl(state.fd, FBIOGET_PLANEINFO,
+              (unsigned long)((uintptr_t)&state.pinfo));
+  if (ret < 0)
+    {
+      int errcode = errno;
+      fprintf(stderr, "ERROR: ioctl(FBIOGET_PLANEINFO) failed: %d\n",
+              errcode);
+      close(state.fd);
+      return EXIT_FAILURE;
+    }
+
+  if (state.pinfo.bpp != 1)
+    {
+      fprintf(stderr, "ERROR: bpp=%u not supported\n", state.pinfo.bpp);
+      close(state.fd);
+      return EXIT_FAILURE;
+    }
+
+  state.fbmem = mmap(NULL, state.pinfo.fblen, PROT_READ|PROT_WRITE,
+                     MAP_SHARED|MAP_FILE, state.fd, 0);
+  if (state.fbmem == MAP_FAILED)
+    {
+      int errcode = errno;
+      fprintf(stderr, "ERROR: ioctl(FBIOGET_PLANEINFO) failed: %d\n",
+              errcode);
+      close(state.fd);
+      return EXIT_FAILURE;
+    }
+
+  hn70ap_lcd_drawstr(0,0,"hn70ap!\r");
+
+  return 0;
+}
+
+/****************************************************************************
+ * hn70ap_lcd_drawchar
+ ****************************************************************************/
+
+static int hn70ap_lcd_drawchar_internal(int row, int col, char ch)
+{
+  int i;
+
+  uint8_t *ptr = state.fbmem + (8 * row * state.pinfo.stride) + col; 
+  for(i=0;i<8;i++)
+    {
+      *ptr = font [ch * 8 + i];
+      ptr += state.pinfo.stride;
+    }
+
   return 0;
 }
 
@@ -315,7 +407,24 @@ int hn70ap_lcd_init(void)
 
 int hn70ap_lcd_drawchar(int row, int col, char ch)
 {
-  return 0;
+  struct nxgl_rect_s rect;
+
+  int ret = hn70ap_lcd_drawcharint(row,col,ch);
+
+#ifdef CONFIG_LCD_UPDATE
+  rect.pt1.x = col*8;
+  rect.pt1.y = row*8;
+  rect.pt2.x = rect.pt1.x + 8;
+  rect.pt2.y = rect.pt1.y + 8;
+
+  ret = ioctl(state.fd, FBIO_UPDATE, (unsigned long)((uintptr_t)&rect));
+  if (ret < 0)
+    {
+      int errcode = errno;
+      fprintf(stderr, "ERROR: ioctl(FBIO_UPDATE) failed: %d\n",
+              errcode);
+    }
+#endif
 }
 
 /****************************************************************************
@@ -324,9 +433,41 @@ int hn70ap_lcd_drawchar(int row, int col, char ch)
 
 int hn70ap_lcd_drawstr(int row, int col, char *ch)
 {
+  struct nxgl_rect_s rect;
+  int ret;
+
   int cr = row;
   int cc = col;
 
+  while(*ch)
+    {
+      hn70ap_lcd_drawchar_internal(cr,cc,*ch);
+      if(*ch == '\r')
+        {
+#ifdef CONFIG_LCD_UPDATE
+          rect.pt1.x = cr*8;
+          rect.pt1.y = col*8;
+          rect.pt2.x = rect.pt1.x + 8;
+          rect.pt2.y = (cc*8) + 8;
+
+          ret = ioctl(state.fd, FBIO_UPDATE, (unsigned long)((uintptr_t)&rect));
+          if (ret < 0)
+            {
+              fprintf(stderr, "ERROR: ioctl(FBIO_UPDATE) failed: %d\n", errno);
+            }
+#endif
+          cc = col;
+        }
+      else if(*ch == '\n')
+        {
+          cr += 1;
+        }
+      else
+        {
+          cc += 1;
+        }
+      ch++;
+    }
   return 0;
 }
 

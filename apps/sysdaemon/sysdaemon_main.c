@@ -47,6 +47,7 @@
 #include <hn70ap/system.h>
 #include <hn70ap/leds.h>
 #include <hn70ap/eeprom.h>
+#include <hn70ap/lcd.h>
 
 #include "sysdaemon_internal.h"
 
@@ -109,8 +110,6 @@ int sysdaemon_main(int argc, char *argv[])
       call[8] = 0;
       printf("Hello %s, best 73's\n", call);
     }
-
-  printf("TODO start screen management\n");
 
   /* Try to open radio devices. */
 
