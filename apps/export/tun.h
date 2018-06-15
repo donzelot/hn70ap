@@ -39,7 +39,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-int hn70ap_tun_init(void);
+#include <net/if.h>
+
+int hn70ap_tun_init(char ifname[IFNAMSIZ]);
 
 #endif /* HN70AP_SYSTEM_H */
 

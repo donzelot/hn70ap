@@ -35,16 +35,41 @@
 
 #include <nuttx/config.h>
 
+#include <string.h>
+
 #include <fcntl.h>
 #include <unistd.h>
 
-int hn70ap_tun_init(void)
+#include <sys/ioctl.h>
+
+#include <nuttx/net/tun.h>
+
+#include <hn70ap/tun.h>
+
+int hn70ap_tun_init(char ifname[IFNAMSIZ])
 {
+  struct ifreq ifr;
+  int errcode;
   int fd;
 
-  fd = open("/dev/tun", O_RDWR);
+  if ((fd = open("/dev/tun", O_RDWR)) < 0)
+    {
+      return fd;
+    }
 
-  close(fd);
-  return 0;
+  memset(&ifr, 0, sizeof(ifr));
+  ifr.ifr_flags = IFF_TUN;
+  if (ifname[0])
+    {
+      strncpy(ifr.ifr_name, ifname, IFNAMSIZ);
+    }
+
+  if ((errcode = ioctl(fd, TUNSETIFF, (unsigned long)&ifr)) < 0)
+    {
+      close(fd);
+      return errcode;
+    }
+
+  return fd;
 }
 

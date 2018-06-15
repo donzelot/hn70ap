@@ -43,6 +43,7 @@
 #include <hn70ap/eeprom.h>
 #include <hn70ap/timer.h>
 #include <hn70ap/leds.h>
+#include <hn70ap/lcd.h>
 #include <hn70ap/radio.h>
 #include <hn70ap/tun.h>
 
@@ -52,6 +53,7 @@ int hn70ap_system_init(void)
 {
   int ret;
   bool defaults;
+  char tunname[IFNAMSIZ];
 
   if(hn70ap_system_initialized)
     {
@@ -103,7 +105,8 @@ int hn70ap_system_init(void)
       syslog(LOG_ERR, "WARNING: Failed to initialize Radios\n");
     }
 
-  ret = hn70ap_tun_init();
+  strcpy(tunname, "uhf%d");
+  ret = hn70ap_tun_init(tunname);
   if(ret != 0)
     {
       syslog(LOG_ERR, "WARNING: Failed to initialize TUN interface\n");
