@@ -51,47 +51,11 @@ struct radio_s
 {
   int devfd;
   bool alive;
-  pthread_t txthread;
   pthread_t rxthread;
 };
 
 static struct radio_s g_hn70ap_mainradio;
 static struct radio_s g_hn70ap_auxradio;
-
-/****************************************************************************
- * hn70ap_radio_txthread
- * This thread waits for radio transmit requests from other processes,
- * and sends packets.
- ****************************************************************************/
-
-void *hn70ap_radio_txthread(void *arg)
-{
-  struct radio_s *radio = (struct radio_s*)arg;
-  syslog(LOG_INFO, "Started radio TX thread\n");
-  while(radio->alive)
-    {
-      //Wait for messages in transmit queue
-      //Transmit these messages
-    }
-  syslog(LOG_INFO, "Stopped radio TX thread\n");
-}
-
-/****************************************************************************
- * hn70ap_radio_rxthread
- * This thread waits for radio packets on the air, and sends them to processes.
- ****************************************************************************/
-
-void *hn70ap_radio_rxthread(void *arg)
-{
-  struct radio_s *radio = (struct radio_s*)arg;
-  syslog(LOG_INFO, "Started radio RX thread\n");
-  while(radio->alive)
-    {
-      //Wait for messages on the air
-      //Put these messages on the queue
-    }
-  syslog(LOG_INFO, "Stopped radio RX thread\n");
-}
 
 /****************************************************************************
  * hn70ap_radio_transmit
@@ -151,11 +115,11 @@ int hn70ap_radio_receive(uint8_t device, uint8_t *buf, size_t len)
       return ERROR;
     }
 
-  /* Turn on radio LED in transmit mode */
+  /* Turn on radio LED in receive mode */
   hn70ap_leds_state(LED_1A, LED_STATE_OFF);
   hn70ap_leds_state(LED_1B, LED_STATE_ON);
 
-  /* Transmit */
+  /* Receive */
   ret = read(radio->devfd, buf, len);
 
   /* Turn off radio LED */
@@ -166,6 +130,23 @@ int hn70ap_radio_receive(uint8_t device, uint8_t *buf, size_t len)
 }
 
 /****************************************************************************
+ * hn70ap_radio_rxthread
+ * This thread waits for radio packets on the air, and sends them to processes.
+ ****************************************************************************/
+
+void *hn70ap_radio_rxthread(void *arg)
+{
+  struct radio_s *radio = (struct radio_s*)arg;
+  syslog(LOG_INFO, "Started radio RX thread\n");
+  while(radio->alive)
+    {
+      //Wait for messages on the air
+      //Dispatch them to the callback
+    }
+  syslog(LOG_INFO, "Stopped radio RX thread\n");
+}
+
+/****************************************************************************
  * hn70ap_radio_devinit
  ****************************************************************************/
 
@@ -173,7 +154,7 @@ int hn70ap_radio_devinit(struct radio_s *radio, const char *dev)
 {
   int ret = 0;
 
-  radio->devfd = open("/dev/rmain", O_RDWR);
+  radio->devfd = open(dev, O_RDWR);
   if(radio->devfd<0)
     {
       syslog(LOG_ERR, "Failed to access main radio!\n");
@@ -181,10 +162,10 @@ int hn70ap_radio_devinit(struct radio_s *radio, const char *dev)
       goto lret;
     }
 
-  ret = pthread_create(&radio->txthread, NULL, hn70ap_radio_txthread, NULL);
+  ret = pthread_create(&radio->rxthread, NULL, hn70ap_radio_rxthread, NULL);
   if(ret < 0)
     {
-      syslog(LOG_ERR, "Failed to start the transmit thread\n");
+      syslog(LOG_ERR, "Failed to start the receive thread\n");
     }
 
 lret:

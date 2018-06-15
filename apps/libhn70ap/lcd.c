@@ -409,7 +409,7 @@ int hn70ap_lcd_drawchar(int row, int col, char ch)
 {
   struct nxgl_rect_s rect;
 
-  int ret = hn70ap_lcd_drawcharint(row,col,ch);
+  int ret = hn70ap_lcd_drawchar_internal(row,col,ch);
 
 #ifdef CONFIG_LCD_UPDATE
   rect.pt1.x = col*8;
