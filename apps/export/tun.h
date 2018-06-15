@@ -1,5 +1,5 @@
 /****************************************************************************
- * hn70ap/apps/libhn70ap/system.c
+ * hn70ap/apps/export/tun.h
  *
  *   Copyright (C) 2018 Sebastien Lorquet. All rights reserved.
  *   Author: Sebastien Lorquet <sebastien@lorquet.fr>
@@ -33,84 +33,13 @@
  *
  ****************************************************************************/
 
-#include <nuttx/config.h>
+#ifndef HN70AP_TUN_H
+#define HN70AP_TUN_H
 
 #include <stdint.h>
 #include <stdbool.h>
 
-#include <syslog.h>
+int hn70ap_tun_init(void);
 
-#include <hn70ap/eeprom.h>
-#include <hn70ap/timer.h>
-#include <hn70ap/leds.h>
-#include <hn70ap/radio.h>
-#include <hn70ap/tun.h>
-
-static bool hn70ap_system_initialized = false;
-
-int hn70ap_system_init(void)
-{
-  int ret;
-  bool defaults;
-
-  if(hn70ap_system_initialized)
-    {
-      syslog(LOG_WARNING, "System already initialized\n");
-      return 0;
-    }
-
-  /* Initialize timer thread to help us schedule delays */
-
-  ret = hn70ap_timer_init();
-  if(ret != 0)
-    {
-      syslog(LOG_ERR, "FATAL: Failed to initialize timers\n");
-      return ERROR;
-    }
-
-  /* Initialize the leds */
-  /* Requires timer for blinking */
-
-  ret = hn70ap_leds_init();
-  if(ret != 0)
-    {
-      syslog(LOG_ERR, "FATAL: Failed to initialize Leds\n");
-      return ERROR;
-    }
-
-  /* Initialize the EEPROM */
-
-  ret = hn70ap_eeconfig_init(&defaults);
-  if(ret != 0)
-    {
-      syslog(LOG_ERR, "FATAL: Failed to initialize EEPROM\n");
-      return ERROR;
-    }
-  if(defaults)
-    {
-      syslog(LOG_ERR, "WARNING: Default config values loaded in EEPROM\n");
-    }
-
-  ret = hn70ap_lcd_init();
-  if(ret != OK)
-    {
-      syslog(LOG_ERR, "WARNING: Failed to initialize Screen\n");
-    }
-
-  ret = hn70ap_radio_init();
-  if(ret != 0)
-    {
-      syslog(LOG_ERR, "WARNING: Failed to initialize Radios\n");
-    }
-
-  ret = hn70ap_tun_init();
-  if(ret != 0)
-    {
-      syslog(LOG_ERR, "WARNING: Failed to initialize TUN interface\n");
-    }
-
-  hn70ap_system_initialized = true;
-
-  return OK;
-}
+#endif /* HN70AP_SYSTEM_H */
 
