@@ -39,6 +39,7 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+#include <pthread.h>
 
 #include <sys/ioctl.h>
 
@@ -46,7 +47,58 @@
 
 #include <hn70ap/tun.h>
 
-int hn70ap_tun_init(char ifname[IFNAMSIZ])
+struct iptunnel_s
+{
+  int fd;
+  pthread_t rxthread;
+
+  /*data reception and calling back to the user*/
+  FAR uint8_t *   userbuf;
+  int             userbuflen;
+  tunrxfunction_f callback;
+  FAR void *      arg;
+};
+
+struct iptunnel_s tunnels[2];
+
+/****************************************************************************
+ * hn70ap_tun_transmit
+ ****************************************************************************/
+int hn70ap_tun_transmit(int tunnel, FAR uint8_t *buf, size_t len)
+{
+  if(tunnel != 0 && tunnel != 1)
+    {
+      return -1;
+    }
+
+  return write(tunnels[tunnel].fd, buf, len);
+}
+
+/****************************************************************************
+ * hn70ap_tun_rxfunction
+ ****************************************************************************/
+
+int hn70ap_tun_rxfunction(int tunnel, tunrxfunction_f rx, FAR void *arg, FAR uint8_t *userbuf, int userbuflen)
+{
+  if(tunnel != 0 && tunnel != 1)
+    {
+      return -1;
+    }
+
+  tunnels[tunnel].userbuf    = userbuf;
+  tunnels[tunnel].userbuflen = userbuflen;
+  tunnels[tunnel].arg        = arg;
+  tunnels[tunnel].callback   = rx;
+
+  return OK;
+
+}
+
+/****************************************************************************
+ * hn70ap_tun_init
+ ****************************************************************************/
+
+int hn70ap_tun_initdevice(char ifname[IFNAMSIZ])
 {
   struct ifreq ifr;
   int errcode;
@@ -70,6 +122,24 @@ int hn70ap_tun_init(char ifname[IFNAMSIZ])
       return errcode;
     }
 
+  //Start RX thread
+
   return fd;
+}
+
+/****************************************************************************
+ * hn70ap_tun_addroute
+ ****************************************************************************/
+
+int hn70ap_tun_addroute(int fd, in_addr_t destination, int maskbits)
+{
+}
+
+int hn70ap_tun_init(void)
+{
+  tunnels[0].fd = 0;
+  tunnels[1].fd = 0;
+
+  return 0;
 }
 

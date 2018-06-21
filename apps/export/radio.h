@@ -42,9 +42,11 @@
 #define HN70AP_RADIO_MAIN 1
 #define HN70AP_RADIO_AUX  2
 
+typedef int (*radiorxfunction_f)(uint8_t device, FAR void *arg, FAR uint8_t *data, int length);
+
 int hn70ap_radio_init(void);
-int hn70ap_radio_transmit(uint8_t device, uint8_t *buf, size_t len);
-int hn70ap_radio_receive (uint8_t device, uint8_t *buf, size_t len);
+int hn70ap_radio_rxfunction(uint8_t device, radiorxfunction_f rx, FAR void *arg, FAR uint8_t *userbuf, int userbuflen);
+int hn70ap_radio_transmit(uint8_t device, FAR uint8_t *buf, size_t len);
 
 #endif /* HN70AP_SYSTEM_H */
 

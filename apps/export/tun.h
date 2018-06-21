@@ -39,9 +39,16 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include <netinet/in.h>
 #include <net/if.h>
 
-int hn70ap_tun_init(char ifname[IFNAMSIZ]);
+typedef int (*tunrxfunction_f)(uint8_t tun, FAR void *arg, FAR uint8_t *data, int length);
+
+int hn70ap_tun_init(void);
+int hn70ap_tun_initdevice(char ifname[IFNAMSIZ]);
+int hn70ap_tun_addroute(int tunnel, in_addr_t destination, int maskbits);
+int hn70ap_tun_rxfunction(int tunnel, tunrxfunction_f rx, FAR void *arg, FAR uint8_t *userbuf, int userbuflen);
+int hn70ap_tun_transmit(int tunnel, FAR uint8_t *buf, size_t len);
 
 #endif /* HN70AP_SYSTEM_H */
 

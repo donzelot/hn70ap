@@ -41,6 +41,7 @@
 #include <fcntl.h>
 #include <syslog.h>
 #include <unistd.h>
+#include <errno.h>
 #include <pthread.h>
 
 #include <hn70ap/radio.h>
@@ -52,10 +53,38 @@ struct radio_s
   int devfd;
   bool alive;
   pthread_t rxthread;
+
+  /*data reception and calling back to the user*/
+  FAR uint8_t *     userbuf;
+  int               userbuflen;
+  radiorxfunction_f callback;
+  FAR void *        arg;
 };
 
 static struct radio_s g_hn70ap_mainradio;
 static struct radio_s g_hn70ap_auxradio;
+
+/****************************************************************************
+ * hn70ap_radio_receive
+ ****************************************************************************/
+
+static int hn70ap_radio_receive(struct radio_s *radio, uint8_t *buf, size_t len)
+{
+  int ret;
+
+  /* Turn on radio LED in receive mode */
+  hn70ap_leds_state(LED_1A, LED_STATE_OFF);
+  hn70ap_leds_state(LED_1B, LED_STATE_ON);
+
+  /* Receive */
+  ret = read(radio->devfd, buf, len);
+
+  /* Turn off radio LED */
+  hn70ap_leds_state(LED_1A, LED_STATE_OFF);
+  hn70ap_leds_state(LED_1B, LED_STATE_OFF);
+
+  return ret;
+}
 
 /****************************************************************************
  * hn70ap_radio_transmit
@@ -94,42 +123,6 @@ int hn70ap_radio_transmit(uint8_t device, uint8_t *buf, size_t len)
 }
 
 /****************************************************************************
- * hn70ap_radio_receive
- ****************************************************************************/
-
-int hn70ap_radio_receive(uint8_t device, uint8_t *buf, size_t len)
-{
-  struct radio_s *radio;
-  int ret;
-
-  if(device == HN70AP_RADIO_MAIN)
-    {
-      radio = &g_hn70ap_mainradio;
-    }
-  else if(device == HN70AP_RADIO_AUX)
-    {
-      radio = &g_hn70ap_auxradio;
-    }
-  else
-    {
-      return ERROR;
-    }
-
-  /* Turn on radio LED in receive mode */
-  hn70ap_leds_state(LED_1A, LED_STATE_OFF);
-  hn70ap_leds_state(LED_1B, LED_STATE_ON);
-
-  /* Receive */
-  ret = read(radio->devfd, buf, len);
-
-  /* Turn off radio LED */
-  hn70ap_leds_state(LED_1A, LED_STATE_OFF);
-  hn70ap_leds_state(LED_1B, LED_STATE_OFF);
-
-  return ret;
-}
-
-/****************************************************************************
  * hn70ap_radio_rxthread
  * This thread waits for radio packets on the air, and sends them to processes.
  ****************************************************************************/
@@ -138,12 +131,27 @@ void *hn70ap_radio_rxthread(void *arg)
 {
   struct radio_s *radio = (struct radio_s*)arg;
   syslog(LOG_INFO, "Started radio RX thread\n");
+  int ret;
+
   while(radio->alive)
     {
-      //Wait for messages on the air
-      //Dispatch them to the callback
-    }
+      if(radio->callback)
+        {
+          //Wait for messages on the air
+          ret = hn70ap_radio_receive(radio, radio->userbuf, radio->userbuflen);
+          if(ret > 0)
+            {
+              //Dispatch them to the callback
+              radio->callback((radio==&g_hn70ap_mainradio)?HN70AP_RADIO_MAIN:HN70AP_RADIO_AUX, radio->arg, radio->userbuf, ret);
+            }
+          else
+            {
+              syslog(LOG_ERR, "radio rx failed -> errno=%d\n", errno);
+            }
+        } //callback defined
+    } //radio alive
   syslog(LOG_INFO, "Stopped radio RX thread\n");
+  return NULL;
 }
 
 /****************************************************************************
@@ -173,12 +181,39 @@ lret:
 }
 
 /****************************************************************************
+ * hn70ap_radio_rxfunction
+ ****************************************************************************/
+int hn70ap_radio_rxfunction(uint8_t device, radiorxfunction_f rx, FAR void *arg, FAR uint8_t *userbuf, int userbuflen)
+{
+  struct radio_s *radio;
+
+  if(device == HN70AP_RADIO_MAIN)
+    {
+      radio = &g_hn70ap_mainradio;
+    }
+  else if(device == HN70AP_RADIO_AUX)
+    {
+      radio = &g_hn70ap_auxradio;
+    }
+  else
+    {
+      return ERROR;
+    }
+
+  radio->userbuf    = userbuf;
+  radio->userbuflen = userbuflen;
+  radio->arg        = arg;
+  radio->callback   = rx;
+
+  return OK;
+}
+
+/****************************************************************************
  * hn70ap_radio_init
  ****************************************************************************/
 
 int hn70ap_radio_init(void)
 {
-  int ret = 0;
 
 #ifdef CONFIG_HN70AP_MAINRADIO
   syslog(LOG_INFO, "Checking main radio\n");
@@ -190,5 +225,6 @@ int hn70ap_radio_init(void)
   hn70ap_radio_devinit(&g_hn70ap_auxradio, "/dev/raux");
 #endif
 
+  return OK;
 }
 

@@ -99,19 +99,27 @@ int hn70ap_system_init(void)
       syslog(LOG_ERR, "WARNING: Failed to initialize Screen\n");
     }
 
+  ret = hn70ap_tun_init();
+  if(ret != 0)
+    {
+      syslog(LOG_ERR, "WARNING: Failed to initialize tunnels\n");
+    }
+
+  strcpy(tunname, "uhf%d");
+  ret = hn70ap_tun_initdevice(tunname);
+  if(ret != 0)
+    {
+      syslog(LOG_ERR, "WARNING: Failed to initialize TUN interface\n");
+    }
+
   ret = hn70ap_radio_init();
   if(ret != 0)
     {
       syslog(LOG_ERR, "WARNING: Failed to initialize Radios\n");
     }
 
-  strcpy(tunname, "uhf%d");
-  ret = hn70ap_tun_init(tunname);
-  if(ret != 0)
-    {
-      syslog(LOG_ERR, "WARNING: Failed to initialize TUN interface\n");
-    }
 
+  // bind the tunnel and the aux radio
   hn70ap_system_initialized = true;
 
   return OK;
