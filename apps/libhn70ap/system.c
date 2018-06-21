@@ -37,8 +37,11 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include <syslog.h>
+
+#include <net/if.h>
 
 #include <hn70ap/eeprom.h>
 #include <hn70ap/timer.h>
@@ -52,6 +55,7 @@ static bool hn70ap_system_initialized = false;
 int hn70ap_system_init(void)
 {
   int ret;
+  int tunid;
   bool defaults;
   char tunname[IFNAMSIZ];
 
@@ -105,12 +109,13 @@ int hn70ap_system_init(void)
       syslog(LOG_ERR, "WARNING: Failed to initialize tunnels\n");
     }
 
-  strcpy(tunname, "uhf%d");
-  ret = hn70ap_tun_initdevice(tunname);
+  strncpy(tunname, "uhf%d", IFNAMSIZ);
+  ret = hn70ap_tun_devinit(tunname);
   if(ret != 0)
     {
       syslog(LOG_ERR, "WARNING: Failed to initialize TUN interface\n");
     }
+  tunid = ret;
 
   ret = hn70ap_radio_init();
   if(ret != 0)
