@@ -55,8 +55,22 @@
  * Public Functions
  ****************************************************************************/
 
+
 /****************************************************************************
- * status_main
+ * rxt_callback
+ ****************************************************************************/
+int rxt_callback(uint8_t device, FAR void *arg, FAR uint8_t *data, int length)
+{
+  int i;
+  for(i=0; i<length; i++)
+    {
+      printf("%c", (data[i]<0x20 && data[i]!=0x0a)?'.':data[i]);
+    }
+  return 0;
+}
+
+/****************************************************************************
+ * rxt_main
  ****************************************************************************/
 
 #ifdef CONFIG_BUILD_KERNEL
@@ -66,9 +80,7 @@ int rxt_main(int argc, char *argv[])
 #endif
 {
   int ret = OK;
-  int fd;
   int buflen = 1024;
-  int i;
 
   uint8_t *buf;
 
@@ -84,32 +96,13 @@ int rxt_main(int argc, char *argv[])
       goto done;
     }
 
-  do
-    {
-      ret = hn70ap_radio_receive(HN70AP_RADIO_AUX, buf, buflen);
-      //printf("read done, ret = %d, errno=%d\n", ret, errno);
-      if(ret > 0)
-        {
-/*          for(i=0; i<ret; i++)
-            {
-              printf("%02X ", buf[i]);
-            }
-          printf("\n");*/
-          for(i=0; i<ret; i++)
-            {
-              printf("%c", (buf[i]<0x20 && buf[i]!=0x0a)?'.':buf[i]);
-            }
-        }
-      else if(ret < 0 && errno==ETIMEDOUT)
-        {
-          printf("RX timeout\n");
-//          ret = 1;
-//          continue;
-        }
-    }
-  while(ret > 0);
+  hn70ap_radio_rxfunction(HN70AP_RADIO_AUX, rxt_callback, NULL, buf, buflen);
 
-  printf("Read sequence done.\n");
+  printf("type return to quit\n");
+  getchar();
+
+  printf("Stopping reception\n");
+  hn70ap_radio_rxfunction(HN70AP_RADIO_AUX, NULL, NULL, NULL, 0);
 
   free(buf);
 done:
