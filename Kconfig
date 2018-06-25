@@ -14,12 +14,6 @@ config ARCH_HAVE_LEDS
 config HN70AP_HWDEBUG_BLINK
 	bool "Just Blink leds instead of starting NuttX"
 
-config HN70AP_EEPROM
-	bool "Enable EEPROM (requires I2C3)"
-
-config HN70AP_SPIFLASH
-	bool "Enable SPI FLASH (requires SPI2)"
-
 config HN70AP_SCREEN
 	bool "Enable OLED screen (requires I2C3)"
 

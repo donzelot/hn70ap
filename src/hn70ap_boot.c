@@ -138,21 +138,17 @@ void board_initialize(void)
       syslog(LOG_ERR, "ERROR: user leds init failed: %d\n", ret);
     }
 
-#if defined(CONFIG_HN70AP_SPIFLASH)
   ret = hn70ap_flash_initialize();
   if (ret < 0)
     {
       syslog(LOG_ERR, "ERROR: flash init failed: %d\n", ret);
     }
-#endif
 
-#if defined(CONFIG_HN70AP_EEPROM)
   ret = hn70ap_eeprom_initialize();
   if (ret < 0)
     {
       syslog(LOG_ERR, "ERROR: eeprom init failed: %d\n", ret);
     }
-#endif
 
 #if defined(CONFIG_HN70AP_SCREEN)
   /* Initialize and register the framebuffer driver */

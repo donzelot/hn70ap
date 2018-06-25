@@ -742,8 +742,6 @@ CONFIG_ARCH_LEDS=y
 # ----- hn70ap board features -----
 #
 # CONFIG_HN70AP_HWDEBUG_BLINK is not set
-# CONFIG_HN70AP_EEPROM is not set
-# CONFIG_HN70AP_SPIFLASH is not set
 # CONFIG_HN70AP_SCREEN is not set
 # CONFIG_HN70AP_ETHERNET is not set
 # CONFIG_HN70AP_MAINRADIO is not set

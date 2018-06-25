@@ -43,14 +43,12 @@ CSRCS += bootloader_gpio.c bootloader_uart.c bootloader_spi.c bootloader_intflas
 CSRCS += bootloader_crc.c bootloader_tlv.c bootloader_spiflash.c
 CSRCS += hn70ap_boot.c hn70ap_spi.c hn70ap_leds.c
 
-ifeq ($(CONFIG_HN70AP_SPIFLASH),y)
+#mandatory for firmware update
 CSRCS += driver_mtdchar.c
 CSRCS += hn70ap_flash.c
-endif
 
-ifeq ($(CONFIG_HN70AP_EEPROM),y)
+#mandatory for apps
 CSRCS += hn70ap_eeprom.c
-endif
 
 ifeq ($(CONFIG_HN70AP_SCREEN),y)
 CSRCS += hn70ap_oled.c
