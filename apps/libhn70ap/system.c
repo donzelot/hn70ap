@@ -55,7 +55,7 @@ static bool hn70ap_system_initialized = false;
 int hn70ap_system_init(void)
 {
   int ret;
-  int tunid;
+  int tunid = -1;
   bool defaults;
   char tunname[IFNAMSIZ];
 
@@ -102,20 +102,23 @@ int hn70ap_system_init(void)
     {
       syslog(LOG_ERR, "WARNING: Failed to initialize Screen\n");
     }
-
+#ifdef CONFIG_NET_TUN
   ret = hn70ap_tun_init();
   if(ret != 0)
     {
       syslog(LOG_ERR, "WARNING: Failed to initialize tunnels\n");
     }
 
-  strncpy(tunname, "uhf%d", IFNAMSIZ);
+  strncpy(tunname, "uhf0", IFNAMSIZ);
+#if 0
   ret = hn70ap_tun_devinit(tunname);
   if(ret != 0)
     {
       syslog(LOG_ERR, "WARNING: Failed to initialize TUN interface\n");
     }
   tunid = ret;
+#endif
+#endif
 
   ret = hn70ap_radio_init();
   if(ret != 0)

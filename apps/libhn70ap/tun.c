@@ -89,7 +89,7 @@ void *hn70ap_tun_rxthread(void *arg)
             }
           else
             {
-              syslog(LOG_ERR, "tunnel rx failed -> errno=%d\n", errno);
+              //syslog(LOG_ERR, "tunnel rx failed -> errno=%d\n", errno);
             }
         } //callback defined
     } //tunnel alive
@@ -153,7 +153,7 @@ int hn70ap_tun_devinit(char name[IFNAMSIZ])
       return -1;
     }
 
-  if ((fd = open("/dev/tun", O_RDWR)) < 0)
+  if ((fd = open("/dev/tun", O_RDWR | O_NONBLOCK)) < 0)
     {
       return fd;
     }
@@ -173,9 +173,11 @@ int hn70ap_tun_devinit(char name[IFNAMSIZ])
   tunnel->fd = fd;
   strncpy(tunnel->ifname, ifr.ifr_name, IFNAMSIZ);
 
+  syslog(LOG_INFO, "Started interface: %s\n", tunnel->ifname);
+
   //Start RX thread
   tunnel->alive = true;
-  ret = pthread_create(&tunnel->rxthread, NULL, hn70ap_tun_rxthread, NULL);
+  ret = pthread_create(&tunnel->rxthread, NULL, hn70ap_tun_rxthread, tunnel);
   if(ret < 0)
     {
       syslog(LOG_ERR, "Failed to start the receive thread\n");

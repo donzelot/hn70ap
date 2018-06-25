@@ -36,7 +36,12 @@
 -include $(TOPDIR)/Make.defs
 
 ASRCS  =
-CSRCS  = eeprom.c leds.c lcd.c timer.c system.c radio.c tun.c
+CSRCS  = eeprom.c leds.c lcd.c timer.c system.c radio.c
+
+ifeq ($(CONFIG_NET_TUN),y)
+CSRCS += tun.c
+endif
+
 CSRCS += tlv.c crc.c sha256.c hdlc.c
 CSRCS += update.c
 

@@ -73,6 +73,18 @@ void hn70ap_mount_storage(void)
       printf("Mass Storage mounted at /data\n");
     }
 #endif
+
+#ifdef CONFIG_FS_PROCFS
+  ret = mount(NULL, "/proc", "procfs", 0, NULL);
+  if (ret < 0)
+    {
+      fprintf(stderr, "Failed to mount /proc\n");
+    }
+  else
+    {
+      printf("Mounted /proc\n");
+    }
+#endif
 }
 
 /****************************************************************************

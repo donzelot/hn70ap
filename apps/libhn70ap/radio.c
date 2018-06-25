@@ -146,7 +146,7 @@ void *hn70ap_radio_rxthread(void *arg)
             }
           else
             {
-              syslog(LOG_ERR, "radio rx failed -> errno=%d\n", errno);
+              //syslog(LOG_ERR, "radio rx failed -> errno=%d\n", errno);
             }
         } //callback defined
     } //radio alive
