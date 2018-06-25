@@ -170,6 +170,7 @@ int hn70ap_radio_devinit(struct radio_s *radio, const char *dev)
       goto lret;
     }
 
+  radio->alive = true;
   ret = pthread_create(&radio->rxthread, NULL, hn70ap_radio_rxthread, NULL);
   if(ret < 0)
     {
