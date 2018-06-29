@@ -77,7 +77,7 @@ int config_list(void)
           else if(type == EECONFIG_TYPE_IP)
             {
               struct in_addr val;
-              ret = hn70ap_eeconfig_getip(name, &val);
+              ret = hn70ap_eeconfig_getip(name, &val.s_addr);
               if(ret == OK)
                 {
                   printf("%s\n", inet_ntoa(val));

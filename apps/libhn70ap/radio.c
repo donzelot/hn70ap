@@ -149,6 +149,10 @@ void *hn70ap_radio_rxthread(void *arg)
               //syslog(LOG_ERR, "radio rx failed -> errno=%d\n", errno);
             }
         } //callback defined
+      else
+        {
+          pthread_yield();
+        }
     } //radio alive
   syslog(LOG_INFO, "Stopped radio RX thread\n");
   return NULL;
@@ -170,6 +174,7 @@ int hn70ap_radio_devinit(struct radio_s *radio, const char *dev)
       goto lret;
     }
 
+  radio->callback = NULL;
   radio->alive = true;
   ret = pthread_create(&radio->rxthread, NULL, hn70ap_radio_rxthread, NULL);
   if(ret < 0)

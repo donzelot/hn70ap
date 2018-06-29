@@ -425,6 +425,7 @@ int hn70ap_lcd_drawchar(int row, int col, char ch)
               errcode);
     }
 #endif
+  return 0;
 }
 
 /****************************************************************************
