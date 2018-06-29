@@ -176,7 +176,7 @@ int hn70ap_radio_devinit(struct radio_s *radio, const char *dev)
 
   radio->callback = NULL;
   radio->alive = true;
-  ret = pthread_create(&radio->rxthread, NULL, hn70ap_radio_rxthread, NULL);
+  ret = pthread_create(&radio->rxthread, NULL, hn70ap_radio_rxthread, radio);
   if(ret < 0)
     {
       syslog(LOG_ERR, "Failed to start the receive thread\n");

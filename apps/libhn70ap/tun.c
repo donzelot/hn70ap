@@ -82,8 +82,6 @@ void *hn70ap_tun_rxthread(void *arg)
       if(tunnel->callback)
         {
           //Wait for messages on the air
-printf("t"); 
-fflush(stdout);
           ret = read(tunnel->fd, tunnel->userbuf, tunnel->userbuflen);
           if(ret > 0)
             {
@@ -93,8 +91,7 @@ fflush(stdout);
           else
             {
               //syslog(LOG_ERR, "tunnel rx failed -> errno=%d\n", errno);
-printf("T"); 
-           }
+            }
         } //callback defined
       else
        {
@@ -186,6 +183,7 @@ int hn70ap_tun_devinit(char name[IFNAMSIZ])
 
   //Start RX thread
   tunnel->alive = true;
+  tunnel->callback = NULL;
   ret = pthread_create(&tunnel->rxthread, NULL, hn70ap_tun_rxthread, tunnel);
   if(ret < 0)
     {
