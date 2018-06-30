@@ -102,6 +102,7 @@ int hn70ap_system_init(void)
     {
       syslog(LOG_ERR, "WARNING: Failed to initialize Screen\n");
     }
+
 #ifdef CONFIG_NET_TUN
   ret = hn70ap_tun_init();
   if(ret != 0)
@@ -110,14 +111,12 @@ int hn70ap_system_init(void)
     }
 
   strncpy(tunname, "uhf0", IFNAMSIZ);
-#if 1
   ret = hn70ap_tun_devinit(tunname);
   if(ret < 0)
     {
       syslog(LOG_ERR, "WARNING: Failed to initialize TUN interface\n");
     }
   tunid = ret;
-#endif
 #endif
 
   ret = hn70ap_radio_init();

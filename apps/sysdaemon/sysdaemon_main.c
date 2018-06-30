@@ -48,6 +48,7 @@
 #include <hn70ap/leds.h>
 #include <hn70ap/eeprom.h>
 #include <hn70ap/lcd.h>
+#include <hn70ap/radio.h>
 
 #include "sysdaemon_internal.h"
 
@@ -88,7 +89,18 @@ void hn70ap_mount_storage(void)
 }
 
 /****************************************************************************
- * status_main
+ * sysdaemon_radiocallback
+ ****************************************************************************/
+uint8_t radiobuf[512];
+
+int sysdaemon_radiocallback(uint8_t device, FAR void *arg, FAR uint8_t *data, int length)
+{
+  printf("RADIORX len %d\n", length);
+  return OK;
+}
+
+/****************************************************************************
+ * sysdaemon_main
  ****************************************************************************/
 
 #ifdef CONFIG_BUILD_KERNEL
@@ -124,6 +136,11 @@ int sysdaemon_main(int argc, char *argv[])
     }
 
   /* Try to open radio devices. */
+  ret = hn70ap_radio_rxfunction(HN70AP_RADIO_AUX, sysdaemon_radiocallback, NULL, radiobuf, sizeof(radiobuf));
+  if(ret == 0)
+    {
+      printf("aux radio cb installed ok\n");
+    }
 
 #if defined(CONFIG_EXAMPLES_NSH)
   printf("*** Launching nsh\n");
