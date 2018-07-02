@@ -35,6 +35,7 @@
 
 #include <nuttx/config.h>
 
+#include <stdio.h>
 #include <string.h>
 
 #include <fcntl.h>
@@ -92,6 +93,10 @@ void *hn70ap_tun_rxthread(void *arg)
               //syslog(LOG_ERR, "tunnel rx failed -> errno=%d\n", errno);
             }
         } //callback defined
+      else
+       {
+         pthread_yield();
+       }
     } //tunnel alive
   syslog(LOG_INFO, "Stopped tunnel RX thread\n");
   return NULL;
@@ -153,7 +158,7 @@ int hn70ap_tun_devinit(char name[IFNAMSIZ])
       return -1;
     }
 
-  if ((fd = open("/dev/tun", O_RDWR | O_NONBLOCK)) < 0)
+  if ((fd = open("/dev/tun", O_RDWR)) < 0)
     {
       return fd;
     }
@@ -165,7 +170,8 @@ int hn70ap_tun_devinit(char name[IFNAMSIZ])
       strncpy(ifr.ifr_name, name, IFNAMSIZ);
     }
 
-  if ((errcode = ioctl(fd, TUNSETIFF, (unsigned long)&ifr)) < 0)
+  errcode = ioctl(fd, TUNSETIFF, (unsigned long)&ifr);
+  if(errcode < 0)
     {
       close(fd);
       return errcode;
@@ -177,6 +183,7 @@ int hn70ap_tun_devinit(char name[IFNAMSIZ])
 
   //Start RX thread
   tunnel->alive = true;
+  tunnel->callback = NULL;
   ret = pthread_create(&tunnel->rxthread, NULL, hn70ap_tun_rxthread, tunnel);
   if(ret < 0)
     {

@@ -110,9 +110,9 @@ int hn70ap_system_init(void)
     }
 
   strncpy(tunname, "uhf0", IFNAMSIZ);
-#if 0
+#if 1
   ret = hn70ap_tun_devinit(tunname);
-  if(ret != 0)
+  if(ret < 0)
     {
       syslog(LOG_ERR, "WARNING: Failed to initialize TUN interface\n");
     }
