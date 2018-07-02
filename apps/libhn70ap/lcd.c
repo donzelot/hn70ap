@@ -442,14 +442,13 @@ int hn70ap_lcd_drawstr(int row, int col, char *ch)
 
   while(*ch)
     {
-      hn70ap_lcd_drawchar_internal(cr,cc,*ch);
       if(*ch == '\r')
         {
 #ifdef CONFIG_LCD_UPDATE
-          rect.pt1.x = cr*8;
-          rect.pt1.y = col*8;
-          rect.pt2.x = rect.pt1.x + 8;
-          rect.pt2.y = (cc*8) + 8;
+          rect.pt1.x = col*8;
+          rect.pt1.y = cr*8;
+          rect.pt2.x = (cc*8) + 8;
+          rect.pt2.y = rect.pt1.y + 8;
 
           ret = ioctl(state.fd, FBIO_UPDATE, (unsigned long)((uintptr_t)&rect));
           if (ret < 0)
@@ -465,6 +464,7 @@ int hn70ap_lcd_drawstr(int row, int col, char *ch)
         }
       else
         {
+          hn70ap_lcd_drawchar_internal(cr,cc,*ch);
           cc += 1;
         }
       ch++;
