@@ -446,7 +446,7 @@ int hn70ap_lcd_drawstr(int row, int col, char *ch)
         {
 #ifdef CONFIG_LCD_UPDATE
           rect.pt1.x = col*8;
-          rect.pt1.y = row*8;
+          rect.pt1.y = cr*8;
           rect.pt2.x = (cc*8) + 8;
           rect.pt2.y = rect.pt1.y + 8;
 
