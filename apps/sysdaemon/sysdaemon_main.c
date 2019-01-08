@@ -142,7 +142,7 @@ int sysdaemon_main(int argc, char *argv[])
       printf("aux radio cb installed ok\n");
     }
 
-#if defined(CONFIG_EXAMPLES_NSH)
+#if defined(CONFIG_SYSTEM_NSH)
   printf("*** Launching nsh\n");
   nsh_main(argc, argv);
 #endif

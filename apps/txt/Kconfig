@@ -5,7 +5,7 @@
 
 config HN70AP_TXT
 	bool "TX test"
-	default y
+	default n
 	---help---
 		Test Radio Transmission.
 
