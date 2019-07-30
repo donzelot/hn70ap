@@ -5,4 +5,4 @@
 
 config LIBHN70AP
 	bool "Common Library"
-	default y
+	default n

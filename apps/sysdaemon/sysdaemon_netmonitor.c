@@ -192,6 +192,7 @@ static void* netmonitor_thread(void *arg)
   struct timespec reltime;
   struct ifreq ifr;
   struct sigaction act;
+  struct sigaction oact;
   bool devup;
   int ret;
   int sd;
@@ -221,7 +222,7 @@ static void* netmonitor_thread(void *arg)
   act.sa_sigaction = netmonitor_signal;
   act.sa_flags     = SA_SIGINFO;
 
-  ret = sigaction(SIGUSR2, &act, NULL);
+  ret = sigaction(SIGUSR2, &act, &oact);
   if (ret < 0)
     {
       ret = -errno;
@@ -394,7 +395,7 @@ static void* netmonitor_thread(void *arg)
 errout_with_notification:
 #  warning Missing logic
 errout_with_sigaction:
-#  warning Missing logic
+  (void)sigaction(SIGUSR2, &oact, NULL);
 errout_with_socket:
   close(sd);
 errout:
